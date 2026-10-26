@@ -1,0 +1,51 @@
+# ==============================================================================
+# Git Ignore - Nexus Photo & Document Optimizer (Enterprise Suite)
+# ==============================================================================
+
+# Backup and temporary files
+*.bak
+*.tmp
+*.old
+*.log
+*.swp
+PMC-ImageResizer-App.ps1.*
+
+# Compressed distribution packages
+*.zip
+*.rar
+*.7z
+*.tar.gz
+
+# Development scratch scripts and diagnostic logs
+scratch/
+proxy-logs/
+app_err.log
+app_out.log
+bc_err.log
+bc_out.log
+
+# Duplicate portable workspace folder (root folder is source of truth)
+PMC-Image-Optimizer-Portable/
+
+# Sensitive database connection profiles and credentials
+sql-auth.json
+sql-last-conn.txt
+sql-connections.json
+sql-databases.json
+
+# Raw ad-hoc data files
+formatted_values.txt
+
+# Operating System artifacts
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.DS_Store
+
+# IDE and Editor settings
+.vscode/
+.vs/
+.idea/
+*.suo
+*.user

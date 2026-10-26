@@ -1,0 +1,10 @@
+[
+  {
+    "Name": "Server 1 / SampleDB",
+    "ConnectionString": "data source=192.168.1.100;initial catalog=SampleDatabase;persist security info=True;User ID=sa;Password=YourPasswordHere"
+  },
+  {
+    "Name": "Localhost / TestDB (Windows Auth)",
+    "ConnectionString": "data source=localhost;initial catalog=TestDB;Integrated Security=True"
+  }
+]

@@ -1,0 +1,35 @@
+﻿{
+    "ApiKeys":  {
+                    "Admin":  "AQAAANCMnd8BFdERjHoAwE/Cl+sBAAAAE1eJjJkgqEymTzZELOc6jgAAAAACAAAAAAAQZgAAAAEAACAAAACwG0sbpr2x3kAY25cbRj4XSyp06y8N8dKhJzWJWUkH3wAAAAAOgAAAAAIAACAAAADAKW1QvHCZh/KuNZXyZdPpHBC/mNYfnCL6pEhREJFehTAAAABgqds7vkqiaSThIrvOhSXGlfN5c2nn/5tqT+7iQJY+ruEatEngsNOEREvJ7VDs3FZAAAAAjAZUViGI2T6fTv4ve68un3Fbo5/z33WmWjhl79aqhE4heniTZiAA8g3am7b8/E1fm75BuVvDbC52U6NOFdtJAQ==",
+                    "ReadOnly":  "AQAAANCMnd8BFdERjHoAwE/Cl+sBAAAAE1eJjJkgqEymTzZELOc6jgAAAAACAAAAAAAQZgAAAAEAACAAAAC2ZpUkhjfh/w9erefYgYaaX/E468f5s8+QyNtvrJlGdgAAAAAOgAAAAAIAACAAAACt+ZU+IwCo1VkQRQY962KGThm3uhLc5F546mQd1L5nOTAAAACqmp6JwzUtG9m7SEHjHBXslJxEubEdjBiUDUt9ekC0ShavS1gcxKk1+oM1mVJp5x5AAAAAn3312MYiwtZtVkGhF95wxzM0w+l6lHztWe0Fzi1m6S4nF/tprIf449IwogN5ZVhoslX0Ss62HBdnSYMD64Q+0w=="
+                },
+    "Servers":  {
+                    "LIVE":  {
+                                 "DefaultDatabase":  "NTIS_4037",
+                                 "SqlServer":  "192.168.1.16",
+                                 "UseWindowsAuth":  false,
+                                 "SqlPasswordDPAPI":  "AQAAANCMnd8BFdERjHoAwE/Cl+sBAAAAE1eJjJkgqEymTzZELOc6jgAAAAACAAAAAAAQZgAAAAEAACAAAAD6eOLg1vb9klkhnNKaUD55cMLtqPvGTFM+XB1ba/SXYgAAAAAOgAAAAAIAACAAAADdH1/1+zNEHRECfEUBcPqFgRVrdeZYWm+73JF0EsUmkDAAAABCtIeXD9J+AsbLLsMaClIPI661PdsxYzSlKvZrCtzHQIjLGJUhnarrTYD/YRGvdk1AAAAAYSfEvXjVFrKnBarNqhHUNEbYZR9S60zHV3e7dEAYPjNCbIh+JOmCEmWVpBUPg/AKdLw1oJu+xInfRFRdZXR+lA==",
+                                 "SqlUser":  "xEYgYIlOk2r09a7IVa0lT"
+                             }
+                },
+    "CreatedAt":  "2026-09-30T11:15:55.1186688+05:30",
+    "AllowedOrigins":  [
+                           "*"
+                       ],
+    "Version":  "3.0.0",
+    "RateLimitPerMinute":  120,
+    "Port":  9480,
+    "ConnectionTimeoutSec":  30,
+    "DefaultServer":  "LIVE",
+    "CommandTimeoutSec":  120,
+    "LogRetentionDays":  30,
+    "BlockedProcedures":  [
+                              "xp_cmdshell",
+                              "xp_regread",
+                              "xp_regwrite",
+                              "sp_configure",
+                              "sp_addlogin",
+                              "sp_droplogin",
+                              "sp_addsrvrolemember"
+                          ]
+}
