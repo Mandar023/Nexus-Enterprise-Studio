@@ -14,7 +14,7 @@ An enterprise-grade, zero-dependency desktop workspace designed for high-through
 ---
 
 > [!TIP]
-> **[Download Latest Release (v5.5.0 Portable ZIP)](https://github.com/Mandar023/Nexus-Enterprise-Studio/releases/latest)** — No installation required. Extract and double-click `Launch-App.vbs`.
+> 🚀 **[Explore Interactive 3D Showcase](https://mandar023.github.io/Nexus-Enterprise-Studio/)** &nbsp;|&nbsp; 📦 **[Download Latest Release (v5.5.0 Portable ZIP)](https://github.com/Mandar023/Nexus-Enterprise-Studio/releases/latest)** — No installation required. Extract and double-click `Launch-App.vbs`.
 
 ---
 
