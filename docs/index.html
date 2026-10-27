@@ -1,0 +1,1156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nexus Enterprise Studio — 3D Workspace Experience</title>
+  <link rel="icon" type="image/x-icon" href="../nexus_app.ico">
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Plus+Jakarta+Sans:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <!-- External Libraries (Three.js, GSAP, ScrollTrigger, Lenis) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="https://unpkg.com/lenis@1.1.9/dist/lenis.min.js"></script>
+
+  <style>
+    :root {
+      --bg: #030712;
+      --card-bg: rgba(13, 21, 41, 0.65);
+      --card-border: rgba(56, 189, 248, 0.18);
+      --primary: #0284c7;
+      --cyan: #38bdf8;
+      --neon-cyan: #00f2fe;
+      --emerald: #10b981;
+      --purple: #a855f7;
+      --amber: #f59e0b;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      overflow-x: hidden;
+      width: 100%;
+      height: 100%;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Fixed WebGL 3D Canvas Background */
+    #webgl-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    /* Subtle Cyber Grid Texture */
+    .bg-grid {
+      position: fixed;
+      inset: 0;
+      background-image: 
+        radial-gradient(rgba(56, 189, 248, 0.08) 1px, transparent 1px),
+        linear-gradient(to right, rgba(2, 132, 199, 0.03) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(2, 132, 199, 0.03) 1px, transparent 1px);
+      background-size: 32px 32px, 96px 96px, 96px 96px;
+      z-index: 2;
+      pointer-events: none;
+      opacity: 0.8;
+    }
+
+    /* Global Glow Vignette */
+    .vignette {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at 50% 50%, transparent 40%, rgba(3, 7, 18, 0.85) 100%);
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    /* Foreground Content Layer */
+    .scroll-container {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+    }
+
+    /* Sleek Floating Header / Navbar */
+    nav {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: min(92%, 1240px);
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(11, 19, 38, 0.7);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(56, 189, 248, 0.2);
+      border-radius: 999px;
+      z-index: 100;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(2, 132, 199, 0.15);
+      transition: all 0.3s ease;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .brand-logo {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #00f2fe, #4facfe, #8b5cf6);
+      display: grid;
+      place-items: center;
+      box-shadow: 0 0 15px rgba(0, 242, 254, 0.5);
+    }
+
+    .brand-logo svg {
+      width: 20px;
+      height: 20px;
+      fill: #030712;
+    }
+
+    .brand-text {
+      font-size: 15px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      background: linear-gradient(90deg, #f8fafc, #38bdf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .version-pill {
+      font-family: 'Fira Code', monospace;
+      font-size: 10px;
+      padding: 3px 8px;
+      background: rgba(16, 185, 129, 0.15);
+      color: #10b981;
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      border-radius: 999px;
+      font-weight: 700;
+      margin-left: 6px;
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .nav-btn {
+      padding: 8px 18px;
+      border-radius: 999px;
+      font-size: 12.5px;
+      font-weight: 700;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      cursor: pointer;
+    }
+
+    .nav-btn-secondary {
+      background: rgba(15, 23, 42, 0.6);
+      color: var(--text-muted);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .nav-btn-secondary:hover {
+      color: var(--text);
+      border-color: var(--cyan);
+      background: rgba(56, 189, 248, 0.1);
+      transform: translateY(-1px);
+    }
+
+    .nav-btn-primary {
+      background: linear-gradient(135deg, #0284c7, #2563eb);
+      color: #fff;
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      box-shadow: 0 0 15px rgba(2, 132, 199, 0.4);
+    }
+
+    .nav-btn-primary:hover {
+      box-shadow: 0 0 25px rgba(0, 242, 254, 0.6);
+      transform: translateY(-2px) scale(1.02);
+    }
+
+    /* Audio Toggle */
+    .audio-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      color: var(--cyan);
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .audio-btn:hover {
+      background: rgba(56, 189, 248, 0.2);
+    }
+
+    /* Scroll Indicator HUD */
+    .scroll-hud {
+      position: fixed;
+      right: 32px;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 50;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      align-items: center;
+    }
+
+    .hud-line {
+      width: 2px;
+      height: 120px;
+      background: rgba(255, 255, 255, 0.1);
+      position: relative;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .hud-progress {
+      width: 100%;
+      height: 0%;
+      background: linear-gradient(to bottom, #00f2fe, #a855f7);
+      box-shadow: 0 0 10px #00f2fe;
+    }
+
+    .hud-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.2);
+      transition: all 0.3s;
+      cursor: pointer;
+    }
+
+    .hud-dot.active {
+      background: var(--cyan);
+      box-shadow: 0 0 12px var(--cyan);
+      transform: scale(1.4);
+    }
+
+    /* Content Sections (Each is full viewport height) */
+    section {
+      min-height: 100vh;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      padding: 100px min(8vw, 120px);
+      position: relative;
+    }
+
+    /* Section Split Alignments (Left / Right Cards to let 3D Center Stage) */
+    .hero-section {
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      min-height: 110vh;
+    }
+
+    .align-left {
+      justify-content: flex-start;
+    }
+
+    .align-right {
+      justify-content: flex-end;
+    }
+
+    .align-center {
+      justify-content: center;
+      text-align: center;
+    }
+
+    /* Hero Typography */
+    .hero-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 16px;
+      background: rgba(2, 132, 199, 0.15);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      border-radius: 999px;
+      font-size: 11.5px;
+      font-weight: 700;
+      color: var(--cyan);
+      letter-spacing: 1.5px;
+      margin-bottom: 24px;
+      box-shadow: 0 0 20px rgba(2, 132, 199, 0.2);
+    }
+
+    .pulse-beacon {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 8px #10b981;
+      animation: beacon-pulse 2s infinite;
+    }
+
+    @keyframes beacon-pulse {
+      0% { transform: scale(0.9); opacity: 0.7; }
+      50% { transform: scale(1.4); opacity: 1; }
+      100% { transform: scale(0.9); opacity: 0.7; }
+    }
+
+    .hero-title {
+      font-size: clamp(40px, 6.5vw, 84px);
+      font-weight: 900;
+      line-height: 1.05;
+      letter-spacing: -1.5px;
+      max-width: 1100px;
+      margin-bottom: 20px;
+      background: linear-gradient(135deg, #ffffff 20%, #cbd5e1 50%, #38bdf8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+    }
+
+    .hero-subtitle {
+      font-size: clamp(16px, 1.8vw, 21px);
+      color: var(--text-muted);
+      max-width: 720px;
+      line-height: 1.6;
+      font-weight: 400;
+      margin-bottom: 36px;
+    }
+
+    .hero-cta-group {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .cta-btn {
+      padding: 14px 32px;
+      border-radius: 12px;
+      font-size: 14.5px;
+      font-weight: 700;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      cursor: pointer;
+    }
+
+    .cta-btn-primary {
+      background: linear-gradient(135deg, #0284c7, #2563eb);
+      color: #ffffff;
+      border: 1px solid rgba(56, 189, 248, 0.5);
+      box-shadow: 0 10px 30px rgba(2, 132, 199, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    }
+
+    .cta-btn-primary:hover {
+      transform: translateY(-3px) scale(1.03);
+      box-shadow: 0 15px 40px rgba(0, 242, 254, 0.6);
+    }
+
+    .cta-btn-secondary {
+      background: rgba(15, 23, 42, 0.7);
+      color: var(--text);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(12px);
+    }
+
+    .cta-btn-secondary:hover {
+      background: rgba(30, 41, 59, 0.8);
+      border-color: var(--cyan);
+      transform: translateY(-3px);
+    }
+
+    .scroll-hint {
+      margin-top: 50px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      color: #64748b;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      animation: float-hint 2s ease-in-out infinite;
+    }
+
+    @keyframes float-hint {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(8px); }
+    }
+
+    /* 3D Scroll Feature Cards */
+    .glass-card {
+      width: min(100%, 520px);
+      background: var(--card-bg);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid var(--card-border);
+      border-radius: 24px;
+      padding: 40px;
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      position: relative;
+      overflow: hidden;
+      transform: translateY(30px);
+      opacity: 0;
+      transition: border-color 0.3s;
+    }
+
+    .glass-card:hover {
+      border-color: rgba(56, 189, 248, 0.4);
+    }
+
+    .glass-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+      opacity: 0.7;
+    }
+
+    .card-stage-num {
+      font-family: 'Fira Code', monospace;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--cyan);
+      letter-spacing: 2px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-title {
+      font-size: 28px;
+      font-weight: 800;
+      line-height: 1.2;
+      margin-bottom: 16px;
+      color: #ffffff;
+      letter-spacing: -0.5px;
+    }
+
+    .card-desc {
+      font-size: 15px;
+      color: var(--text-muted);
+      line-height: 1.7;
+      margin-bottom: 24px;
+    }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .metric-box {
+      background: rgba(11, 19, 43, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 14px;
+    }
+
+    .metric-val {
+      font-size: 20px;
+      font-weight: 800;
+      color: #38bdf8;
+      font-family: 'Fira Code', monospace;
+      margin-bottom: 4px;
+    }
+
+    .metric-lbl {
+      font-size: 11px;
+      color: #64748b;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .pill-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .tech-pill {
+      font-family: 'Fira Code', monospace;
+      font-size: 11px;
+      padding: 5px 12px;
+      background: rgba(2, 132, 199, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      border-radius: 6px;
+      color: #bae6fd;
+      font-weight: 600;
+    }
+
+    /* Outro Showcase */
+    .final-showcase {
+      width: min(92%, 960px);
+      margin: 0 auto;
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(30px);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      border-radius: 32px;
+      padding: 60px 40px;
+      text-align: center;
+      box-shadow: 0 40px 100px rgba(0, 0, 0, 0.8), 0 0 40px rgba(2, 132, 199, 0.25);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      nav {
+        width: 95%;
+        padding: 10px 16px;
+      }
+      .brand-text { display: none; }
+      section {
+        padding: 80px 20px;
+        justify-content: center !important;
+      }
+      .glass-card {
+        width: 100%;
+        padding: 28px;
+      }
+      .scroll-hud { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- WebGL 3D Canvas (Hardware-Accelerated Three.js) -->
+  <canvas id="webgl-canvas"></canvas>
+
+  <!-- Ambient Grid & Vignette Overlay -->
+  <div class="bg-grid"></div>
+  <div class="vignette"></div>
+
+  <!-- Interactive Scroll HUD -->
+  <div class="scroll-hud">
+    <div class="hud-dot active" onclick="scrollToStage(0)"></div>
+    <div class="hud-line">
+      <div class="hud-progress" id="hud-bar"></div>
+    </div>
+    <div class="hud-dot" onclick="scrollToStage(1)"></div>
+    <div class="hud-dot" onclick="scrollToStage(2)"></div>
+    <div class="hud-dot" onclick="scrollToStage(3)"></div>
+    <div class="hud-dot" onclick="scrollToStage(4)"></div>
+    <div class="hud-dot" onclick="scrollToStage(5)"></div>
+  </div>
+
+  <!-- Fixed Top Navbar -->
+  <nav>
+    <a href="https://github.com/Mandar023/Nexus-Enterprise-Studio" class="brand">
+      <div class="brand-logo">
+        <svg viewBox="0 0 24 24">
+          <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+        </svg>
+      </div>
+      <div>
+        <span class="brand-text">NEXUS ENTERPRISE STUDIO</span>
+        <span class="version-pill">v5.5.0</span>
+      </div>
+    </a>
+
+    <div class="nav-actions">
+      <button class="audio-btn" id="audio-toggle" title="Toggle Cyber Sound Effects">
+        <svg id="audio-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+          <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+        </svg>
+      </button>
+      <a href="https://github.com/Mandar023/Nexus-Enterprise-Studio" target="_blank" class="nav-btn nav-btn-secondary">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+        </svg>
+        GitHub
+      </a>
+      <a href="https://github.com/Mandar023/Nexus-Enterprise-Studio/releases/latest" class="nav-btn nav-btn-primary">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="7 10 12 15 17 10"></polyline>
+          <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+        Download v5.5.0
+      </a>
+    </div>
+  </nav>
+
+  <!-- Main Scrollable Sections Container -->
+  <div class="scroll-container">
+
+    <!-- HERO SECTION -->
+    <section class="hero-section" id="stage-0">
+      <div class="hero-pill">
+        <div class="pulse-beacon"></div>
+        ENTERPRISE DESKTOP SUITE // 60 FPS
+      </div>
+      <h1 class="hero-title">NEXT-GEN MUNICIPAL SYSTEMS ARCHITECTURE</h1>
+      <p class="hero-subtitle">
+        Zero-dependency Windows workspace unifying multi-server file consolidation, native Beyond Compare 5 diffing, and infinite-timeout SQL management.
+      </p>
+      <div class="hero-cta-group">
+        <a href="https://github.com/Mandar023/Nexus-Enterprise-Studio/releases/latest" class="cta-btn cta-btn-primary">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          Download Portable v5.5.0
+        </a>
+        <a href="https://github.com/Mandar023/Nexus-Enterprise-Studio" target="_blank" class="cta-btn cta-btn-secondary">
+          Explore Source Code
+        </a>
+      </div>
+
+      <div class="scroll-hint">
+        <span>Scroll to Explore 3D Architecture</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <polyline points="19 12 12 19 5 12"></polyline>
+        </svg>
+      </div>
+    </section>
+
+    <!-- STAGE 1: MULTI-SERVER CONSOLIDATOR (Card on Left, 3D on Right) -->
+    <section class="align-left" id="stage-1">
+      <div class="glass-card" id="card-stage-1">
+        <div class="card-stage-num">
+          <span style="color:#10b981;">●</span> STAGE 01 // HIGH-SPEED SYNC
+        </div>
+        <h2 class="card-title">Multi-Server Consolidator Engine</h2>
+        <p class="card-desc">
+          Automated UNC migration engine that consolidates high-volume municipal camera photos and layout plans directly into central repository servers with zero network bottleneck.
+        </p>
+
+        <div class="metric-grid">
+          <div class="metric-box">
+            <div class="metric-val">O(1)</div>
+            <div class="metric-lbl">Hash Deduplication</div>
+          </div>
+          <div class="metric-box">
+            <div class="metric-val">100%</div>
+            <div class="metric-lbl">Common File Ignore</div>
+          </div>
+        </div>
+
+        <div class="pill-list">
+          <span class="tech-pill">PropertyImage Routing</span>
+          <span class="tech-pill">PlanPhoto Routing</span>
+          <span class="tech-pill">Ward Directory Crawler</span>
+          <span class="tech-pill">Excel/CSV Dual-Column Export</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- STAGE 2: BEYOND COMPARE 5 STUDIO (Card on Right, 3D on Left) -->
+    <section class="align-right" id="stage-2">
+      <div class="glass-card" id="card-stage-2">
+        <div class="card-stage-num">
+          <span style="color:#00f2fe;">●</span> STAGE 02 // NATIVE DIFF ENGINE
+        </div>
+        <h2 class="card-title">Beyond Compare 5 Studio</h2>
+        <p class="card-desc">
+          100% zero-dependency, offline diffing studio matching commercial standards. Execute side-by-side recursive folder comparisons, character-level code diffs, and byte-level hex table inspections.
+        </p>
+
+        <div class="metric-grid">
+          <div class="metric-box">
+            <div class="metric-val">Myers</div>
+            <div class="metric-lbl">Patience Diff Algorithm</div>
+          </div>
+          <div class="metric-box">
+            <div class="metric-val">CRC32</div>
+            <div class="metric-lbl">Timestamp &amp; Binary Match</div>
+          </div>
+        </div>
+
+        <div class="pill-list">
+          <span class="tech-pill">Folder Directory Tree</span>
+          <span class="tech-pill">Bi-directional Sync</span>
+          <span class="tech-pill">3-Way Code Merge</span>
+          <span class="tech-pill">Structured CSV Grid Diff</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- STAGE 3: SSMS SQL MANAGEMENT CONSOLE (Card on Left, 3D on Right) -->
+    <section class="align-left" id="stage-3">
+      <div class="glass-card" id="card-stage-3">
+        <div class="card-stage-num">
+          <span style="color:#a855f7;">●</span> STAGE 03 // ENTERPRISE DATABASE
+        </div>
+        <h2 class="card-title">SSMS-Grade SQL Studio</h2>
+        <p class="card-desc">
+          High-performance multi-tabbed database workbench engineered with unlimited timeout configuration, preventing client abortions on massive multi-owner municipal tax calculation procedures.
+        </p>
+
+        <div class="metric-grid">
+          <div class="metric-box">
+            <div class="metric-val">0 sec</div>
+            <div class="metric-lbl">Timeout (Infinite)</div>
+          </div>
+          <div class="metric-box">
+            <div class="metric-val">Safe</div>
+            <div class="metric-lbl">Rollback Test Mode</div>
+          </div>
+        </div>
+
+        <div class="pill-list">
+          <span class="tech-pill">Lazy-Loaded Object Explorer</span>
+          <span class="tech-pill">Tabbed Query Lifecycles</span>
+          <span class="tech-pill">T-SQL Parse Validator</span>
+          <span class="tech-pill">Excel Grid Exporter</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- STAGE 4: CRYSTAL REPORTS WMF VECTOR OPTIMIZER (Card on Right, 3D on Left) -->
+    <section class="align-right" id="stage-4">
+      <div class="glass-card" id="card-stage-4">
+        <div class="card-stage-num">
+          <span style="color:#f59e0b;">●</span> STAGE 04 // VECTOR PRECISION
+        </div>
+        <h2 class="card-title">Crystal Reports Vector Optimizer</h2>
+        <p class="card-desc">
+          Proprietary vector downscaling engine that compresses large property survey drawings down to &le;25 KB with solid pure-white canvas projection, eliminating transparent background artifacts.
+        </p>
+
+        <div class="metric-grid">
+          <div class="metric-box">
+            <div class="metric-val">&le; 25 KB</div>
+            <div class="metric-lbl">Target File Size</div>
+          </div>
+          <div class="metric-box">
+            <div class="metric-val">100%</div>
+            <div class="metric-lbl">Vector Line Sharpness</div>
+          </div>
+        </div>
+
+        <div class="pill-list">
+          <span class="tech-pill">WMF / EMF Vector Engine</span>
+          <span class="tech-pill">Solid White Canvas</span>
+          <span class="tech-pill">Govt Exam Photo/Sign Resizer</span>
+          <span class="tech-pill">AI Background Removal</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- STAGE 5: OUTRO SHOWCASE (Card in Center) -->
+    <section class="align-center" id="stage-5">
+      <div class="final-showcase" id="card-stage-5">
+        <div class="hero-pill" style="margin-bottom:16px;">
+          <div class="pulse-beacon"></div>
+          ENTERPRISE READY // WINDOWS 10, 11 &amp; SERVER
+        </div>
+        <h2 class="card-title" style="font-size: clamp(32px, 4vw, 48px); margin-bottom: 16px;">
+          Ready to Deploy Nexus Enterprise Studio?
+        </h2>
+        <p class="card-desc" style="max-width: 640px; margin: 0 auto 36px auto;">
+          Zero installation required. Self-contained portable executable with zero-prompt administrator elevation and full offline operation.
+        </p>
+
+        <div class="hero-cta-group">
+          <a href="https://github.com/Mandar023/Nexus-Enterprise-Studio/releases/latest" class="cta-btn cta-btn-primary" style="padding: 16px 40px; font-size: 16px;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            Download v5.5.0 Portable ZIP
+          </a>
+          <a href="https://github.com/Mandar023" target="_blank" class="cta-btn cta-btn-secondary" style="padding: 16px 32px;">
+            Connect with Mandar
+          </a>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- Audio Synthesis (Zero External Sound Files, Web Audio API) -->
+  <script>
+    let audioCtx = null;
+    let audioEnabled = false;
+
+    function playCyberBeep(freq = 440, type = 'sine', duration = 0.08) {
+      if (!audioEnabled) return;
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch(e) {}
+    }
+
+    document.getElementById('audio-toggle').addEventListener('click', () => {
+      audioEnabled = !audioEnabled;
+      const btn = document.getElementById('audio-toggle');
+      if (audioEnabled) {
+        btn.style.borderColor = '#10b981';
+        btn.style.color = '#10b981';
+        playCyberBeep(600, 'triangle', 0.15);
+      } else {
+        btn.style.borderColor = 'rgba(56, 189, 248, 0.3)';
+        btn.style.color = 'var(--cyan)';
+      }
+    });
+
+    document.querySelectorAll('a, button, .hud-dot').forEach(el => {
+      el.addEventListener('mouseenter', () => playCyberBeep(520, 'sine', 0.05));
+      el.addEventListener('click', () => playCyberBeep(780, 'triangle', 0.1));
+    });
+  </script>
+
+  <!-- Lenis Momentum Smooth Scrolling & GSAP ScrollTrigger Setup -->
+  <script>
+    // Initialize Lenis for buttery-smooth momentum scrolling
+    const lenis = new Lenis({
+      duration: 1.2,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      orientation: 'vertical',
+      gestureOrientation: 'vertical',
+      smoothWheel: true,
+      wheelMultiplier: 1.05,
+      touchMultiplier: 2
+    });
+
+    function raf(time) {
+      lenis.raf(time);
+      requestAnimationFrame(raf);
+    }
+    requestAnimationFrame(raf);
+
+    // Sync Lenis with GSAP ScrollTrigger
+    lenis.on('scroll', ScrollTrigger.update);
+    gsap.ticker.add((time) => {
+      lenis.raf(time * 1000);
+    });
+    gsap.ticker.lagSmoothing(0);
+
+    function scrollToStage(stageIndex) {
+      const el = document.getElementById(`stage-${stageIndex}`);
+      if (el) lenis.scrollTo(el);
+    }
+  </script>
+
+  <!-- Three.js 3D WebGL Engine & Scroll Choreography (Tubik Style) -->
+  <script>
+    const canvas = document.getElementById('webgl-canvas');
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.FogExp2(0x030712, 0.04);
+
+    const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+    camera.position.set(0, 0, 14);
+
+    const renderer = new THREE.WebGLRenderer({
+      canvas: canvas,
+      antialias: true,
+      alpha: true,
+      powerPreference: 'high-performance'
+    });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+    // Dynamic Lighting
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+    scene.add(ambientLight);
+
+    const dirLight1 = new THREE.DirectionalLight(0x00f2fe, 3.5);
+    dirLight1.position.set(8, 12, 10);
+    scene.add(dirLight1);
+
+    const dirLight2 = new THREE.DirectionalLight(0xa855f7, 2.5);
+    dirLight2.position.set(-8, -6, 6);
+    scene.add(dirLight2);
+
+    const pointLight = new THREE.PointLight(0x38bdf8, 4, 20);
+    pointLight.position.set(0, 0, 0);
+    scene.add(pointLight);
+
+    // -------------------------------------------------------------
+    // Build "The Nexus Core" 3D Model (Procedural Multi-Layered Tech Device)
+    // -------------------------------------------------------------
+    const nexusCore = new THREE.Group();
+    scene.add(nexusCore);
+
+    // 1. Central Glowing Energy Sphere
+    const sphereGeo = new THREE.IcosahedronGeometry(1.6, 3);
+    const sphereMat = new THREE.MeshStandardMaterial({
+      color: 0x00f2fe,
+      emissive: 0x0284c7,
+      emissiveIntensity: 0.8,
+      roughness: 0.15,
+      metalness: 0.8,
+      wireframe: false
+    });
+    const coreSphere = new THREE.Mesh(sphereGeo, sphereMat);
+    nexusCore.add(coreSphere);
+
+    // Wireframe Cage around Core
+    const cageGeo = new THREE.IcosahedronGeometry(1.85, 2);
+    const cageMat = new THREE.MeshBasicMaterial({
+      color: 0x38bdf8,
+      wireframe: true,
+      transparent: true,
+      opacity: 0.35
+    });
+    const coreCage = new THREE.Mesh(cageGeo, cageMat);
+    nexusCore.add(coreCage);
+
+    // 2. Concentric Gyroscope Gimbal Rings
+    const ringMat1 = new THREE.MeshStandardMaterial({
+      color: 0x0f172a,
+      emissive: 0x0284c7,
+      emissiveIntensity: 0.3,
+      metalness: 0.9,
+      roughness: 0.2
+    });
+    const ringGeo1 = new THREE.TorusGeometry(2.6, 0.08, 16, 64);
+    const ring1 = new THREE.Mesh(ringGeo1, ringMat1);
+    nexusCore.add(ring1);
+
+    const ringMat2 = new THREE.MeshStandardMaterial({
+      color: 0x1e293b,
+      emissive: 0x7c3aed,
+      emissiveIntensity: 0.4,
+      metalness: 0.9,
+      roughness: 0.2
+    });
+    const ringGeo2 = new THREE.TorusGeometry(3.1, 0.06, 16, 64);
+    const ring2 = new THREE.Mesh(ringGeo2, ringMat2);
+    nexusCore.add(ring2);
+
+    // 3. Detachable 3D Armor Slabs (The "Exploded View" components)
+    const plateMat = new THREE.MeshStandardMaterial({
+      color: 0x0a1122,
+      emissive: 0x0369a1,
+      emissiveIntensity: 0.2,
+      metalness: 0.95,
+      roughness: 0.25
+    });
+
+    const topPlateGeo = new THREE.CylinderGeometry(2.4, 2.7, 0.35, 6);
+    const topPlate = new THREE.Mesh(topPlateGeo, plateMat);
+    topPlate.position.y = 2.4;
+    nexusCore.add(topPlate);
+
+    const btmPlateGeo = new THREE.CylinderGeometry(2.7, 2.4, 0.35, 6);
+    const btmPlate = new THREE.Mesh(btmPlateGeo, plateMat);
+    btmPlate.position.y = -2.4;
+    nexusCore.add(btmPlate);
+
+    // 4. Optical Fiber Laser Columns
+    const laserMat = new THREE.MeshBasicMaterial({
+      color: 0x00f2fe,
+      transparent: true,
+      opacity: 0.6
+    });
+    const laserGeo = new THREE.CylinderGeometry(0.04, 0.04, 4.8, 8);
+    const lasers = [];
+    for (let i = 0; i < 6; i++) {
+      const angle = (i / 6) * Math.PI * 2;
+      const l = new THREE.Mesh(laserGeo, laserMat);
+      l.position.set(Math.cos(angle) * 2.1, 0, Math.sin(angle) * 2.1);
+      nexusCore.add(l);
+      lasers.push(l);
+    }
+
+    // 5. Floating Ambient Particle Field
+    const particleCount = 200;
+    const particleGeo = new THREE.BufferGeometry();
+    const particlePos = new Float32Array(particleCount * 3);
+    for (let i = 0; i < particleCount * 3; i += 3) {
+      particlePos[i] = (Math.random() - 0.5) * 35;
+      particlePos[i + 1] = (Math.random() - 0.5) * 35;
+      particlePos[i + 2] = (Math.random() - 0.5) * 25;
+    }
+    particleGeo.setAttribute('position', new THREE.BufferAttribute(particlePos, 3));
+    const particleMat = new THREE.PointsMaterial({
+      size: 0.12,
+      color: 0x38bdf8,
+      transparent: true,
+      opacity: 0.4
+    });
+    const particleField = new THREE.Points(particleGeo, particleMat);
+    scene.add(particleField);
+
+    // -------------------------------------------------------------
+    // Mouse Interactive Tilt & Smooth Lerp
+    // -------------------------------------------------------------
+    let mouseX = 0, mouseY = 0;
+    let targetTiltX = 0, targetTiltY = 0;
+    window.addEventListener('mousemove', (e) => {
+      mouseX = (e.clientX / window.innerWidth) * 2 - 1;
+      mouseY = -(e.clientY / window.innerHeight) * 2 + 1;
+      targetTiltX = mouseY * 0.3;
+      targetTiltY = mouseX * 0.4;
+    });
+
+    // -------------------------------------------------------------
+    // GSAP ScrollTrigger Choreography (Exact Tubik 3D Scroll Behavior)
+    // -------------------------------------------------------------
+    gsap.registerPlugin(ScrollTrigger);
+
+    // Global Scroll Progress Bar
+    ScrollTrigger.create({
+      trigger: '.scroll-container',
+      start: 'top top',
+      end: 'bottom bottom',
+      onUpdate: (self) => {
+        document.getElementById('hud-bar').style.height = `${self.progress * 100}%`;
+        
+        // Update active dot in HUD
+        const stageIndex = Math.min(5, Math.floor(self.progress * 6));
+        document.querySelectorAll('.hud-dot').forEach((dot, idx) => {
+          dot.classList.toggle('active', idx === stageIndex);
+        });
+      }
+    });
+
+    // MASTER 3D TIMELINE BOUND TO SCROLL
+    const tl3d = gsap.timeline({
+      scrollTrigger: {
+        trigger: '.scroll-container',
+        start: 'top top',
+        end: 'bottom bottom',
+        scrub: 1.2
+      }
+    });
+
+    // STAGE 0 -> STAGE 1: Transition to Multi-Server Consolidator
+    // 3D Core glides to the right (X: 3.8), tilts, and armor plates explode outward
+    tl3d.to(nexusCore.position, { x: 3.6, y: -0.2, z: 1.5, ease: 'power2.inOut' }, 0)
+        .to(nexusCore.rotation, { x: 0.4, y: 1.8, z: -0.2, ease: 'power2.inOut' }, 0)
+        .to(topPlate.position, { y: 4.2, ease: 'power2.inOut' }, 0) // Exploded plate upward
+        .to(btmPlate.position, { y: -4.2, ease: 'power2.inOut' }, 0) // Exploded plate downward
+        .to(coreSphere.scale, { x: 1.25, y: 1.25, z: 1.25, ease: 'power2.inOut' }, 0);
+
+    // STAGE 1 -> STAGE 2: Transition to Beyond Compare 5 Diff Studio
+    // 3D Core sweeps across screen to the left (X: -3.6), armor reassembles, and lasers glow
+    tl3d.to(nexusCore.position, { x: -3.8, y: 0.3, z: 2.2, ease: 'power2.inOut' }, 1)
+        .to(nexusCore.rotation, { x: -0.5, y: 3.6, z: 0.4, ease: 'power2.inOut' }, 1)
+        .to(topPlate.position, { y: 2.4, ease: 'power2.inOut' }, 1)
+        .to(btmPlate.position, { y: -2.4, ease: 'power2.inOut' }, 1)
+        .to(ring1.rotation, { x: Math.PI / 2, y: Math.PI / 4, ease: 'power2.inOut' }, 1);
+
+    // STAGE 2 -> STAGE 3: Transition to SSMS SQL Management Console
+    // 3D Core glides back to the right (X: 3.6), tilts upward into a low-angle power hub
+    tl3d.to(nexusCore.position, { x: 3.8, y: -0.5, z: 2.8, ease: 'power2.inOut' }, 2)
+        .to(nexusCore.rotation, { x: 0.7, y: 5.4, z: -0.3, ease: 'power2.inOut' }, 2)
+        .to(sphereMat.color, { r: 0.06, g: 0.72, b: 0.5, ease: 'power2.inOut' }, 2) // Shift to Emerald SQL glow
+        .to(sphereMat.emissive, { r: 0.02, g: 0.45, b: 0.3, ease: 'power2.inOut' }, 2);
+
+    // STAGE 3 -> STAGE 4: Transition to Crystal Reports Vector Optimizer
+    // 3D Core glides to the left (X: -3.6), rings spin rapidly, pure white vector aura
+    tl3d.to(nexusCore.position, { x: -3.6, y: -0.1, z: 3.2, ease: 'power2.inOut' }, 3)
+        .to(nexusCore.rotation, { x: -0.3, y: 7.2, z: 0.2, ease: 'power2.inOut' }, 3)
+        .to(sphereMat.color, { r: 0.9, g: 0.95, b: 1.0, ease: 'power2.inOut' }, 3) // Pure white vector glow
+        .to(sphereMat.emissive, { r: 0.2, g: 0.6, b: 0.9, ease: 'power2.inOut' }, 3);
+
+    // STAGE 4 -> STAGE 5: Finale Showcase
+    // 3D Core glides to dead center, scales up for full view
+    tl3d.to(nexusCore.position, { x: 0, y: 0.5, z: 0.5, ease: 'power2.inOut' }, 4)
+        .to(nexusCore.rotation, { x: 0.2, y: 9.0, z: 0, ease: 'power2.inOut' }, 4)
+        .to(topPlate.position, { y: 2.4, ease: 'power2.inOut' }, 4)
+        .to(btmPlate.position, { y: -2.4, ease: 'power2.inOut' }, 4)
+        .to(sphereMat.color, { r: 0.0, g: 0.95, b: 1.0, ease: 'power2.inOut' }, 4);
+
+    // Reveal animations for each stage's glass card
+    for (let i = 1; i <= 5; i++) {
+      gsap.to(`#card-stage-${i}`, {
+        scrollTrigger: {
+          trigger: `#stage-${i}`,
+          start: 'top 75%',
+          end: 'top 35%',
+          scrub: 1
+        },
+        y: 0,
+        opacity: 1,
+        ease: 'power3.out'
+      });
+    }
+
+    // -------------------------------------------------------------
+    // 60 FPS Render Loop with Smooth Physics
+    // -------------------------------------------------------------
+    const clock = new THREE.Clock();
+
+    function animate() {
+      requestAnimationFrame(animate);
+      const delta = clock.getDelta();
+      const time = clock.getElapsedTime();
+
+      // Continuous Idle Rotation & Floating
+      ring1.rotation.x += delta * 0.4;
+      ring1.rotation.y += delta * 0.6;
+      ring2.rotation.y -= delta * 0.5;
+      ring2.rotation.z += delta * 0.3;
+      coreCage.rotation.y += delta * 0.2;
+
+      // Pulse Laser Opacity
+      laserMat.opacity = 0.4 + Math.sin(time * 3) * 0.25;
+
+      // Subtle Particle Field Drift
+      particleField.rotation.y = time * 0.02;
+
+      // Smooth Mouse Tilt Interpolation (Damped Lerp)
+      nexusCore.rotation.x += (targetTiltX - (nexusCore.rotation.x % 0.5)) * 0.05;
+      nexusCore.rotation.z += (targetTiltY - (nexusCore.rotation.z % 0.5)) * 0.05;
+
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    // -------------------------------------------------------------
+    // Responsive Viewport Resize
+    // -------------------------------------------------------------
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    });
+  </script>
+</body>
+</html>
