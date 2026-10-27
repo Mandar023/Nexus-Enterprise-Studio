@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Nexus Enterprise Studio — High-Performance Distributed Systems Workspace</title>
+  <title>Nexus Enterprise Studio â€” High-Performance Distributed Systems Workspace</title>
   <link rel="icon" type="image/x-icon" href="../nexus_app.ico">
   
   <!-- Premium Typography: Syne, Space Grotesk, Plus Jakarta Sans, Fira Code -->
@@ -875,7 +875,7 @@
           NEXUS ENTERPRISE STUDIO
         </h1>
         <div style="font-family:'Space Grotesk', sans-serif; font-size: clamp(17px, 2.2vw, 26px); font-weight:700; color:#38bdf8; letter-spacing: -0.5px; margin-bottom: 22px;">
-          Distributed Systems &amp; Municipal Data Infrastructure
+          Distributed Systems &amp; Enterprise Data Infrastructure
         </div>
         <p style="font-size: clamp(14.5px, 1.5vw, 18px); color: var(--text-muted); line-height: 1.65; max-width: 720px; margin: 0 auto 36px auto;">
           Experience all 6 enterprise engines physically operating in real time: watch live network UNC packets route, laser diff scanners compare code, infinite-timeout SQL loops execute, and CAD drawings shrink below 25KB.
@@ -893,7 +893,7 @@
           <div class="chapter-tag"><span style="color:#10b981;">&#9679;</span> CHAPTER 01 // HIGH-SPEED SYNC</div>
           <h2 class="chapter-heading">Multi-Server Consolidator Engine</h2>
           <p class="chapter-text">
-            Monitors remote municipal servers (`192.168.1.11` and `192.168.1.22`), detects camera photos and survey layout plans across all Ward folders, filters duplicate files via instant O(1) hash indexing, and synchronizes only newly added records directly to `192.168.1.19`.
+            Monitors remote distributed cluster servers (`10.0.1.11` and `10.0.1.22`), detects camera photos and survey layout plans across all Ward folders, filters duplicate files via instant O(1) hash indexing, and synchronizes only newly added records directly to `10.0.2.19`.
           </p>
           <div class="stat-row">
             <div class="stat-box">
@@ -925,7 +925,7 @@
               <div class="window-dot dot-yellow"></div>
               <div class="window-dot dot-green"></div>
             </div>
-            <div class="window-title">Consolidator Conduit Engine &bull; 192.168.1.19 [MASTER]</div>
+            <div class="window-title">Consolidator Conduit Engine &bull; 10.0.2.19 [MASTER]</div>
             <div class="window-status-pill">
               <div class="live-pulse"></div>
               ACTIVE ROUTING
@@ -940,14 +940,14 @@
                   <span>REMOTE 11</span>
                   <span style="color:#10b981;">ONLINE</span>
                 </div>
-                <div class="server-ip">\\192.168.1.11\Ward</div>
+                <div class="server-ip">\\10.0.1.11\Ward</div>
               </div>
               <div class="server-card">
                 <div class="server-header">
                   <span>REMOTE 22</span>
                   <span style="color:#10b981;">ONLINE</span>
                 </div>
-                <div class="server-ip">\\192.168.1.22\Ward</div>
+                <div class="server-ip">\\10.0.1.22\Ward</div>
               </div>
             </div>
 
@@ -960,10 +960,10 @@
             <!-- Destination Master Node -->
             <div class="master-destination">
               <div style="font-family:'Space Grotesk'; font-size:12px; font-weight:800; color:#ffffff;">
-                MASTER REPOSITORY &bull; 192.168.1.19
+                MASTER REPOSITORY &bull; 10.0.2.19
               </div>
               <div style="font-family:'Fira Code'; font-size:9.5px; color:#6ee7b7; margin-top:2px;">
-                Verified Output Folders (PropertyImage &amp; PlanPhoto)
+                Verified Output Folders (AssetStorage &amp; DocumentArchive)
               </div>
             </div>
           </div>
@@ -978,7 +978,7 @@
           <div class="chapter-tag"><span style="color:#a855f7;">&#9679;</span> CHAPTER 02 // CODE &amp; FOLDER DIFF</div>
           <h2 class="chapter-heading">Beyond Compare 5 Studio</h2>
           <p class="chapter-text">
-            100% offline Myers and Patience diff engine. Compare full municipal project folder structures, verify CRC32 file checksums, inspect 3-way code merges, and view raw byte hex tables with zero external dependencies.
+            100% offline Myers and Patience diff engine. Compare full enterprise project folder structures, verify CRC32 file checksums, inspect 3-way code merges, and view raw byte hex tables with zero external dependencies.
           </p>
           <div class="stat-row">
             <div class="stat-box">
@@ -1016,20 +1016,20 @@
             <div class="diff-laser-sweep"></div>
             <!-- Left Pane -->
             <div class="diff-pane">
-              <div style="color:#64748b; margin-bottom:8px;">// Left: TaxConfig_v5.4.ps1</div>
+              <div style="color:#64748b; margin-bottom:8px;">// Left: EngineConfig_v5.4.ps1</div>
               <div>01 $Timeout = 30</div>
               <div class="line-del">02 - $MaxRetries = 3</div>
-              <div>03 $Server = "192.168.1.11"</div>
+              <div>03 $Server = "10.0.1.11"</div>
               <div>04 Invoke-Consolidate</div>
               <div class="line-del">05 - Write-Log "Legacy"</div>
               <div>06 return $true</div>
             </div>
             <!-- Right Pane -->
             <div class="diff-pane">
-              <div style="color:#64748b; margin-bottom:8px;">// Right: TaxConfig_v5.5.ps1</div>
+              <div style="color:#64748b; margin-bottom:8px;">// Right: EngineConfig_v5.5.ps1</div>
               <div>01 $Timeout = 0 # Infinite</div>
               <div class="line-add">02 + $O1HashFilter = $true</div>
-              <div>03 $Server = "192.168.1.19"</div>
+              <div>03 $Server = "10.0.2.19"</div>
               <div>04 Invoke-ConsolidateFast</div>
               <div class="line-add">05 + Write-Log "Zero-Loss Engine"</div>
               <div>06 return $true</div>
@@ -1046,7 +1046,7 @@
           <div class="chapter-tag"><span style="color:#00f2fe;">&#9679;</span> CHAPTER 03 // DATABASE OPERATIONS</div>
           <h2 class="chapter-heading">SSMS-Grade SQL Studio</h2>
           <p class="chapter-text">
-            Enterprise database terminal configured with `CommandTimeout = 0` (infinite). Execute deep municipal stored procedures like `prcAddTaxesForSingleOwnerID` without transaction timeouts or UI freezes.
+            Enterprise database terminal configured with `CommandTimeout = 0` (infinite). Execute deep enterprise stored procedures like `prcExecuteBatchAggregation` without transaction timeouts or UI freezes.
           </p>
           <div class="stat-row">
             <div class="stat-box">
@@ -1074,7 +1074,7 @@
               <div class="window-dot dot-yellow"></div>
               <div class="window-dot dot-green"></div>
             </div>
-            <div class="window-title">SSMS Studio &bull; prcAddTaxesForSingleOwnerID (Timeout: 0)</div>
+            <div class="window-title">SSMS Studio &bull; prcExecuteBatchAggregation (Timeout: 0)</div>
             <div class="window-status-pill">
               <div class="live-pulse"></div>
               BATCH EXECUTING
@@ -1084,21 +1084,21 @@
             <!-- Sidebar Object Explorer -->
             <div class="object-explorer">
               <div style="font-weight:bold; color:#fff; margin-bottom:8px;">OBJECT EXPLORER</div>
-              <div class="tree-item">&#9662; PanvelTaxDB</div>
+              <div class="tree-item">&#9662; NexusEnterpriseDB</div>
               <div class="tree-item" style="padding-left:10px;">&#9656; Tables (142)</div>
               <div class="tree-item" style="padding-left:10px;">&#9656; Views (28)</div>
               <div class="tree-item" style="padding-left:10px; color:#38bdf8;">&#9662; Stored Procs</div>
-              <div class="tree-item" style="padding-left:16px; font-size:9px; color:#38bdf8;">&bull; prcAddTaxes</div>
+              <div class="tree-item" style="padding-left:16px; font-size:9px; color:#38bdf8;">&bull; prcBatchProcess</div>
             </div>
             <!-- Query Workspace -->
             <div class="sql-workspace">
               <div class="sql-editor-pane">
-                <span style="color:#a855f7;">EXEC</span> [prcAddTaxesForSingleOwnerID] <span style="color:#38bdf8;">2026</span>, <span style="color:#f59e0b;" id="dyn-owner-id">3441047</span>, <span style="color:#38bdf8;">0, 0, 1</span>;
+                <span style="color:#a855f7;">EXEC</span> [prcExecuteBatchAggregation] <span style="color:#38bdf8;">2026</span>, <span style="color:#f59e0b;" id="dyn-owner-id">1002481</span>, <span style="color:#38bdf8;">0, 0, 1</span>;
               </div>
               <div class="sql-grid-pane">
                 <table class="sql-table">
                   <thead>
-                    <tr><th>Row</th><th>OwnerID</th><th>PropertyNo</th><th>Assessment</th><th>Tax Amount</th><th>Status</th></tr>
+                    <tr><th>Row</th><th>OwnerID</th><th>PropertyNo</th><th>Assessment</th><th>Processed Size</th><th>Status</th></tr>
                   </thead>
                   <tbody id="sql-dyn-tbody">
                     <!-- Populated dynamically -->
@@ -1302,16 +1302,16 @@
             <div class="radar-ray"></div>
             <!-- Dynamic Peer Blips -->
             <div class="mesh-node" style="top: 32%; left: 28%;">
-              <div class="node-label">192.168.1.11</div>
+              <div class="node-label">10.0.1.11</div>
             </div>
             <div class="mesh-node" style="top: 24%; left: 72%;">
-              <div class="node-label">192.168.1.22</div>
+              <div class="node-label">10.0.1.22</div>
             </div>
             <div class="mesh-node" style="top: 76%; left: 38%;">
-              <div class="node-label">192.168.1.19</div>
+              <div class="node-label">10.0.2.19</div>
             </div>
             <div class="mesh-node" style="top: 68%; left: 76%;">
-              <div class="node-label">192.168.1.16</div>
+              <div class="node-label">10.0.2.16</div>
             </div>
           </div>
         </div>
@@ -1402,12 +1402,12 @@
     // LIVE ENGINE 2: Real-Time SSMS SQL Loop
     // -------------------------------------------------------------
     const sampleTaxRows = [
-      { id: 3441047, prop: 'WARD-KH1-089', tax: '&#8377;14,850.00' },
-      { id: 3441048, prop: 'WARD-KH1-090', tax: '&#8377;18,220.00' },
-      { id: 3441049, prop: 'WARD-KH1-091', tax: '&#8377;9,410.00' },
-      { id: 822234,  prop: 'WARD-TPPG-012', tax: '&#8377;24,600.00' },
-      { id: 3439917, prop: 'WARD-TPPG-015', tax: '&#8377;11,150.00' },
-      { id: 738737,  prop: 'WARD-KH2-044', tax: '&#8377;32,400.00' }
+      { id: 1002481, prop: 'SYS-NODE-A01', tax: '14,850 KB' },
+      { id: 1002482, prop: 'SYS-NODE-A02', tax: '18,220 KB' },
+      { id: 1002483, prop: 'SYS-NODE-A03', tax: '9,410 KB' },
+      { id: 1002484,  prop: 'SYS-NODE-B01', tax: '24,600 KB' },
+      { id: 1002485, prop: 'SYS-NODE-B02', tax: '11,150 KB' },
+      { id: 1002486,  prop: 'SYS-NODE-C01', tax: '32,400 KB' }
     ];
 
     let rowIdx = 0;
