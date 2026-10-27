@@ -1,4 +1,4 @@
-﻿# ================================================================================
+ # ================================================================================
 # NEXUS PHOTO & DOCUMENT OPTIMIZER (ENTERPRISE EDITION)
 # Startup Initialization: SmartScreen Unblock, Admin Privilege Detection & Config
 # ================================================================================
@@ -2074,7 +2074,7 @@ try {
                     <!-- Dark / Light Theme Toggle Button -->
                     <Border x:Name="btnToggleTheme" Background="#0B132B" BorderBrush="#1E293B" BorderThickness="1.2" CornerRadius="10" Padding="12,6" Margin="0,0,8,0" VerticalAlignment="Center" Cursor="Hand" ToolTip="Toggle Dark / Light Executive Theme">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                            <TextBlock x:Name="txtThemeIcon" Text="â—" FontSize="12" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                            <TextBlock x:Name="txtThemeIcon" Text="MODE" FontSize="12" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,6,0" VerticalAlignment="Center"/>
                             <TextBlock x:Name="txtThemeLabel" Text="DARK" FontSize="11" FontWeight="SemiBold" Foreground="#94A3B8" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Border>
@@ -4235,7 +4235,7 @@ function Set-ApplicationTheme([bool]$isDark) {
         $window.Resources["SqlHeaderBorderBrush"] = $bc.ConvertFromString("#3F3F46")
         
         # Toggle Button & Arc Reactor Capsule
-        if ($txtThemeIcon)  { $txtThemeIcon.Text = "â—"; $txtThemeIcon.Foreground = $bc.ConvertFromString("#38BDF8") }
+        if ($txtThemeIcon)  { $txtThemeIcon.Text = "MODE"; $txtThemeIcon.Foreground = $bc.ConvertFromString("#38BDF8") }
         if ($txtThemeLabel) { $txtThemeLabel.Text = "DARK"; $txtThemeLabel.Foreground = $bc.ConvertFromString("#38BDF8") }
         if ($btnToggleTheme) { $btnToggleTheme.Background = $bc.ConvertFromString("#0A1120"); $btnToggleTheme.BorderBrush = $bc.ConvertFromString("#0284C7") }
         if ($mascotContainer) { $mascotContainer.Background = $bc.ConvertFromString("#0A1120"); $mascotContainer.BorderBrush = $bc.ConvertFromString("#00F0FF") }
@@ -4319,7 +4319,7 @@ function Set-ApplicationTheme([bool]$isDark) {
         $window.Resources["SqlHeaderBorderBrush"] = $bc.ConvertFromString("#CBD5E1")
         
         # Toggle Button & Arc Reactor Capsule
-        if ($txtThemeIcon)  { $txtThemeIcon.Text = "â—"; $txtThemeIcon.Foreground = $bc.ConvertFromString("#0284C7") }
+        if ($txtThemeIcon)  { $txtThemeIcon.Text = "MODE"; $txtThemeIcon.Foreground = $bc.ConvertFromString("#0284C7") }
         if ($txtThemeLabel) { $txtThemeLabel.Text = "LIGHT"; $txtThemeLabel.Foreground = $bc.ConvertFromString("#0284C7") }
         if ($btnToggleTheme) { $btnToggleTheme.Background = $bc.ConvertFromString("#FFFFFF"); $btnToggleTheme.BorderBrush = $bc.ConvertFromString("#0284C7") }
         if ($mascotContainer) { $mascotContainer.Background = $bc.ConvertFromString("#0A1120"); $mascotContainer.BorderBrush = $bc.ConvertFromString("#0284C7") }
