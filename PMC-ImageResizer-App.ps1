@@ -2250,74 +2250,189 @@ try {
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <!-- Configuration & Paths Card -->
-            <Border Grid.Row="0" Background="{DynamicResource CardBgBrush}" CornerRadius="12" Padding="18,14" Margin="0,0,0,10" BorderBrush="#1E3252" BorderThickness="1">
-                <StackPanel>
-                    <TextBlock Text="STEP 1: SELECT EXTRACTION MODE" FontWeight="Bold" FontSize="12" Foreground="#38BDF8" Margin="0,0,0,8"/>
-                    <Grid Margin="0,0,0,12">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <Border Grid.Column="0" Background="{DynamicResource CardBgDarkBrush}" CornerRadius="8" Padding="12,10" Margin="0,0,6,0" BorderBrush="#1C2D4A" BorderThickness="1">
-                            <RadioButton x:Name="rbExtractModePhotos" GroupName="ExtractModeGroup" Content="Property Photos (JPG/JPEG - &lt;25KB)" IsChecked="True"/>
-                        </Border>
-                        <Border Grid.Column="1" Background="{DynamicResource CardBgDarkBrush}" CornerRadius="8" Padding="12,10" Margin="3,0,3,0" BorderBrush="#1C2D4A" BorderThickness="1">
-                            <RadioButton x:Name="rbExtractModeWmf" GroupName="ExtractModeGroup" Content="PlanPhoto Vector (WMF / EMF Solid White)"/>
-                        </Border>
-                        <Border Grid.Column="2" Background="{DynamicResource CardBgDarkBrush}" CornerRadius="8" Padding="12,10" Margin="6,0,0,0" BorderBrush="#1C2D4A" BorderThickness="1">
-                            <RadioButton x:Name="rbExtractModeBoth" GroupName="ExtractModeGroup" Content="Both Photos &amp; PlanPhoto WMFs"/>
-                        </Border>
-                    </Grid>
-
-                    <TextBlock Text="STEP 2: SELECT SOURCE SERVER FOLDER / NETWORK SHARE" FontWeight="Bold" FontSize="12" Foreground="#38BDF8" Margin="0,0,0,4"/>
-                    <Grid Margin="0,0,0,10">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBox x:Name="txtExtractSource" Grid.Column="0" Text="\\192.168.1.22\d\WebApplicationHost\PMCPhotoStorage.org\wwwroot\Files\PropertyImage"/>
-                        <Button x:Name="btnExtractBrowseSource" Grid.Column="1" Style="{StaticResource ActionButton}" Content="Browse Server..." Margin="10,0,0,0" Width="150" Background="{StaticResource CyanBadgeBrush}"/>
-                    </Grid>
-
-                    <TextBlock Text="STEP 3: SELECT EXCEL FILE WITH PROPERTY NUMBERS / OWNER IDS" FontWeight="Bold" FontSize="12" Foreground="#38BDF8" Margin="0,0,0,4"/>
-                    <Grid Margin="0,0,0,10">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBox x:Name="txtExtractExcel" Grid.Column="0" Text="C:\Users\mandar.k\Downloads\ASWSWSSAAAA\New folder\indi prop.xlsx"/>
-                        <Button x:Name="btnExtractBrowseExcel" Grid.Column="1" Style="{StaticResource ActionButton}" Content="Browse Excel..." Margin="10,0,0,0" Width="150" Background="#0D9488"/>
-                    </Grid>
-
-                    <TextBlock Text="STEP 4: OUTPUT FOLDER ON DESKTOP" FontWeight="Bold" FontSize="12" Foreground="#38BDF8" Margin="0,0,0,4"/>
-                    <Grid Margin="0,0,0,6">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBox x:Name="txtExtractDest" Grid.Column="0" Text="C:\Users\mandar.k\Desktop\Collected_Property_Photos"/>
-                        <Button x:Name="btnExtractBrowseDest" Grid.Column="1" Style="{StaticResource ActionButton}" Content="Browse Dest..." Margin="10,0,0,0" Width="130" Background="#1E293B"/>
-                        <Button x:Name="btnExtractResetDest" Grid.Column="2" Style="{StaticResource ActionButton}" Content="Auto Desktop" Margin="6,0,0,0" Width="120" Background="#334155"/>
-                    </Grid>
-
-                    <WrapPanel Margin="0,6,0,0">
-                        <CheckBox x:Name="chkExtractWhiteCanvas" Content="Solid Pure White Background on WMFs (Crystal Reports Safe)" IsChecked="True" Foreground="#34D399" FontWeight="SemiBold" Margin="0,0,20,6"/>
-                        <CheckBox x:Name="chkExtractAutoResize" Content="Compress &amp; Resize Photos to &lt;25KB on Copy" IsChecked="False" Foreground="#38BDF8" FontWeight="SemiBold" Margin="0,0,20,6"/>
-                        <CheckBox x:Name="chkExtractSubfolders" Content="Organize in Subfolders per Property ID" IsChecked="False" Margin="0,0,20,6"/>
-                        <CheckBox x:Name="chkExtractRecursive" Content="Scan Subdirectories Recursively" IsChecked="True" Margin="0,0,0,6"/>
-                    </WrapPanel>
-                </StackPanel>
+            <!-- Mode Switcher: Standard Property Extractor vs 3-URL Plan Photo Sharer & Sync -->
+            <Border Grid.Row="0" Background="{DynamicResource CardBgDarkBrush}" CornerRadius="10" Padding="4" Margin="0,0,0,8" BorderBrush="#0284C7" BorderThickness="1.5">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Button x:Name="btnSubModeStandardExtract" Grid.Column="0" Content="1. Standard Property Extractor (Excel / Single Server)" FontWeight="Bold" FontSize="11.5" Height="34" Cursor="Hand" Background="#0284C7" Foreground="White" BorderThickness="0"/>
+                    <Button x:Name="btnSubModeThreeUrlSync" Grid.Column="1" Content="2. Multi-Server Consolidator (Images &amp; Plans to \\192.168.1.19)" FontWeight="Bold" FontSize="11.5" Height="34" Cursor="Hand" Background="#0D1527" Foreground="#94A3B8" BorderThickness="0" Margin="4,0,0,0"/>
+                </Grid>
             </Border>
 
-            <!-- KPI Metric Cards -->
-            <Grid Grid.Row="1" Margin="0,0,0,10">
+            <!-- Active Configuration Panels -->
+            <!-- Sub-Panel 1: Standard Extractor (Step 1 to 4) -->
+            <StackPanel x:Name="pnlStandardExtract" Grid.Row="1">
+                <Border Background="{DynamicResource CardBgBrush}" CornerRadius="12" Padding="18,14" Margin="0,0,0,8" BorderBrush="#1E3252" BorderThickness="1">
+                    <StackPanel>
+                        <TextBlock Text="STEP 1: SELECT EXTRACTION MODE" FontWeight="Bold" FontSize="12" Foreground="#38BDF8" Margin="0,0,0,8"/>
+                        <Grid Margin="0,0,0,12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Border Grid.Column="0" Background="{DynamicResource CardBgDarkBrush}" CornerRadius="8" Padding="12,10" Margin="0,0,6,0" BorderBrush="#1C2D4A" BorderThickness="1">
+                                <RadioButton x:Name="rbExtractModePhotos" GroupName="ExtractModeGroup" Content="Property Photos (JPG/JPEG - &lt;25KB)" IsChecked="True"/>
+                            </Border>
+                            <Border Grid.Column="1" Background="{DynamicResource CardBgDarkBrush}" CornerRadius="8" Padding="12,10" Margin="3,0,3,0" BorderBrush="#1C2D4A" BorderThickness="1">
+                                <RadioButton x:Name="rbExtractModeWmf" GroupName="ExtractModeGroup" Content="PlanPhoto Vector (WMF / EMF Solid White)"/>
+                            </Border>
+                            <Border Grid.Column="2" Background="{DynamicResource CardBgDarkBrush}" CornerRadius="8" Padding="12,10" Margin="6,0,0,0" BorderBrush="#1C2D4A" BorderThickness="1">
+                                <RadioButton x:Name="rbExtractModeBoth" GroupName="ExtractModeGroup" Content="Both Photos &amp; PlanPhoto WMFs"/>
+                            </Border>
+                        </Grid>
+
+                        <TextBlock Text="STEP 2: SELECT SOURCE SERVER FOLDER / NETWORK SHARE" FontWeight="Bold" FontSize="12" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                        <Grid Margin="0,0,0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox x:Name="txtExtractSource" Grid.Column="0" Text="\\192.168.1.22\d\WebApplicationHost\PMCPhotoStorage.org\wwwroot\Files\PropertyImage"/>
+                            <Button x:Name="btnExtractBrowseSource" Grid.Column="1" Style="{StaticResource ActionButton}" Content="Browse Server..." Margin="10,0,0,0" Width="150" Background="{StaticResource CyanBadgeBrush}"/>
+                        </Grid>
+
+                        <TextBlock Text="STEP 3: SELECT EXCEL FILE WITH PROPERTY NUMBERS / OWNER IDS" FontWeight="Bold" FontSize="12" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                        <Grid Margin="0,0,0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox x:Name="txtExtractExcel" Grid.Column="0" Text="C:\Users\mandar.k\Downloads\ASWSWSSAAAA\New folder\indi prop.xlsx"/>
+                            <Button x:Name="btnExtractBrowseExcel" Grid.Column="1" Style="{StaticResource ActionButton}" Content="Browse Excel..." Margin="10,0,0,0" Width="150" Background="#0D9488"/>
+                        </Grid>
+
+                        <TextBlock Text="STEP 4: OUTPUT FOLDER ON DESKTOP" FontWeight="Bold" FontSize="12" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                        <Grid Margin="0,0,0,6">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox x:Name="txtExtractDest" Grid.Column="0" Text="C:\Users\mandar.k\Desktop\Collected_Property_Photos"/>
+                            <Button x:Name="btnExtractBrowseDest" Grid.Column="1" Style="{StaticResource ActionButton}" Content="Browse Dest..." Margin="10,0,0,0" Width="130" Background="#1E293B"/>
+                            <Button x:Name="btnExtractResetDest" Grid.Column="2" Style="{StaticResource ActionButton}" Content="Auto Desktop" Margin="6,0,0,0" Width="120" Background="#334155"/>
+                        </Grid>
+
+                        <WrapPanel Margin="0,6,0,0">
+                            <CheckBox x:Name="chkExtractWhiteCanvas" Content="Solid Pure White Background on WMFs (Crystal Reports Safe)" IsChecked="True" Foreground="#34D399" FontWeight="SemiBold" Margin="0,0,20,6"/>
+                            <CheckBox x:Name="chkExtractAutoResize" Content="Compress &amp; Resize Photos to &lt;25KB on Copy" IsChecked="False" Foreground="#38BDF8" FontWeight="SemiBold" Margin="0,0,20,6"/>
+                            <CheckBox x:Name="chkExtractSubfolders" Content="Organize in Subfolders per Property ID" IsChecked="False" Margin="0,0,20,6"/>
+                            <CheckBox x:Name="chkExtractRecursive" Content="Scan Subdirectories Recursively" IsChecked="True" Margin="0,0,0,6"/>
+                        </WrapPanel>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+
+            <!-- Sub-Panel 2: Multi-Server Consolidator (Images & Plans to 192.168.1.19) -->
+            <StackPanel x:Name="pnlThreeUrlSync" Grid.Row="1" Visibility="Collapsed">
+                <Border Background="{DynamicResource CardBgBrush}" CornerRadius="12" Padding="18,12" Margin="0,0,0,8" BorderBrush="#1E3252" BorderThickness="1">
+                    <StackPanel>
+                        <!-- Top Header & Quick Presets -->
+                        <Grid Margin="0,0,0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="MULTI-SERVER CONSOLIDATOR &amp; SHARER (TO \\192.168.1.19)" FontWeight="Bold" FontSize="12.5" Foreground="#34D399"/>
+                                <TextBlock Text="Consolidate whole images &amp; plans from \\192.168.1.11 (Wards) and \\192.168.1.22 into \\192.168.1.19 Target. Common files ignored." FontSize="11" Foreground="#94A3B8" Margin="0,2,0,0"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                <Button x:Name="btnThreeUrlPresetPanvel" Style="{StaticResource ActionButton}" Content="Quick Load Panvel 3-Server Preset" Background="#0D9488" FontSize="11.5" FontWeight="Bold" Padding="14,4" Height="32" Margin="0,0,8,0" VerticalContentAlignment="Center" ToolTip="Pre-fill exact paths for 192.168.1.11 (Wards), 192.168.1.22, and 192.168.1.19 Target"/>
+                                <Button x:Name="btnThreeUrlTestConn" Style="{StaticResource ActionButton}" Content="Test 3 URLs Connectivity" Background="#0284C7" FontSize="11.5" Padding="14,4" Height="32" VerticalContentAlignment="Center"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- URL 1 Row (Default: 192.168.1.19 Target Master) -->
+                        <Border x:Name="borderUrl1" Background="{DynamicResource CardBgDarkBrush}" CornerRadius="8" Padding="10,6" Margin="0,0,0,6" BorderBrush="#059669" BorderThickness="1.5">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="190"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <RadioButton x:Name="rbUrlParent1" Grid.Column="0" GroupName="ParentUrlGroup" Content="URL 1: TARGET (192.168.1.19)" IsChecked="True" Foreground="#34D399" FontWeight="Bold" VerticalAlignment="Center" ToolTip="Designated Destination Hub for PropertyImage &amp; PlanPhoto"/>
+                                <TextBox x:Name="txtThreeUrl1" Grid.Column="1" Text="\\192.168.1.19\d\NewWebApps\Tabcollection.Panvelmc.org\Files" VerticalAlignment="Center" Margin="8,0,8,0" ToolTip="Target Server Files root (auto-routes into PropertyImage and PlanPhoto)"/>
+                                <Button x:Name="btnThreeUrlBrowse1" Grid.Column="2" Style="{StaticResource ActionButton}" Content="Browse 1..." Width="110" Background="#1E293B" Height="32" Padding="12,2" FontSize="12" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
+                            </Grid>
+                        </Border>
+
+                        <!-- URL 2 Row (Default: 192.168.1.11 Ward Structure) -->
+                        <Border x:Name="borderUrl2" Background="{DynamicResource CardBgDarkBrush}" CornerRadius="8" Padding="10,6" Margin="0,0,0,6" BorderBrush="#1E3252" BorderThickness="1">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="190"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <RadioButton x:Name="rbUrlParent2" Grid.Column="0" GroupName="ParentUrlGroup" Content="URL 2: SOURCE 11 (WARDS)" Foreground="#94A3B8" FontWeight="SemiBold" VerticalAlignment="Center" ToolTip="Source with ward subfolders (e.g. ward no TPPG\Photo and \Plan)"/>
+                                <TextBox x:Name="txtThreeUrl2" Grid.Column="1" Text="\\192.168.1.11\d\Images\NTIS_4030" VerticalAlignment="Center" Margin="8,0,8,0" ToolTip="Ward Root Folder (e.g. ward no TPPG\Photo and ward no TPPG\Plan)"/>
+                                <Button x:Name="btnThreeUrlBrowse2" Grid.Column="2" Style="{StaticResource ActionButton}" Content="Browse 2..." Width="110" Background="#1E293B" Height="32" Padding="12,2" FontSize="12" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
+                            </Grid>
+                        </Border>
+
+                        <!-- URL 3 Row (Default: 192.168.1.22 PMC Storage) -->
+                        <Border x:Name="borderUrl3" Background="{DynamicResource CardBgDarkBrush}" CornerRadius="8" Padding="10,6" Margin="0,0,0,8" BorderBrush="#1E3252" BorderThickness="1">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="190"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <RadioButton x:Name="rbUrlParent3" Grid.Column="0" GroupName="ParentUrlGroup" Content="URL 3: SOURCE 22 (PMC)" Foreground="#94A3B8" FontWeight="SemiBold" VerticalAlignment="Center" ToolTip="Source with PropertyImage and PlanPhoto"/>
+                                <TextBox x:Name="txtThreeUrl3" Grid.Column="1" Text="\\192.168.1.22\d\WebApplicationHost\PMCPhotoStorage.org\wwwroot\Files" VerticalAlignment="Center" Margin="8,0,8,0" ToolTip="PMC Storage Files Root (with PropertyImage and PlanPhoto)"/>
+                                <Button x:Name="btnThreeUrlBrowse3" Grid.Column="2" Style="{StaticResource ActionButton}" Content="Browse 3..." Width="110" Background="#1E293B" Height="32" Padding="12,2" FontSize="12" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
+                            </Grid>
+                        </Border>
+
+                        <!-- Content & Sharing Action Selector -->
+                        <Grid Margin="0,0,0,6">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="MIGRATE CONTENT:" FontWeight="Bold" FontSize="11" Foreground="#38BDF8" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                            <WrapPanel Grid.Column="1" VerticalAlignment="Center">
+                                <RadioButton x:Name="rbSyncCategoryBoth" GroupName="SyncCategoryGroup" Content="Both Whole Images &amp; Plans (Consolidate All to 19)" IsChecked="True" Foreground="#34D399" FontWeight="SemiBold" Margin="0,0,18,4"/>
+                                <RadioButton x:Name="rbSyncCategoryPhotosOnly" GroupName="SyncCategoryGroup" Content="Whole Images Only (Photos -> PropertyImage)" Foreground="#38BDF8" FontWeight="SemiBold" Margin="0,0,18,4"/>
+                                <RadioButton x:Name="rbSyncCategoryPlansOnly" GroupName="SyncCategoryGroup" Content="Plans Only (Plans -> PlanPhoto)" Foreground="#FBBF24" FontWeight="SemiBold" Margin="0,0,18,4"/>
+                            </WrapPanel>
+                        </Grid>
+
+                        <Grid Margin="0,0,0,4">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="TARGET ACTION:" FontWeight="Bold" FontSize="11" Foreground="#38BDF8" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                            <WrapPanel Grid.Column="1" VerticalAlignment="Center">
+                                <RadioButton x:Name="rbSyncActionToParent" GroupName="SyncActionGroup" Content="Migrate to Target \\192.168.1.19 (Skip Common Files)" IsChecked="True" Foreground="#34D399" FontWeight="SemiBold" Margin="0,0,18,4"/>
+                                <RadioButton x:Name="rbSyncActionBiDirectional" GroupName="SyncActionGroup" Content="Share Between All URLs (Full 2-Way Sync)" Foreground="#38BDF8" FontWeight="SemiBold" Margin="0,0,18,4"/>
+                                <RadioButton x:Name="rbSyncActionExtractDesktop" GroupName="SyncActionGroup" Content="Extract All to Desktop Folder" Foreground="#FBBF24" FontWeight="SemiBold" Margin="0,0,18,4"/>
+                            </WrapPanel>
+                        </Grid>
+
+                        <WrapPanel Margin="0,4,0,0">
+                            <CheckBox x:Name="chkSyncRecursive" Content="Scan Subdirectories Recursively (all Ward folders e.g. TPPG, KH1, ...)" IsChecked="True" Foreground="#E2E8F0" FontWeight="SemiBold" Margin="0,0,20,4"/>
+                            <CheckBox x:Name="chkSyncIgnoreCommon" Content="Ignore Common Files (Do not re-copy if already present in Target 19)" IsChecked="True" Foreground="#34D399" FontWeight="SemiBold" Margin="0,0,20,4"/>
+                            <CheckBox x:Name="chkSyncWhiteCanvas" Content="Apply Solid Pure White Background on WMF Plans (&lt;25KB Safe)" IsChecked="True" Foreground="#38BDF8" FontWeight="SemiBold" Margin="0,0,20,4"/>
+                            <CheckBox x:Name="chkSyncDryRun" Content="Simulation Only (Dry-Run Audit without copying)" IsChecked="False" Foreground="#F59E0B" FontWeight="SemiBold" Margin="0,0,20,4"/>
+                        </WrapPanel>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+
+            <!-- Row 2: Statistics Cards (Standard) -->
+            <Grid x:Name="gridStatsStandard" Grid.Row="2" Margin="0,0,0,8">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
@@ -2325,37 +2440,75 @@ try {
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
-                <Border Grid.Column="0" Background="{DynamicResource CardBgBrush}" CornerRadius="10" Padding="14,12" Margin="0,0,8,0" BorderBrush="#0284C7" BorderThickness="1.5">
+                <Border Grid.Column="0" Background="{DynamicResource CardBgBrush}" CornerRadius="10" Padding="14,10" Margin="0,0,8,0" BorderBrush="#0284C7" BorderThickness="1.5">
                     <StackPanel>
                         <TextBlock Text="TOTAL PROPERTIES" FontSize="11" Foreground="#94A3B8" FontWeight="Bold"/>
-                        <TextBlock x:Name="lblExtractTotalProp" Text="0" FontSize="24" FontWeight="Bold" Foreground="#38BDF8" Margin="0,3,0,0"/>
+                        <TextBlock x:Name="lblExtractTotalProp" Text="0" FontSize="22" FontWeight="Bold" Foreground="#38BDF8" Margin="0,2,0,0"/>
                     </StackPanel>
                 </Border>
 
-                <Border Grid.Column="1" Background="{DynamicResource CardBgBrush}" CornerRadius="10" Padding="14,12" Margin="4,0,4,0" BorderBrush="#059669" BorderThickness="1.5">
+                <Border Grid.Column="1" Background="{DynamicResource CardBgBrush}" CornerRadius="10" Padding="14,10" Margin="4,0,4,0" BorderBrush="#059669" BorderThickness="1.5">
                     <StackPanel>
                         <TextBlock Text="PROPERTIES FOUND" FontSize="11" Foreground="#94A3B8" FontWeight="Bold"/>
-                        <TextBlock x:Name="lblExtractFoundProp" Text="0" FontSize="24" FontWeight="Bold" Foreground="#34D399" Margin="0,3,0,0"/>
+                        <TextBlock x:Name="lblExtractFoundProp" Text="0" FontSize="22" FontWeight="Bold" Foreground="#34D399" Margin="0,2,0,0"/>
                     </StackPanel>
                 </Border>
 
-                <Border Grid.Column="2" Background="{DynamicResource CardBgBrush}" CornerRadius="10" Padding="14,12" Margin="4,0,4,0" BorderBrush="#D97706" BorderThickness="1.5">
+                <Border Grid.Column="2" Background="{DynamicResource CardBgBrush}" CornerRadius="10" Padding="14,10" Margin="4,0,4,0" BorderBrush="#D97706" BorderThickness="1.5">
                     <StackPanel>
                         <TextBlock Text="MISSING PROPERTIES" FontSize="11" Foreground="#94A3B8" FontWeight="Bold"/>
-                        <TextBlock x:Name="lblExtractMissingProp" Text="0" FontSize="24" FontWeight="Bold" Foreground="#FDE047" Margin="0,3,0,0"/>
+                        <TextBlock x:Name="lblExtractMissingProp" Text="0" FontSize="22" FontWeight="Bold" Foreground="#FDE047" Margin="0,2,0,0"/>
                     </StackPanel>
                 </Border>
 
-                <Border Grid.Column="3" Background="{DynamicResource CardBgBrush}" CornerRadius="10" Padding="14,12" Margin="8,0,0,0" BorderBrush="#10B981" BorderThickness="1.5">
+                <Border Grid.Column="3" Background="{DynamicResource CardBgBrush}" CornerRadius="10" Padding="14,10" Margin="8,0,0,0" BorderBrush="#10B981" BorderThickness="1.5">
                     <StackPanel>
                         <TextBlock Text="FILES COLLECTED" FontSize="11" Foreground="#94A3B8" FontWeight="Bold"/>
-                        <TextBlock x:Name="lblExtractCollectedPhotos" Text="0" FontSize="24" FontWeight="Bold" Foreground="#4ADE80" Margin="0,3,0,0"/>
+                        <TextBlock x:Name="lblExtractCollectedPhotos" Text="0" FontSize="22" FontWeight="Bold" Foreground="#4ADE80" Margin="0,2,0,0"/>
                     </StackPanel>
                 </Border>
             </Grid>
 
-            <!-- Console Log Box & Progress -->
-            <Border Grid.Row="2" Background="{DynamicResource InnerBoxBrush}" CornerRadius="12" Padding="12" Margin="0,0,0,10" BorderBrush="#1E2B45" BorderThickness="1">
+            <!-- Row 2: Statistics Cards (Multi-Server Consolidator) -->
+            <Grid x:Name="gridStatsThreeUrl" Grid.Row="2" Margin="0,0,0,8" Visibility="Collapsed">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <Border Grid.Column="0" Background="{DynamicResource CardBgBrush}" CornerRadius="10" Padding="14,10" Margin="0,0,8,0" BorderBrush="#0284C7" BorderThickness="1.5">
+                    <StackPanel>
+                        <TextBlock Text="TOTAL SCANNED (11 + 22)" FontSize="11" Foreground="#94A3B8" FontWeight="Bold"/>
+                        <TextBlock x:Name="lblThreeUrlScanned" Text="0" FontSize="22" FontWeight="Bold" Foreground="#38BDF8" Margin="0,2,0,0"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Column="1" Background="{DynamicResource CardBgBrush}" CornerRadius="10" Padding="14,10" Margin="4,0,4,0" BorderBrush="#F59E0B" BorderThickness="1.5">
+                    <StackPanel>
+                        <TextBlock Text="COMMON / ON 19 (IGNORED)" FontSize="11" Foreground="#94A3B8" FontWeight="Bold"/>
+                        <TextBlock x:Name="lblThreeUrlCommon" Text="0" FontSize="22" FontWeight="Bold" Foreground="#FDE047" Margin="0,2,0,0"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Column="2" Background="{DynamicResource CardBgBrush}" CornerRadius="10" Padding="14,10" Margin="4,0,4,0" BorderBrush="#10B981" BorderThickness="1.5">
+                    <StackPanel>
+                        <TextBlock Text="NEW IMAGES TO 19" FontSize="11" Foreground="#94A3B8" FontWeight="Bold"/>
+                        <TextBlock x:Name="lblThreeUrlNewPhotos" Text="0" FontSize="22" FontWeight="Bold" Foreground="#4ADE80" Margin="0,2,0,0"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Column="3" Background="{DynamicResource CardBgBrush}" CornerRadius="10" Padding="14,10" Margin="8,0,0,0" BorderBrush="#059669" BorderThickness="1.5">
+                    <StackPanel>
+                        <TextBlock Text="NEW PLANS TO 19" FontSize="11" Foreground="#94A3B8" FontWeight="Bold"/>
+                        <TextBlock x:Name="lblThreeUrlNewPlans" Text="0" FontSize="22" FontWeight="Bold" Foreground="#34D399" Margin="0,2,0,0"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- Row 3: Console Log Box & Progress -->
+            <Border Grid.Row="3" Background="{DynamicResource InnerBoxBrush}" CornerRadius="12" Padding="12" Margin="0,0,0,8" BorderBrush="#1E2B45" BorderThickness="1">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*"/>
@@ -2373,18 +2526,37 @@ try {
                 </Grid>
             </Border>
 
-            <!-- Action Buttons Footer -->
-            <Grid Grid.Row="3">
+            <!-- Row 4: Action Buttons Footer (Standard) -->
+            <Grid x:Name="gridFooterStandard" Grid.Row="4">
                 <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <Button x:Name="btnExtractOpenDesktop" Grid.Column="0" Content="Open Desktop Output Folder" Background="#1E293B" Style="{StaticResource ActionButton}" Margin="0,0,10,0" Width="230"/>
-                <Button x:Name="btnExtractOpenReport" Grid.Column="1" Content="View CSV Summary Report" Background="#1E293B" Style="{StaticResource ActionButton}" Margin="0,0,10,0" Width="210" IsEnabled="False"/>
-                <Button x:Name="btnExtractStart" Grid.Column="3" Content="START EXTRACTING FILES TO DESKTOP" Background="{StaticResource SuccessBtnBrush}" FontSize="13" FontWeight="Bold" Padding="28,12" Style="{StaticResource ActionButton}"/>
+                <Button x:Name="btnExtractOpenDesktop" Grid.Column="0" Content="Open Desktop Output Folder" Background="#1E293B" Style="{StaticResource ActionButton}" Margin="0,0,8,0" Padding="14,8" FontSize="12"/>
+                <Button x:Name="btnExtractOpenReport" Grid.Column="1" Content="View CSV Summary Report" Background="#1E293B" Style="{StaticResource ActionButton}" Margin="0,0,8,0" Padding="14,8" FontSize="12" IsEnabled="False"/>
+                <Button x:Name="btnExtractExportWard" Grid.Column="2" Content="Export Ward Paths (Excel/CSV)" Background="#0D9488" Style="{StaticResource ActionButton}" Margin="0,0,8,0" Padding="14,8" FontSize="12" ToolTip="Scan All Ward folders and export Photos &amp; Plans paths to Excel (Options A, B, C)"/>
+                <Button x:Name="btnExtractStart" Grid.Column="4" Content="START EXTRACTING FILES TO DESKTOP" Background="{StaticResource SuccessBtnBrush}" FontSize="12.5" FontWeight="Bold" Padding="20,10" Style="{StaticResource ActionButton}"/>
+            </Grid>
+
+            <!-- Row 4: Action Buttons Footer (3-URL Plan Sync) -->
+            <Grid x:Name="gridFooterThreeUrl" Grid.Row="4" Visibility="Collapsed">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <Button x:Name="btnThreeUrlOpenParent" Grid.Column="0" Content="Open Target 19 Folder" Background="#1E293B" Style="{StaticResource ActionButton}" Margin="0,0,8,0" Padding="14,8" FontSize="12"/>
+                <Button x:Name="btnThreeUrlOpenDesktop" Grid.Column="1" Content="Open Desktop Extracted Folder" Background="#1E293B" Style="{StaticResource ActionButton}" Margin="0,0,8,0" Padding="14,8" FontSize="12"/>
+                <Button x:Name="btnThreeUrlExportWard" Grid.Column="2" Content="Export Ward Paths (Excel/CSV)" Background="#0D9488" Style="{StaticResource ActionButton}" Margin="0,0,8,0" Padding="14,8" FontSize="12" ToolTip="Scan All Ward folders and export Photos &amp; Plans paths to Excel (Options A, B, C)"/>
+                <Button x:Name="btnThreeUrlAnalyze" Grid.Column="3" Content="1. SCAN &amp; COMPARE (AUDIT)" Background="#0284C7" FontSize="12" FontWeight="Bold" Padding="14,10" Style="{StaticResource ActionButton}" HorizontalAlignment="Right" Margin="0,0,8,0"/>
+                <Button x:Name="btnThreeUrlStart" Grid.Column="4" Content="2. START MIGRATING TO 192.168.1.19" Background="{StaticResource SuccessBtnBrush}" FontSize="12.5" FontWeight="Bold" Padding="20,10" Style="{StaticResource ActionButton}"/>
             </Grid>
         </Grid>
 
@@ -2723,7 +2895,7 @@ try {
                         <Button x:Name="btnJarvisAnalyze" Content="Analyze SQL" Background="{DynamicResource SqlBtnBgBrush}" Foreground="#7C3AED" BorderBrush="{DynamicResource SqlBorderBrush}" BorderThickness="1" Padding="8,4" Margin="0,0,4,0" FontSize="11" FontWeight="SemiBold" Cursor="Hand" ToolTip="Audit Query Performance &amp; Safety"/>
                         <Button x:Name="btnSqlUserAccessManager" Content="User Privileges" Background="#831843" Foreground="#FBCFE8" BorderBrush="#BE185D" BorderThickness="1" Padding="8,4" Margin="0,0,4,0" FontSize="11" FontWeight="Bold" Cursor="Hand" ToolTip="User Permission Manager &amp; Screen Access Fixer"/>
                         <Button x:Name="btnSqlTableDdlWizard" Content="DDL Wizard" Background="#881337" Foreground="#FECDD3" BorderBrush="#E11D48" BorderThickness="1" Padding="8,4" Margin="0,0,4,0" FontSize="11" FontWeight="Bold" Cursor="Hand" ToolTip="Table &amp; Query DDL Generator Studio"/>
-                        <Button x:Name="btnJarvisAssistant" Content="JARVIS AI" Background="#0284C7" Foreground="White" BorderThickness="0" Padding="10,4" FontSize="11" FontWeight="Bold" Cursor="Hand" ToolTip="Open JARVIS AI Assistant Command Center"/>
+                        <Button x:Name="btnJarvisAssistant" Content="AI AGENT (F1)" Background="#0284C7" Foreground="White" BorderThickness="0" Padding="10,4" FontSize="11" FontWeight="Bold" Cursor="Hand" ToolTip="Open Autonomous SQL AI Agent &amp; Query Tester (F1)"/>
                         <Button x:Name="btnSqlLockConsole" Content="LOCK &amp; HIDE" Background="#4C0519" Foreground="#FECDD3" BorderBrush="#BE123C" BorderThickness="1" Padding="8,4" Margin="4,0,0,0" FontSize="11" FontWeight="Bold" Cursor="Hand" ToolTip="Immediately Lock and Hide SQL Console from View"/>
                     </StackPanel>
                 </Grid>
@@ -3337,6 +3509,58 @@ $lblExtractStatus          = $window.FindName("lblExtractStatus")
 $btnExtractOpenDesktop     = $window.FindName("btnExtractOpenDesktop")
 $btnExtractOpenReport      = $window.FindName("btnExtractOpenReport")
 $btnExtractStart           = $window.FindName("btnExtractStart")
+
+# Tab 5 Sub-Mode & 3-URL Controls
+$btnSubModeStandardExtract = $window.FindName("btnSubModeStandardExtract")
+$btnSubModeThreeUrlSync    = $window.FindName("btnSubModeThreeUrlSync")
+$pnlStandardExtract        = $window.FindName("pnlStandardExtract")
+$pnlThreeUrlSync           = $window.FindName("pnlThreeUrlSync")
+$gridStatsStandard         = $window.FindName("gridStatsStandard")
+$gridStatsThreeUrl         = $window.FindName("gridStatsThreeUrl")
+$gridFooterStandard        = $window.FindName("gridFooterStandard")
+$gridFooterThreeUrl        = $window.FindName("gridFooterThreeUrl")
+
+$borderUrl1                = $window.FindName("borderUrl1")
+$borderUrl2                = $window.FindName("borderUrl2")
+$borderUrl3                = $window.FindName("borderUrl3")
+$rbUrlParent1              = $window.FindName("rbUrlParent1")
+$rbUrlParent2              = $window.FindName("rbUrlParent2")
+$rbUrlParent3              = $window.FindName("rbUrlParent3")
+$txtThreeUrl1              = $window.FindName("txtThreeUrl1")
+$txtThreeUrl2              = $window.FindName("txtThreeUrl2")
+$txtThreeUrl3              = $window.FindName("txtThreeUrl3")
+$btnThreeUrlBrowse1        = $window.FindName("btnThreeUrlBrowse1")
+$btnThreeUrlBrowse2        = $window.FindName("btnThreeUrlBrowse2")
+$btnThreeUrlBrowse3        = $window.FindName("btnThreeUrlBrowse3")
+$btnThreeUrlTestConn       = $window.FindName("btnThreeUrlTestConn")
+
+$rbSyncActionToParent      = $window.FindName("rbSyncActionToParent")
+$rbSyncActionBiDirectional = $window.FindName("rbSyncActionBiDirectional")
+$rbSyncActionExtractDesktop= $window.FindName("rbSyncActionExtractDesktop")
+
+$chkSyncRecursive          = $window.FindName("chkSyncRecursive")
+$chkSyncWhiteCanvas        = $window.FindName("chkSyncWhiteCanvas")
+$chkSyncDryRun             = $window.FindName("chkSyncDryRun")
+
+$lblThreeUrlScanned        = $window.FindName("lblThreeUrlScanned")
+$lblThreeUrlCommon         = $window.FindName("lblThreeUrlCommon")
+$lblThreeUrlNewPhotos      = $window.FindName("lblThreeUrlNewPhotos")
+$lblThreeUrlNewPlans       = $window.FindName("lblThreeUrlNewPlans")
+$lblThreeUrlNewToShare     = $lblThreeUrlNewPhotos
+$lblThreeUrlParentTotal    = $lblThreeUrlNewPlans
+
+$btnThreeUrlPresetPanvel   = $window.FindName("btnThreeUrlPresetPanvel")
+$rbSyncCategoryBoth        = $window.FindName("rbSyncCategoryBoth")
+$rbSyncCategoryPhotosOnly  = $window.FindName("rbSyncCategoryPhotosOnly")
+$rbSyncCategoryPlansOnly   = $window.FindName("rbSyncCategoryPlansOnly")
+$chkSyncIgnoreCommon       = $window.FindName("chkSyncIgnoreCommon")
+
+$btnThreeUrlOpenParent     = $window.FindName("btnThreeUrlOpenParent")
+$btnThreeUrlOpenDesktop    = $window.FindName("btnThreeUrlOpenDesktop")
+$btnThreeUrlAnalyze        = $window.FindName("btnThreeUrlAnalyze")
+$btnThreeUrlStart          = $window.FindName("btnThreeUrlStart")
+$btnExtractExportWard      = $window.FindName("btnExtractExportWard")
+$btnThreeUrlExportWard     = $window.FindName("btnThreeUrlExportWard")
 
 # Preview View Controls
 $txtBlobInput      = $window.FindName("txtBlobInput")
@@ -4107,6 +4331,50 @@ function Build-SqlCatalog {
 }
 Build-SqlCatalog
 
+function Get-UniStr([int[]]$codepoints) {
+    if (-not $codepoints -or $codepoints.Count -eq 0) { return "" }
+    return [string]::new([char[]]$codepoints)
+}
+
+$script:JarvisSchema = @{
+    Tables = @{}
+    TableSchemas = @{}
+    AllTables = @()
+    SortedTables = @()
+    IndexedAt = $null
+}
+
+function Build-JarvisSchemaIndex($dbConn) {
+    if (-not $dbConn -or $dbConn.State -ne [System.Data.ConnectionState]::Open) { return }
+    try {
+        $cmd = $dbConn.CreateCommand()
+        $cmd.CommandTimeout = 0
+        $cmd.CommandText = "SELECT t.TABLE_SCHEMA, t.TABLE_NAME, c.COLUMN_NAME, c.DATA_TYPE FROM INFORMATION_SCHEMA.TABLES t JOIN INFORMATION_SCHEMA.COLUMNS c ON t.TABLE_NAME = c.TABLE_NAME AND t.TABLE_SCHEMA = c.TABLE_SCHEMA WHERE t.TABLE_TYPE = 'BASE TABLE' ORDER BY t.TABLE_NAME, c.ORDINAL_POSITION"
+        $rdr = $cmd.ExecuteReader()
+        $tblDict = @{}
+        $schemaDict = @{}
+        while ($rdr.Read()) {
+            $s = $rdr['TABLE_SCHEMA'].ToString()
+            $t = $rdr['TABLE_NAME'].ToString()
+            $c = $rdr['COLUMN_NAME'].ToString()
+            $dt = $rdr['DATA_TYPE'].ToString()
+            if (-not $tblDict.ContainsKey($t)) {
+                $tblDict[$t] = [System.Collections.Generic.List[PSObject]]::new()
+                $schemaDict[$t] = $s
+            }
+            $tblDict[$t].Add([PSCustomObject]@{ Column = $c; Type = $dt })
+        }
+        $rdr.Close()
+        $cmd.Dispose()
+        $sortedTables = [string[]]($tblDict.Keys | Sort-Object { $_.Length } -Descending)
+        $script:JarvisSchema.Tables = $tblDict
+        $script:JarvisSchema.TableSchemas = $schemaDict
+        $script:JarvisSchema.AllTables = [string[]]($tblDict.Keys)
+        $script:JarvisSchema.SortedTables = $sortedTables
+        $script:JarvisSchema.IndexedAt = Get-Date
+    } catch { }
+}
+
 function Fetch-SqlSchemaMetadata {
     if (-not $script:SqlConnected) { return }
     try {
@@ -4132,6 +4400,7 @@ function Fetch-SqlSchemaMetadata {
         $script:SqlColumns = $cols
 
         Build-SqlCatalog
+        try { Build-JarvisSchemaIndex $conn } catch { }
     } catch { }
 }
 
@@ -4793,7 +5062,8 @@ function Convert-CreateToAlterProcedure([string]$Code) {
     $converted = $Code -replace '(?i)\bCREATE\s+PROCEDURE\b', 'ALTER PROCEDURE' `
                        -replace '(?i)\bCREATE\s+PROC\b', 'ALTER PROC' `
                        -replace '(?i)\bCREATE\s+FUNCTION\b', 'ALTER FUNCTION' `
-                       -replace '(?i)\bCREATE\s+FUNC\b', 'ALTER FUNC'
+                       -replace '(?i)\bCREATE\s+FUNC\b', 'ALTER FUNC' `
+                       -replace '(?i)\bCREATE\s+VIEW\b', 'ALTER VIEW'
     return $converted
 }
 
@@ -5154,47 +5424,158 @@ function New-SqlTableContextMenu([string]$tableName, [bool]$isView, [string]$dat
     $tbl = $tableName
     $targetDb = $database
 
-    # 1. Select TOP 100 Rows
-    $miSelect = New-Object System.Windows.Controls.MenuItem
-    $miSelect.Header = "Select Top 100 Rows"
-    $miSelect.FontWeight = [System.Windows.FontWeights]::Bold
-    $miSelect.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#4ADE80")
-    $miSelect.Tag = @{ Name = $tbl; Db = $targetDb }
-    $miSelect.Add_Click({
-        param($sender, $e)
-        $info = $sender.Tag
-        $t = if ($info -and $info.Name) { $info.Name } else { $tbl }
-        $d = if ($info -and $info.Db) { $info.Db } else { $targetDb }
-        if ($d) { Switch-SqlActiveDatabase $d }
-        $txtSqlQuery.Text = "SELECT TOP 100 *`r`nFROM $t WITH (NOLOCK);`r`n"
-        $txtSqlQuery.Foreground = if ($global:isDarkMode) { [System.Windows.Media.BrushConverter]::new().ConvertFromString("#4ADE80") } else { [System.Windows.Media.BrushConverter]::new().ConvertFromString("#0F172A") }
-        if ($btnSqlExecute) { $btnSqlExecute.RaiseEvent((New-Object System.Windows.RoutedEventArgs([System.Windows.Controls.Button]::ClickEvent))) }
-    }.GetNewClosure())
-    $ctx.Items.Add($miSelect) | Out-Null
+    if ($isView) {
+        # 1. Modify View (Script as ALTER View)
+        $miModify = New-Object System.Windows.Controls.MenuItem
+        $miModify.Header = "Modify (Script as ALTER View)"
+        $miModify.FontWeight = [System.Windows.FontWeights]::Bold
+        $miModify.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#4ADE80")
+        $miModify.ToolTip = "Fetch view definition and script as ALTER VIEW in Query Editor"
+        $miModify.Tag = @{ Name = $tbl; Db = $targetDb }
+        $miModify.Add_Click({
+            param($sender, $e)
+            $info = $sender.Tag
+            $t = if ($info -and $info.Name) { $info.Name } else { $tbl }
+            $d = if ($info -and $info.Db) { $info.Db } else { $targetDb }
+            if ($d) { Switch-SqlActiveDatabase $d }
+            Script-SqlRoutineModify $t
+        }.GetNewClosure())
+        $ctx.Items.Add($miModify) | Out-Null
 
-    # 2. Script as SELECT
-    $miScript = New-Object System.Windows.Controls.MenuItem
-    $miScript.Header = "Script as SELECT To Query Editor"
-    $miScript.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#38BDF8")
-    $miScript.Tag = @{ Name = $tbl; Db = $targetDb }
-    $miScript.Add_Click({
-        param($sender, $e)
-        $info = $sender.Tag
-        $t = if ($info -and $info.Name) { $info.Name } else { $tbl }
-        $d = if ($info -and $info.Db) { $info.Db } else { $targetDb }
-        if ($d) { Switch-SqlActiveDatabase $d }
-        $txtSqlQuery.Text = "SELECT *`r`nFROM $t WITH (NOLOCK);`r`n"
-        $txtSqlQuery.Foreground = if ($global:isDarkMode) { [System.Windows.Media.BrushConverter]::new().ConvertFromString("#4ADE80") } else { [System.Windows.Media.BrushConverter]::new().ConvertFromString("#0F172A") }
-        $txtSqlQuery.Focus() | Out-Null
-    }.GetNewClosure())
-    $ctx.Items.Add($miScript) | Out-Null
+        # 2. Select TOP 100 Rows
+        $miSelect = New-Object System.Windows.Controls.MenuItem
+        $miSelect.Header = "Select Top 100 Rows"
+        $miSelect.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#38BDF8")
+        $miSelect.Tag = @{ Name = $tbl; Db = $targetDb }
+        $miSelect.Add_Click({
+            param($sender, $e)
+            $info = $sender.Tag
+            $t = if ($info -and $info.Name) { $info.Name } else { $tbl }
+            $d = if ($info -and $info.Db) { $info.Db } else { $targetDb }
+            if ($d) { Switch-SqlActiveDatabase $d }
+            $txtSqlQuery.Text = "SELECT TOP 100 *`r`nFROM $t WITH (NOLOCK);`r`n"
+            $txtSqlQuery.Foreground = if ($global:isDarkMode) { [System.Windows.Media.BrushConverter]::new().ConvertFromString("#4ADE80") } else { [System.Windows.Media.BrushConverter]::new().ConvertFromString("#0F172A") }
+            if ($btnSqlExecute) { $btnSqlExecute.RaiseEvent((New-Object System.Windows.RoutedEventArgs([System.Windows.Controls.Button]::ClickEvent))) }
+        }.GetNewClosure())
+        $ctx.Items.Add($miSelect) | Out-Null
+
+        # 3. Script as SELECT
+        $miScript = New-Object System.Windows.Controls.MenuItem
+        $miScript.Header = "Script as SELECT To Query Editor"
+        $miScript.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#38BDF8")
+        $miScript.Tag = @{ Name = $tbl; Db = $targetDb }
+        $miScript.Add_Click({
+            param($sender, $e)
+            $info = $sender.Tag
+            $t = if ($info -and $info.Name) { $info.Name } else { $tbl }
+            $d = if ($info -and $info.Db) { $info.Db } else { $targetDb }
+            if ($d) { Switch-SqlActiveDatabase $d }
+            $txtSqlQuery.Text = "SELECT *`r`nFROM $t WITH (NOLOCK);`r`n"
+            $txtSqlQuery.Foreground = if ($global:isDarkMode) { [System.Windows.Media.BrushConverter]::new().ConvertFromString("#4ADE80") } else { [System.Windows.Media.BrushConverter]::new().ConvertFromString("#0F172A") }
+            $txtSqlQuery.Focus() | Out-Null
+        }.GetNewClosure())
+        $ctx.Items.Add($miScript) | Out-Null
+
+        # 4. Script as CREATE View
+        $miCreate = New-Object System.Windows.Controls.MenuItem
+        $miCreate.Header = "Script as CREATE View to Query Editor"
+        $miCreate.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#FBBF24")
+        $miCreate.ToolTip = "Script exact CREATE VIEW definition into Query Editor"
+        $miCreate.Tag = @{ Name = $tbl; Db = $targetDb }
+        $miCreate.Add_Click({
+            param($sender, $e)
+            $info = $sender.Tag
+            $t = if ($info -and $info.Name) { $info.Name } else { $tbl }
+            $d = if ($info -and $info.Db) { $info.Db } else { $targetDb }
+            if ($d) { Switch-SqlActiveDatabase $d }
+            Script-SqlRoutineCreate $t
+        }.GetNewClosure())
+        $ctx.Items.Add($miCreate) | Out-Null
+
+        # Separator
+        $sep1 = New-Object System.Windows.Controls.Separator
+        $sep1.Background = $borderBr
+        $ctx.Items.Add($sep1) | Out-Null
+
+        # 5. Open in Full Screen Inspector
+        $miInspect = New-Object System.Windows.Controls.MenuItem
+        $miInspect.Header = "Open in Full Screen Inspector"
+        $miInspect.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#C084FC")
+        $miInspect.ToolTip = "Open maximized full screen inspector with search and line numbers"
+        $miInspect.Tag = @{ Name = $tbl; Db = $targetDb }
+        $miInspect.Add_Click({
+            param($sender, $e)
+            $info = $sender.Tag
+            $t = if ($info -and $info.Name) { $info.Name } else { $tbl }
+            $d = if ($info -and $info.Db) { $info.Db } else { $targetDb }
+            if ($d) { Switch-SqlActiveDatabase $d }
+            Inspect-SqlRoutineFullScreen $t
+        }.GetNewClosure())
+        $ctx.Items.Add($miInspect) | Out-Null
+
+        # 6. Compare in Beyond Compare 5
+        $miCompare = New-Object System.Windows.Controls.MenuItem
+        $miCompare.Header = "Compare (Diff in WinMerge / Studio)..."
+        $miCompare.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#38BDF8")
+        $miCompare.ToolTip = "Compare View definition side-by-side with Query Editor using Beyond Compare 5 Myers Diff"
+        $miCompare.Tag = @{ Name = $tbl; Db = $targetDb }
+        $miCompare.Add_Click({
+            param($sender, $e)
+            $info = $sender.Tag
+            $t = if ($info -and $info.Name) { $info.Name } else { $tbl }
+            $d = if ($info -and $info.Db) { $info.Db } else { $targetDb }
+            if ($d) { Switch-SqlActiveDatabase $d }
+            $def = Get-SqlRoutineDefinition $t
+            $rTxt = if ($txtSqlQuery -and $txtSqlQuery.Text) { $txtSqlQuery.Text } else { "" }
+            $rTitle = if ($lblQueryTabTitle -and $lblQueryTabTitle.Text) { $lblQueryTabTitle.Text } else { "Query Editor" }
+            Invoke-DiffComparison -leftText $def -rightText $rTxt -leftTitle "$t (DB: $d)" -rightTitle $rTitle
+        }.GetNewClosure())
+        $ctx.Items.Add($miCompare) | Out-Null
+
+    } else {
+        # Table Context Menu
+        # 1. Select TOP 100 Rows
+        $miSelect = New-Object System.Windows.Controls.MenuItem
+        $miSelect.Header = "Select Top 100 Rows"
+        $miSelect.FontWeight = [System.Windows.FontWeights]::Bold
+        $miSelect.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#4ADE80")
+        $miSelect.Tag = @{ Name = $tbl; Db = $targetDb }
+        $miSelect.Add_Click({
+            param($sender, $e)
+            $info = $sender.Tag
+            $t = if ($info -and $info.Name) { $info.Name } else { $tbl }
+            $d = if ($info -and $info.Db) { $info.Db } else { $targetDb }
+            if ($d) { Switch-SqlActiveDatabase $d }
+            $txtSqlQuery.Text = "SELECT TOP 100 *`r`nFROM $t WITH (NOLOCK);`r`n"
+            $txtSqlQuery.Foreground = if ($global:isDarkMode) { [System.Windows.Media.BrushConverter]::new().ConvertFromString("#4ADE80") } else { [System.Windows.Media.BrushConverter]::new().ConvertFromString("#0F172A") }
+            if ($btnSqlExecute) { $btnSqlExecute.RaiseEvent((New-Object System.Windows.RoutedEventArgs([System.Windows.Controls.Button]::ClickEvent))) }
+        }.GetNewClosure())
+        $ctx.Items.Add($miSelect) | Out-Null
+
+        # 2. Script as SELECT
+        $miScript = New-Object System.Windows.Controls.MenuItem
+        $miScript.Header = "Script as SELECT To Query Editor"
+        $miScript.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#38BDF8")
+        $miScript.Tag = @{ Name = $tbl; Db = $targetDb }
+        $miScript.Add_Click({
+            param($sender, $e)
+            $info = $sender.Tag
+            $t = if ($info -and $info.Name) { $info.Name } else { $tbl }
+            $d = if ($info -and $info.Db) { $info.Db } else { $targetDb }
+            if ($d) { Switch-SqlActiveDatabase $d }
+            $txtSqlQuery.Text = "SELECT *`r`nFROM $t WITH (NOLOCK);`r`n"
+            $txtSqlQuery.Foreground = if ($global:isDarkMode) { [System.Windows.Media.BrushConverter]::new().ConvertFromString("#4ADE80") } else { [System.Windows.Media.BrushConverter]::new().ConvertFromString("#0F172A") }
+            $txtSqlQuery.Focus() | Out-Null
+        }.GetNewClosure())
+        $ctx.Items.Add($miScript) | Out-Null
+    }
 
     # Separator
-    $sep = New-Object System.Windows.Controls.Separator
-    $sep.Background = $borderBr
-    $ctx.Items.Add($sep) | Out-Null
+    $sep2 = New-Object System.Windows.Controls.Separator
+    $sep2.Background = $borderBr
+    $ctx.Items.Add($sep2) | Out-Null
 
-    # 3. Copy Name
+    # Copy Name
     $miCopy = New-Object System.Windows.Controls.MenuItem
     $miCopy.Header = "Copy Name ($tbl)"
     $miCopy.Foreground = $menuFg
@@ -5206,6 +5587,15 @@ function New-SqlTableContextMenu([string]$tableName, [bool]$isView, [string]$dat
         if ($lblSqlRowCount) { $lblSqlRowCount.Text = "Copied '$t' to clipboard" }
     }.GetNewClosure())
     $ctx.Items.Add($miCopy) | Out-Null
+
+    # Refresh
+    $miRefresh = New-Object System.Windows.Controls.MenuItem
+    $miRefresh.Header = "Refresh"
+    $miRefresh.Foreground = if ($isDark) { [System.Windows.Media.BrushConverter]::new().ConvertFromString("#94A3B8") } else { [System.Windows.Media.BrushConverter]::new().ConvertFromString("#64748B") }
+    $miRefresh.Add_Click({
+        Build-ObjectExplorerTree
+    }.GetNewClosure())
+    $ctx.Items.Add($miRefresh) | Out-Null
 
     return $ctx
 }
@@ -5402,7 +5792,7 @@ function Expand-SqlViewsFolder($folderItem, [string]$db) {
             $vItem.Header = $vw
             $vItem.Tag = "VIEW:$db`:$vw"
             $vItem.Foreground = Get-SqlOeColor "Item"
-            $vItem.ToolTip = "View: $vw`r`nDouble-click: SELECT TOP 100`r`nRight-click: Select Top 100, Script SELECT, Copy Name"
+            $vItem.ToolTip = "View: $vw`r`nDouble-click: Modify View (ALTER)`r`nRight-click: Modify, Select Top 100, Script CREATE/SELECT, Full Screen Inspector, Beyond Compare"
             $folderItem.Items.Add($vItem) | Out-Null
         }
     }
@@ -6201,9 +6591,7 @@ if ($tvObjectExplorer) {
             }
             $e.Handled = $true
             if ($vwDb) { Switch-SqlActiveDatabase $vwDb }
-            $txtSqlQuery.Text = "SELECT TOP 100 *`r`nFROM $vwName WITH (NOLOCK);`r`n"
-            $txtSqlQuery.Foreground = if ($global:isDarkMode) { [System.Windows.Media.BrushConverter]::new().ConvertFromString("#4ADE80") } else { [System.Windows.Media.BrushConverter]::new().ConvertFromString("#0F172A") }
-            if ($btnSqlExecute) { $btnSqlExecute.RaiseEvent((New-Object System.Windows.RoutedEventArgs([System.Windows.Controls.Button]::ClickEvent))) }
+            Script-SqlRoutineModify $vwName
         }
     })
 
@@ -6469,6 +6857,498 @@ function Analyze-SqlQuery {
         $txtSqlMessages.Text = $report
         $txtSqlMessages.Visibility = "Visible"
         if ($dgSqlResults) { $dgSqlResults.Visibility = "Collapsed" }
+    }
+}
+
+function Get-BestMatchingColumn($badCol, $availCols, $alreadySelected) {
+    if (-not $badCol -or -not $availCols) { return $null }
+    $sub = $badCol
+    while ($sub.Length -ge 3) {
+        $found = $availCols | Where-Object { $_ -like "*$sub*" -and $alreadySelected -notcontains $_ } | Select-Object -First 1
+        if ($found) { return $found }
+        $sub = $sub.Substring(0, $sub.Length - 1)
+    }
+    foreach ($c in $availCols) {
+        if ($alreadySelected -contains $c) { continue }
+        if ($badCol -like "*$c*" -and $c.Length -ge 4) { return $c }
+    }
+    $bestCol = $null
+    $bestDist = 999
+    foreach ($c in $availCols) {
+        if ($alreadySelected -contains $c) { continue }
+        $prefixLen = 0
+        $minLen = [Math]::Min($c.Length, $badCol.Length)
+        for ($i = 0; $i -lt $minLen; $i++) {
+            if ($c[$i].ToString().ToLower() -eq $badCol[$i].ToString().ToLower()) { $prefixLen++ } else { break }
+        }
+        $score = [Math]::Abs($c.Length - $badCol.Length) + (10 - $prefixLen)
+        if ($score -lt $bestDist) {
+            $bestDist = $score
+            $bestCol = $c
+        }
+    }
+    return $bestCol
+}
+
+function Get-BestMatchingTable($badTbl) {
+    if (-not $badTbl) { return "PropertyMast" }
+    $exact = $script:JarvisSchema.AllTables | Where-Object { $_.ToLower() -eq $badTbl.ToLower() } | Select-Object -First 1
+    if ($exact) { return $exact }
+    $bestTbl = $null
+    $bestDist = 999
+    foreach ($t in $script:JarvisSchema.AllTables) {
+        $prefixLen = 0
+        $minLen = [Math]::Min($t.Length, $badTbl.Length)
+        for ($i = 0; $i -lt $minLen; $i++) {
+            if ($t[$i].ToString().ToLower() -eq $badTbl[$i].ToString().ToLower()) { $prefixLen++ } else { break }
+        }
+        $score = [Math]::Abs($t.Length - $badTbl.Length) + ((10 - $prefixLen) * 2)
+        if ($score -lt $bestDist) {
+            $bestDist = $score
+            $bestTbl = $t
+        }
+    }
+    if ($bestTbl) { return $bestTbl }
+    return "PropertyMast"
+}
+
+function Convert-JarvisNLToSql([string]$prompt) {
+    $p = $prompt.Trim()
+    $log = [System.Collections.Generic.List[string]]::new()
+    $log.Add("[NL PARSER]: User Instruction: '$p'")
+
+    # 1. Check for JOIN Intent
+    $isJoinPropertiesBills = ($p -match '(?i)PropertyMast' -and $p -match '(?i)BillTransaction') -or
+                             ($p -match '(?i)(?:join|\u091C\u0949\u0907\u0928)' -and ($p -match '(?i)\u092A\u093E\u0935\u0924\u0940|bill|receipt'))
+    $isJoinPropertiesTaxes = ($p -match '(?i)PropertyMast' -and $p -match '(?i)TaxPending') -or
+                             ($p -match '(?i)(?:join|\u091C\u0949\u0907\u0928)' -and ($p -match '(?i)\u0925\u0915\u092C\u093E\u0915\u0940|tax|pending'))
+
+    if ($isJoinPropertiesBills) {
+        $log.Add("[NL PARSER]: Detected multi-table JOIN -> PropertyMast + BillTransactionDetails ON OwnerID")
+        $topCount = 50
+        if ($p -match '(?i)(?:top|\u092A\u0939\u093F\u0932\u0947|pahile)\s*(\d+)') { $topCount = [int]$matches[1] }
+        $sql = "SELECT TOP $topCount p.OwnerID, p.NewWardNo, p.OwnerFirstName, p.OwnerLastName, p.MarathiOwnerPrathamNav, p.MobileNo, b.InvoiceNo, b.BillBookNo, b.TransactionDate, b.Amount FROM [dbo].[PropertyMast] p WITH (NOLOCK) INNER JOIN [dbo].[BillTransactionDetails] b WITH (NOLOCK) ON p.OwnerID = b.OwnerID ORDER BY b.TransactionDate DESC;"
+        return [PSCustomObject]@{ Sql = $sql; Table = "PropertyMast"; Logs = $log }
+    }
+
+    if ($isJoinPropertiesTaxes) {
+        $log.Add("[NL PARSER]: Detected multi-table JOIN -> PropertyMast + TaxPendingDetails ON OwnerID")
+        $topCount = 50
+        if ($p -match '(?i)(?:top|\u092A\u0939\u093F\u0932\u0947|pahile)\s*(\d+)') { $topCount = [int]$matches[1] }
+        $sql = "SELECT TOP $topCount p.OwnerID, p.NewWardNo, p.OwnerFirstName, p.OwnerLastName, p.MarathiOwnerPrathamNav, p.MobileNo, t.PendingYear, t.PropertyTax, t.TaxTotal, t.Interest FROM [dbo].[PropertyMast] p WITH (NOLOCK) INNER JOIN [dbo].[TaxPendingDetails] t WITH (NOLOCK) ON p.OwnerID = t.OwnerID ORDER BY t.TaxTotal DESC;"
+        return [PSCustomObject]@{ Sql = $sql; Table = "PropertyMast"; Logs = $log }
+    }
+
+    # 2. Check for Aggregation / Summary Intent
+    $isWardWise = $p -match '(?i)\u0935\u0949\u0930\u094D\u0921\u0928\u093F\u0939\u093E\u092F|wardnihay|ward-wise|ward wise'
+    $isCountOnly = $p -match '(?i)(?:total\s+count|count|\u0938\u0902\u0916\u094D\u092F\u093E|\u090F\u0915\u0942\u0923\s+\u092E\u093E\u0932\u092E\u0924\u094D\u0924\u093E|total\s+properties)'
+    $isSumCollection = $p -match '(?i)(?:total\s+collection|\u090F\u0915\u0942\u0923\s+\u0935\u0938\u0941\u0932\u0940|\u090F\u0915\u0942\u0923\s+\u092D\u0930\u0923\u093E|sum\s+of\s+bills)'
+    $isSumPending = $p -match '(?i)(?:total\s+pending|\u090F\u0915\u0942\u0923\s+\u0925\u0915\u092C\u093E\u0915\u0940|sum\s+of\s+taxes)'
+
+    if ($isWardWise) {
+        $log.Add("[NL PARSER]: Aggregation query -> Ward-wise Property Count")
+        $sql = "SELECT NewWardNo, COUNT(*) AS TotalProperties FROM [dbo].[PropertyMast] WITH (NOLOCK) WHERE NewWardNo IS NOT NULL AND NewWardNo <> '' GROUP BY NewWardNo ORDER BY TRY_CAST(NewWardNo AS INT) ASC;"
+        return [PSCustomObject]@{ Sql = $sql; Table = "PropertyMast"; Logs = $log }
+    }
+    if ($isCountOnly -and $p -notmatch '(?i)(?:top\s+\d+|select|\bcolumns?\b)') {
+        $log.Add("[NL PARSER]: Summary query -> Total Properties Count")
+        $sql = "SELECT COUNT(*) AS TotalProperties FROM [dbo].[PropertyMast] WITH (NOLOCK);"
+        return [PSCustomObject]@{ Sql = $sql; Table = "PropertyMast"; Logs = $log }
+    }
+    if ($isSumCollection) {
+        $log.Add("[NL PARSER]: Summary query -> Total Collection Sum")
+        $sql = "SELECT COUNT(*) AS TotalReceipts, SUM(Amount) AS TotalCollectedAmount FROM [dbo].[BillTransactionDetails] WITH (NOLOCK);"
+        return [PSCustomObject]@{ Sql = $sql; Table = "BillTransactionDetails"; Logs = $log }
+    }
+    if ($isSumPending) {
+        $log.Add("[NL PARSER]: Summary query -> Total Pending Tax Sum")
+        $sql = "SELECT COUNT(*) AS TotalPendingRecords, SUM(TaxTotal) AS TotalPendingTax, SUM(Interest) AS TotalInterest FROM [dbo].[TaxPendingDetails] WITH (NOLOCK);"
+        return [PSCustomObject]@{ Sql = $sql; Table = "TaxPendingDetails"; Logs = $log }
+    }
+
+    # 3. Identify Target Table with Preposition / Context Awareness
+    $targetTable = $null
+
+    # 3a. Check explicit preposition: "from Table" or "Table madhun / madhil / che / chya / table"
+    if ($p -match '(?i)(?:from|in|table)\s+\[?([a-zA-Z0-9_]+)\]?') {
+        $candTbl = $matches[1]
+        $matched = Get-BestMatchingTable $candTbl
+        if ($matched) {
+            $targetTable = $matched
+            $log.Add("[NL PARSER]: Explicit table from preposition 'from $candTbl' -> '$targetTable'")
+        }
+    } elseif ($p -match '(?i)([a-zA-Z0-9_]+)\s*(?:\u092E\u0927\u0942\u0928|madhun|\u092E\u0927\u0940\u0932|madhil|\u091A\u0947|che|\u091A\u094D\u092F\u093E|chya|\u091F\u0947\u092C\u0932|table)') {
+        $candTbl = $matches[1]
+        $matched = Get-BestMatchingTable $candTbl
+        if ($matched) {
+            $targetTable = $matched
+            $log.Add("[NL PARSER]: Explicit table from Marathi preposition '$candTbl madhun' -> '$targetTable'")
+        }
+    }
+
+    # 3b. If not found via preposition, check sorted tables (longest name first)
+    if (-not $targetTable) {
+        foreach ($tbl in $script:JarvisSchema.SortedTables) {
+            if ($p -match "(?i)\b$([regex]::Escape($tbl))\b") {
+                $targetTable = $tbl
+                $log.Add("[NL PARSER]: Longest-match table found -> '$targetTable'")
+                break
+            }
+        }
+    }
+
+    # 3c. Domain Fallbacks
+    if (-not $targetTable) {
+        if ($p -match '(?i)\u092A\u093E\u0935\u0924\u0940|pavti|\u092D\u0930\u0923\u093E|bharna|\u0935\u0938\u0941\u0932\u0940|vasuli|receipt|bill|invoice|transaction|collection') {
+            $targetTable = "BillTransactionDetails"
+            $log.Add("[NL PARSER]: Inferred domain table -> '$targetTable' (Bills/Receipts)")
+        } elseif ($p -match '(?i)\u0925\u0915\u092C\u093E\u0915\u0940|thakbaki|\u092C\u093E\u0915\u0940|baki|pending|arrears|demand') {
+            $targetTable = "TaxPendingDetails"
+            $log.Add("[NL PARSER]: Inferred domain table -> '$targetTable' (Pending Taxes)")
+        } elseif ($p -match '(?i)\u0906\u0915\u093E\u0930\u0923\u0940|aakarni|assessment|\u0935\u093E\u092A\u0930|usage') {
+            $targetTable = "AssessmentDetails"
+            $log.Add("[NL PARSER]: Inferred domain table -> '$targetTable' (Assessment)")
+        } elseif ($p -match '(?i)wardmaster|ward master|\u0935\u0949\u0930\u094D\u0921\u092E\u093E\u0938\u094D\u091F\u0930') {
+            $targetTable = "WardMaster"
+            $log.Add("[NL PARSER]: Inferred domain table -> '$targetTable' (WardMaster)")
+        } else {
+            $targetTable = "PropertyMast"
+            $log.Add("[NL PARSER]: Defaulted to core property master -> '$targetTable'")
+        }
+    }
+
+    $targetSchema = if ($script:JarvisSchema.TableSchemas.ContainsKey($targetTable)) { $script:JarvisSchema.TableSchemas[$targetTable] } else { "dbo" }
+    $availableCols = if ($script:JarvisSchema.Tables.ContainsKey($targetTable)) {
+        $script:JarvisSchema.Tables[$targetTable] | ForEach-Object { $_.Column }
+    } else { @() }
+
+    # 4. Check for "ALL COLUMNS" (* / sarv / sagale / purna / full data)
+    $wantsAllColumns = $p -match '(?i)\b(?:all|all\s+columns|\u0938\u0930\u094D\u0935|\u0938\u0917\u0933\u0947|\u092A\u0942\u0930\u094D\u0923|full\s+data|\*)\b'
+
+    # 5. Extract Specific Columns from available columns
+    $selectedCols = [System.Collections.Generic.List[string]]::new()
+
+    if ($wantsAllColumns) {
+        $colStr = "*"
+        $log.Add("[NL PARSER]: User requested all columns -> '*'")
+    } else {
+        foreach ($c in $availableCols) {
+            if ($p -match "(?i)\b$([regex]::Escape($c))\b" -and -not $selectedCols.Contains($c)) {
+                $selectedCols.Add($c)
+                $log.Add("[NL PARSER]: Explicit requested column -> '$c'")
+            }
+        }
+
+        if ($selectedCols.Count -eq 0) {
+            foreach ($idCand in @("OwnerID", "PropertyID", "ID", "BillID", "ReceiptNo", "TaxPendingID", "WardID", "NewPropertyNo")) {
+                if ($availableCols -contains $idCand -and -not $selectedCols.Contains($idCand)) {
+                    $selectedCols.Add($idCand)
+                    break
+                }
+            }
+        }
+
+        if ($p -match '(?i)\u092E\u093E\u0932\u0915|malak|\u0928\u093E\u0935|name|nav|aadnav|pratham|unicodeowner|owner') {
+            foreach ($c in @("OwnerFirstName", "OwnerLastName", "MarathiOwnerPrathamNav", "MarathiOwnerAadnav", "UnicodeOwnerName")) {
+                if ($availableCols -contains $c -and -not $selectedCols.Contains($c)) { $selectedCols.Add($c) }
+            }
+        }
+
+        if ($p -match '(?i)\u0935\u0949\u0930\u094D\u0921|ward|\u092A\u094D\u0930\u092D\u093E\u0917|prabhag|\u091D\u094B\u0928|zone') {
+            foreach ($c in @("NewWardNo", "WardNo", "NewZoneNo", "OldWardNo")) {
+                if ($availableCols -contains $c -and -not $selectedCols.Contains($c)) { $selectedCols.Add($c) }
+            }
+        }
+
+        if ($p -match '(?i)\u092E\u094B\u092C\u093E\u0907\u0932|mobile|\u092B\u094B\u0928|phone|\u0938\u0902\u092A\u0930\u094D\u0915|contact') {
+            foreach ($c in @("MobileNo", "PhoneNo", "RenterMobileNo")) {
+                if ($availableCols -contains $c -and -not $selectedCols.Contains($c)) { $selectedCols.Add($c) }
+            }
+        }
+
+        if ($p -match '(?i)\u092A\u0924\u094D\u0924\u093E|patta|address|colony|\u0915\u0949\u0932\u0928\u0940') {
+            foreach ($c in @("Address", "ColonyName", "MarathiOwnerPatta")) {
+                if ($availableCols -contains $c -and -not $selectedCols.Contains($c)) { $selectedCols.Add($c) }
+            }
+        }
+
+        if ($p -match '(?i)\u0925\u0915\u092C\u093E\u0915\u0940|thakbaki|\u0915\u0930|tax|amount|total|interest') {
+            foreach ($c in @("PropertyTax", "EducationTax", "TaxTotal", "Interest", "Amount", "PendingYear", "NetTotal")) {
+                if ($availableCols -contains $c -and -not $selectedCols.Contains($c)) { $selectedCols.Add($c) }
+            }
+        }
+
+        if ($p -match '(?i)\u092A\u093E\u0935\u0924\u0940|pavti|receipt|date|\u0924\u093E\u0930\u0940\u0916|tarikh') {
+            foreach ($c in @("InvoiceNo", "BillBookNo", "TransactionDate", "BillNo", "ReceiptDate", "Amount")) {
+                if ($availableCols -contains $c -and -not $selectedCols.Contains($c)) { $selectedCols.Add($c) }
+            }
+        }
+
+        if ($selectedCols.Count -le 1) {
+            $prominent = @("OwnerID", "NewWardNo", "NewPropertyNo", "OwnerFirstName", "OwnerLastName", "MarathiOwnerPrathamNav", "MobileNo", "Address", "TaxTotal", "Interest", "Amount", "TransactionDate", "WardID", "WardNo")
+            foreach ($pr in $prominent) {
+                if ($availableCols -contains $pr -and -not $selectedCols.Contains($pr)) { $selectedCols.Add($pr) }
+                if ($selectedCols.Count -ge 8) { break }
+            }
+            if ($selectedCols.Count -eq 0 -and $availableCols.Count -gt 0) {
+                for ($idx = 0; $idx -lt [Math]::Min(6, $availableCols.Count); $idx++) {
+                    $selectedCols.Add($availableCols[$idx])
+                }
+            }
+        }
+
+        $colStr = if ($selectedCols.Count -gt 0) { ($selectedCols -join ", ") } else { "*" }
+    }
+
+    # 6. Extract Row Limit (TOP N)
+    $topCount = 50
+    if ($p -match '(?i)(?:top|\u092A\u0939\u093F\u0932\u0947|pahile)\s*(\d+)') {
+        $topCount = [int]$matches[1]
+    } elseif ($p -match '(\d+)\s*(?:records|rows|\u0928\u094B\u0902\u0926\u0940)') {
+        $topCount = [int]$matches[1]
+    }
+
+    # 7. Extract WHERE Filter Conditions
+    $whereConditions = [System.Collections.Generic.List[string]]::new()
+
+    # Ward Filter
+    if ($p -match '(?i)(?:ward|\u0935\u0949\u0930\u094D\u0921|\u092A\u094D\u0930\u092D\u093E\u0917)\s*(?:no\.?|\u0915\u094D\u0930\.?)?\s*(\d+)') {
+        $wNo = $matches[1]
+        if ($availableCols -contains "NewWardNo") { $whereConditions.Add("NewWardNo = '$wNo'") }
+        elseif ($availableCols -contains "WardNo") { $whereConditions.Add("WardNo = '$wNo'") }
+    }
+
+    # Specific OwnerID
+    if ($p -match '(?i)(?:ownerid|owner\s*id|\u092E\u093E\u0932\u0915\s*id)\s*(?:=|:)?\s*(\d+)') {
+        $oId = $matches[1]
+        if ($availableCols -contains "OwnerID") { $whereConditions.Add("OwnerID = $oId") }
+    }
+
+    # Specific Year
+    if ($p -match '(?i)(?:year|\u0935\u0930\u094D\u0937)\s*(?:=|:)?\s*(20\d\d)') {
+        $yVal = $matches[1]
+        if ($availableCols -contains "PendingYear") { $whereConditions.Add("PendingYear = $yVal") }
+    }
+
+    # Amount / Tax Comparisons (> X, < X, >= X, <= X)
+    $amtGt = $null
+    $amtLt = $null
+    if ($p -match '(?i)(?:amount|tax|thakbaki|\u0925\u0915\u092C\u093E\u0915\u0940|\u0915\u0930|taxtotal)\s*(?:>|>=)\s*(\d+)') {
+        $amtGt = $matches[1]
+    } elseif ($p -match '(\d+)\s*(?:\u092A\u0947\u0915\u094D\u0937\u093E\s*\u091C\u093E\u0938\u094D\u0924|peksha\s*jaast|\u0939\u0942\u0928\s*\u0905\u0927\u093F\u0915|hun\s*adhik)') {
+        $amtGt = $matches[1]
+    }
+
+    if ($p -match '(?i)(?:amount|tax|thakbaki|\u0925\u0915\u092C\u093E\u0915\u0940|\u0915\u0930|taxtotal)\s*(?:<|<=)\s*(\d+)') {
+        $amtLt = $matches[1]
+    } elseif ($p -match '(\d+)\s*(?:\u092A\u0947\u0915\u094D\u0937\u093E\s*\u0915\u092E\u0940|peksha\s*kami)') {
+        $amtLt = $matches[1]
+    }
+
+    if ($amtGt) {
+        if ($availableCols -contains "TaxTotal") { $whereConditions.Add("TaxTotal >= $amtGt") }
+        elseif ($availableCols -contains "Amount") { $whereConditions.Add("Amount >= $amtGt") }
+        elseif ($availableCols -contains "NetTotal") { $whereConditions.Add("NetTotal >= $amtGt") }
+    }
+    if ($amtLt) {
+        if ($availableCols -contains "TaxTotal") { $whereConditions.Add("TaxTotal <= $amtLt") }
+        elseif ($availableCols -contains "Amount") { $whereConditions.Add("Amount <= $amtLt") }
+        elseif ($availableCols -contains "NetTotal") { $whereConditions.Add("NetTotal <= $amtLt") }
+    }
+
+    # Name Search:
+    if ($p -match "(?i)(?:named|\u0928\u093E\u0935|name)\s+['""]?([a-zA-Z\u0900-\u097F]+)['""]?") {
+        $nVal = $matches[1]
+        $nameConds = @()
+        if ($availableCols -contains "OwnerLastName") { $nameConds += "OwnerLastName LIKE '%$nVal%'" }
+        if ($availableCols -contains "OwnerFirstName") { $nameConds += "OwnerFirstName LIKE '%$nVal%'" }
+        if ($availableCols -contains "MarathiOwnerAadnav") { $nameConds += "MarathiOwnerAadnav LIKE N'%$nVal%'" }
+        if ($availableCols -contains "MarathiOwnerPrathamNav") { $nameConds += "MarathiOwnerPrathamNav LIKE N'%$nVal%'" }
+        if ($nameConds.Count -gt 0) { $whereConditions.Add("(" + ($nameConds -join " OR ") + ")") }
+    }
+
+    # Mobile Presence:
+    if ($p -match '(?i)\u092E\u094B\u092C\u093E\u0907\u0932\s*(?:\u0928\u0938\u0932\u0947\u0932\u0947|naslele|without\s*mobile|no\s*mobile)') {
+        if ($availableCols -contains "MobileNo") { $whereConditions.Add("(MobileNo IS NULL OR MobileNo = '')") }
+    } elseif ($p -match '(?i)\u092E\u094B\u092C\u093E\u0907\u0932\s*(?:\u0905\u0938\u0932\u0947\u0932\u0947|aslele|with\s*mobile|has\s*mobile)') {
+        if ($availableCols -contains "MobileNo") { $whereConditions.Add("(MobileNo IS NOT NULL AND MobileNo <> '')") }
+    }
+
+    $whereStr = if ($whereConditions.Count -gt 0) { "WHERE " + ($whereConditions -join " AND ") } else { "" }
+
+    # Order Clause
+    $orderCol = if ($amtGt -or $amtLt) {
+                    if ($availableCols -contains "TaxTotal") { "TaxTotal DESC" }
+                    elseif ($availableCols -contains "Amount") { "Amount DESC" }
+                    else { "1" }
+                }
+                elseif ($availableCols -contains "OwnerID") { "OwnerID DESC" }
+                elseif ($availableCols -contains "ID") { "ID DESC" }
+                elseif ($availableCols -contains "InvoiceNo") { "InvoiceNo DESC" }
+                elseif ($availableCols -contains "WardID") { "WardID ASC" }
+                elseif ($availableCols.Count -gt 0) { "$($availableCols[0]) DESC" }
+                else { "1" }
+
+    $sql = "SELECT TOP $topCount $colStr FROM [$targetSchema].[$targetTable] WITH (NOLOCK) $whereStr ORDER BY $orderCol;"
+    $log.Add("[NL PARSER]: Constructed SQL -> $sql")
+    return [PSCustomObject]@{ Sql = $sql; Table = $targetTable; Logs = $log }
+}
+
+function Invoke-JarvisAutonomousSqlTester($dbConn, [string]$sql, [string]$targetTable) {
+    $testLogs = [System.Collections.Generic.List[string]]::new()
+    $testLogs.Add("=== JARVIS WORLD-CLASS AUTONOMOUS SQL TESTER ENGAGED ===")
+    $testLogs.Add("[AUDITOR]: Target Table: '$targetTable'")
+
+    $currentSql = $sql
+    $attempt = 1
+    $maxAttempts = 4
+    $success = $false
+    $dataTable = New-Object System.Data.DataTable
+    $auditScore = 100
+    $auditDeductions = @()
+
+    # Pre-Flight Auto-Correction for Common Text Typos
+    if ($currentSql -match '(?i)\bform\b') {
+        $testLogs.Add("[PRE-FLIGHT HEALER]: Detected typo 'form' -> Replaced with 'FROM'")
+        $currentSql = $currentSql -replace '(?i)\bform\b', 'FROM'
+    }
+    if ($currentSql -match '(?i)\bwhre\b') {
+        $testLogs.Add("[PRE-FLIGHT HEALER]: Detected typo 'whre' -> Replaced with 'WHERE'")
+        $currentSql = $currentSql -replace '(?i)\bwhre\b', 'WHERE'
+    }
+    if ($currentSql -match '(?i)\boder\s+by\b') {
+        $testLogs.Add("[PRE-FLIGHT HEALER]: Detected typo 'oder by' -> Replaced with 'ORDER BY'")
+        $currentSql = $currentSql -replace '(?i)\boder\s+by\b', 'ORDER BY'
+    }
+    if ($currentSql -match '(?i),\s+FROM\b') {
+        $testLogs.Add("[PRE-FLIGHT HEALER]: Detected trailing comma before FROM -> Cleaned syntax")
+        $currentSql = $currentSql -replace '(?i),\s+FROM\b', ' FROM'
+    }
+
+    # Ensure WITH (NOLOCK) is present on single-table queries without duplicating
+    if ($currentSql -notmatch '(?i)WITH\s*\(NOLOCK\)' -and $currentSql -notmatch '(?i)JOIN') {
+        if ($currentSql -match '(?i)\bFROM\s+(\[?\w+\]?(?:\.\[?\w+\]?)?)') {
+            $rawMatch = $matches[1]
+            $tblOnly = $rawMatch.Split('.')[-1].Trim('[', ']')
+            $closestT = Get-BestMatchingTable $tblOnly
+            $closestS = if ($script:JarvisSchema.TableSchemas.ContainsKey($closestT)) { $script:JarvisSchema.TableSchemas[$closestT] } else { "dbo" }
+            $currentSql = $currentSql -replace "(?i)\bFROM\s+\[?\w+\]?(?:\.\[?\w+\]?)?", "FROM [$closestS].[$closestT] WITH (NOLOCK)"
+            $testLogs.Add("[PRE-FLIGHT OPTIMIZER]: Injected schema qualification and WITH (NOLOCK)")
+            $targetTable = $closestT
+        }
+    }
+
+    # Pre-Flight Syntax Check
+    try {
+        $preCmd = $dbConn.CreateCommand()
+        $preCmd.CommandTimeout = 0
+        $preCmd.CommandText = "SET PARSEONLY ON; $currentSql; SET PARSEONLY OFF;"
+        [void]$preCmd.ExecuteNonQuery()
+        $preCmd.Dispose()
+        $testLogs.Add("[PRE-FLIGHT PASSED]: Query syntax is valid T-SQL.")
+    } catch {
+        $testLogs.Add("[PRE-FLIGHT NOTE]: Syntax parser notice: $($_.Exception.Message)")
+    }
+
+    while ($attempt -le $maxAttempts -and -not $success) {
+        $testLogs.Add("[TEST CYCLE $attempt]: Executing: $currentSql")
+        $sw = [System.Diagnostics.Stopwatch]::StartNew()
+        $cmd = $dbConn.CreateCommand()
+        $cmd.CommandTimeout = 0
+        $cmd.CommandText = $currentSql
+
+        try {
+            $rdr = $cmd.ExecuteReader()
+            $dataTable = New-Object System.Data.DataTable
+            $dataTable.Load($rdr)
+            $rdr.Close()
+            $sw.Stop()
+            $testLogs.Add("[TEST SUCCESS in Cycle $attempt]: Completed in $($sw.ElapsedMilliseconds)ms! Rows: $($dataTable.Rows.Count), Columns: $($dataTable.Columns.Count)")
+            $success = $true
+        } catch {
+            $sw.Stop()
+            $errMsg = $_.Exception.Message
+            $testLogs.Add("[MISTAKE DETECTED in Cycle $attempt]: $errMsg")
+
+            # MISTAKE TYPE 1: Invalid Column Name (Msg 207)
+            if ($errMsg -match "Invalid column name '([^']+)'") {
+                $badCol = $matches[1]
+                $avail = if ($script:JarvisSchema.Tables.ContainsKey($targetTable)) { $script:JarvisSchema.Tables[$targetTable] | ForEach-Object { $_.Column } } else { @() }
+                
+                $alreadySelected = @()
+                if ($currentSql -match '(?i)SELECT\s+(?:TOP\s+\d+\s+)?(.*)\s+FROM') {
+                    $alreadySelected = $matches[1] -split ',' | ForEach-Object { $_.Trim() }
+                }
+
+                $closestCol = Get-BestMatchingColumn $badCol $avail $alreadySelected
+                if ($closestCol) {
+                    $testLogs.Add("[AUTONOMOUS HEALER]: Detected invalid column '$badCol' -> Auto-corrected to schema column '$closestCol'")
+                    $currentSql = $currentSql -replace "\b$([regex]::Escape($badCol))\b", $closestCol
+                } else {
+                    $testLogs.Add("[AUTONOMOUS HEALER]: Removing problematic column '$badCol' from SELECT list")
+                    $currentSql = $currentSql -replace "(?i)\b$([regex]::Escape($badCol))\s*,\s*", ""
+                }
+                $auditDeductions += "Auto-healed invalid column '$badCol'"
+            }
+            # MISTAKE TYPE 2: Invalid Object / Table Name (Msg 208)
+            elseif ($errMsg -match "Invalid object name '([^']+)'") {
+                $badTblRaw = $matches[1]
+                $badTbl = $badTblRaw.Split('.')[-1].Trim('[', ']')
+                $closestTbl = Get-BestMatchingTable $badTbl
+                $closestSchema = if ($script:JarvisSchema.TableSchemas.ContainsKey($closestTbl)) { $script:JarvisSchema.TableSchemas[$closestTbl] } else { "dbo" }
+                if ($closestTbl) {
+                    $testLogs.Add("[AUTONOMOUS HEALER]: Auto-corrected table name '$badTblRaw' -> '[$closestSchema].[$closestTbl]'")
+                    $currentSql = $currentSql -replace "(?i)\bFROM\s+\[?\w+\]?(?:\.\[?\w+\]?)?", "FROM [$closestSchema].[$closestTbl]"
+                    $targetTable = $closestTbl
+                }
+                $auditDeductions += "Auto-healed invalid table '$badTbl'"
+            }
+            # MISTAKE TYPE 3: Column invalid in select list because not contained in GROUP BY (Msg 8120)
+            elseif ($errMsg -match "Column '([^']+)' is invalid in the select list because it is not contained in either an aggregate function or the GROUP BY clause") {
+                $missingCol = $matches[1]
+                $cleanCol = $missingCol.Split('.')[-1]
+                $testLogs.Add("[AUTONOMOUS HEALER]: Adding missing column '$cleanCol' to GROUP BY clause")
+                if ($currentSql -match '(?i)GROUP\s+BY\s+(.*?)(?=\s+ORDER|\s+HAVING|;|\$)') {
+                    $currentSql = $currentSql -replace '(?i)(GROUP\s+BY\s+.*?)(?=\s+ORDER|\s+HAVING|;|\$)', "`$1, $cleanCol"
+                } else {
+                    $currentSql = $currentSql -replace '(?i)(FROM\s+.*?)(?=\s+ORDER|;|\$)', "`$1 GROUP BY $cleanCol"
+                }
+                $auditDeductions += "Auto-healed missing GROUP BY column '$cleanCol'"
+            }
+            # MISTAKE TYPE 4: Conversion failure (Msg 245 / 8114)
+            elseif ($errMsg -match "Conversion failed" -or $errMsg -match "Error converting data type") {
+                $testLogs.Add("[AUTONOMOUS HEALER]: Applying TRY_CAST wrappers to numeric filter expressions")
+                $currentSql = $currentSql -replace "(?i)CAST\((.*?)\s+AS\s+INT\)", "TRY_CAST(`$1 AS INT)"
+                $auditDeductions += "Protected data type conversion with TRY_CAST"
+            }
+            else {
+                $testLogs.Add("[AUTONOMOUS HEALER]: Unrecoverable execution error: $errMsg")
+                break
+            }
+        } finally {
+            $cmd.Dispose()
+        }
+
+        $attempt++
+    }
+
+    if ($currentSql -notmatch '(?i)WITH\s*\(NOLOCK\)') {
+        $auditScore -= 10
+        $auditDeductions += "Missing NOLOCK hint (Risk of blocking read locks)"
+    }
+    if ($currentSql -notmatch '(?i)TOP\s+\d+|COUNT\(|SUM\(') {
+        $auditScore -= 15
+        $auditDeductions += "Missing row limiter (Risk of excessive memory footprint)"
+    }
+    if (-not $success) { $auditScore = 0 }
+
+    $testLogs.Add("=== PERFORMANCE & SAFETY SCORE: $auditScore/100 ===")
+    return [PSCustomObject]@{
+        Success = $success
+        FinalSql = $currentSql
+        DataTable = $dataTable
+        TestLogs = $testLogs
+        AuditScore = $auditScore
     }
 }
 
@@ -7906,187 +8786,431 @@ function New-NexusAppInstance {
 }
 function Show-JarvisAssistantWindow {
     try {
+        if ($script:SqlConnection -and $script:SqlConnection.State -eq [System.Data.ConnectionState]::Open -and $script:JarvisSchema.AllTables.Count -eq 0) {
+            try { Build-JarvisSchemaIndex $script:SqlConnection } catch { }
+        }
+
         $win = New-Object System.Windows.Window
-        $win.Title = "JARVIS AI EXTRA-INTELLIGENCE CORE v4.0"
-        $win.Width = 780
-        $win.Height = 520
+        $win.Title = "JARVIS - WORLD-CLASS AUTONOMOUS SQL AI AGENT & SELF-HEALING TESTER v5.5"
+        $win.Width = 1100
+        $win.Height = 740
         $win.WindowStartupLocation = [System.Windows.WindowStartupLocation]::CenterOwner
-        if ($window) { $win.Owner = $window }
+        if ($window -and $window.IsVisible) { try { $win.Owner = $window } catch {} }
         $win.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#060A13")
+        $win.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#F8FAFC")
+        $win.FontFamily = New-Object System.Windows.Media.FontFamily("Segoe UI, Nirmala UI, Consolas")
         $win.ResizeMode = [System.Windows.ResizeMode]::CanResizeWithGrip
 
-        $grid = New-Object System.Windows.Controls.Grid
-        $grid.Margin = New-Object System.Windows.Thickness(16)
+        $rootGrid = New-Object System.Windows.Controls.Grid
+        $rootGrid.Margin = New-Object System.Windows.Thickness(14)
         
         $r0 = New-Object System.Windows.Controls.RowDefinition; $r0.Height = [System.Windows.GridLength]::Auto
         $r1 = New-Object System.Windows.Controls.RowDefinition; $r1.Height = [System.Windows.GridLength]::Auto
-        $r2 = New-Object System.Windows.Controls.RowDefinition; $r2.Height = New-Object System.Windows.GridLength(1, [System.Windows.GridUnitType]::Star)
-        $r3 = New-Object System.Windows.Controls.RowDefinition; $r3.Height = [System.Windows.GridLength]::Auto
-        $grid.RowDefinitions.Add($r0); $grid.RowDefinitions.Add($r1); $grid.RowDefinitions.Add($r2); $grid.RowDefinitions.Add($r3)
+        $r2 = New-Object System.Windows.Controls.RowDefinition; $r2.Height = [System.Windows.GridLength]::Auto
+        $r3 = New-Object System.Windows.Controls.RowDefinition; $r3.Height = New-Object System.Windows.GridLength(1, [System.Windows.GridUnitType]::Star)
+        $r4 = New-Object System.Windows.Controls.RowDefinition; $r4.Height = [System.Windows.GridLength]::Auto
+        $rootGrid.RowDefinitions.Add($r0); $rootGrid.RowDefinitions.Add($r1); $rootGrid.RowDefinitions.Add($r2); $rootGrid.RowDefinitions.Add($r3); $rootGrid.RowDefinitions.Add($r4)
 
+        # 1. Header Bar
         $hdrBorder = New-Object System.Windows.Controls.Border
         $hdrBorder.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#0B132B")
         $hdrBorder.BorderBrush = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#00F0FF")
         $hdrBorder.BorderThickness = New-Object System.Windows.Thickness(1)
-        $hdrBorder.CornerRadius = New-Object System.Windows.CornerRadius(6)
+        $hdrBorder.CornerRadius = New-Object System.Windows.CornerRadius(8)
         $hdrBorder.Padding = New-Object System.Windows.Thickness(14,10,14,10)
-        $hdrBorder.Margin = New-Object System.Windows.Thickness(0,0,0,12)
+        $hdrBorder.Margin = New-Object System.Windows.Thickness(0,0,0,10)
         [System.Windows.Controls.Grid]::SetRow($hdrBorder, 0)
 
-        $hdrStack = New-Object System.Windows.Controls.StackPanel
-        $hdrStack.Orientation = [System.Windows.Controls.Orientation]::Horizontal
+        $hdrGrid = New-Object System.Windows.Controls.Grid
+        $hc0 = New-Object System.Windows.Controls.ColumnDefinition; $hc0.Width = New-Object System.Windows.GridLength(1, [System.Windows.GridUnitType]::Star)
+        $hc1 = New-Object System.Windows.Controls.ColumnDefinition; $hc1.Width = [System.Windows.GridLength]::Auto
+        $hdrGrid.ColumnDefinitions.Add($hc0); $hdrGrid.ColumnDefinitions.Add($hc1)
+
+        $hLeftStack = New-Object System.Windows.Controls.StackPanel
+        $hLeftStack.Orientation = [System.Windows.Controls.Orientation]::Horizontal
 
         $badge = New-Object System.Windows.Controls.Border
         $badge.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#00F0FF")
         $badge.CornerRadius = New-Object System.Windows.CornerRadius(4)
-        $badge.Padding = New-Object System.Windows.Thickness(8,4,8,4)
-        $badge.Margin = New-Object System.Windows.Thickness(0,0,12,0)
+        $badge.Padding = New-Object System.Windows.Thickness(8,3,8,3)
+        $badge.Margin = New-Object System.Windows.Thickness(0,0,10,0)
         $badgeTxt = New-Object System.Windows.Controls.TextBlock
-        $badgeTxt.Text = "JARVIS AI v4.0"
+        $badgeTxt.Text = "JARVIS SQL AI v5.5"
         $badgeTxt.FontWeight = [System.Windows.FontWeights]::Bold
         $badgeTxt.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#060A13")
         $badgeTxt.FontSize = 11
         $badge.Child = $badgeTxt
-        $hdrStack.Children.Add($badge) | Out-Null
+        $hLeftStack.Children.Add($badge) | Out-Null
 
+        $hTitleStack = New-Object System.Windows.Controls.StackPanel
         $hdrTitle = New-Object System.Windows.Controls.TextBlock
-        $hdrTitle.Text = "Autonomous Application & SQL Intelligence System"
+        $hdrTitle.Text = "Autonomous Multilingual SQL AI Agent & World-Class Tester"
         $hdrTitle.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#F8FAFC")
-        $hdrTitle.FontSize = 15
+        $hdrTitle.FontSize = 14.5
         $hdrTitle.FontWeight = [System.Windows.FontWeights]::Bold
-        $hdrTitle.VerticalAlignment = [System.Windows.VerticalAlignment]::Center
-        $hdrStack.Children.Add($hdrTitle) | Out-Null
+        $hTitleStack.Children.Add($hdrTitle) | Out-Null
 
-        $hdrBorder.Child = $hdrStack
-        $grid.Children.Add($hdrBorder) | Out-Null
+        $dbSourceStr = if ($script:SqlConnection -and $script:SqlConnection.DataSource) { $script:SqlConnection.DataSource } else { "Local / Offline" }
+        $dbNameStr = if ($script:SqlConnection -and $script:SqlConnection.Database) { $script:SqlConnection.Database } else { "None" }
+        $tableCount = $script:JarvisSchema.AllTables.Count
 
+        $hdrSub = New-Object System.Windows.Controls.TextBlock
+        $hdrSub.Text = "Connected: $dbSourceStr [$dbNameStr] | $tableCount Tables Indexed | Multilingual Marathi / English Ready"
+        $hdrSub.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#38BDF8")
+        $hdrSub.FontSize = 11.5
+        $hTitleStack.Children.Add($hdrSub) | Out-Null
+        $hLeftStack.Children.Add($hTitleStack) | Out-Null
+        [System.Windows.Controls.Grid]::SetColumn($hLeftStack, 0)
+        $hdrGrid.Children.Add($hLeftStack) | Out-Null
+
+        $btnReindex = New-Object System.Windows.Controls.Button
+        $btnReindex.Content = "RE-INDEX SCHEMA"
+        $btnReindex.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#1E293B")
+        $btnReindex.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#00F0FF")
+        $btnReindex.BorderBrush = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#00F0FF")
+        $btnReindex.BorderThickness = New-Object System.Windows.Thickness(1)
+        $btnReindex.FontWeight = [System.Windows.FontWeights]::Bold
+        $btnReindex.Padding = New-Object System.Windows.Thickness(10,5,10,5)
+        $btnReindex.Cursor = [System.Windows.Input.Cursors]::Hand
+        [System.Windows.Controls.Grid]::SetColumn($btnReindex, 1)
+        $hdrGrid.Children.Add($btnReindex) | Out-Null
+
+        $hdrBorder.Child = $hdrGrid
+        $rootGrid.Children.Add($hdrBorder) | Out-Null
+
+        # 2. Command Prompt Bar
         $cmdGrid = New-Object System.Windows.Controls.Grid
-        $cmdGrid.Margin = New-Object System.Windows.Thickness(0,0,0,12)
+        $cmdGrid.Margin = New-Object System.Windows.Thickness(0,0,0,6)
         [System.Windows.Controls.Grid]::SetRow($cmdGrid, 1)
 
-        $c0 = New-Object System.Windows.Controls.ColumnDefinition; $c0.Width = New-Object System.Windows.GridLength(1, [System.Windows.GridUnitType]::Star)
-        $c1 = New-Object System.Windows.Controls.ColumnDefinition; $c1.Width = [System.Windows.GridLength]::Auto
-        $cmdGrid.ColumnDefinitions.Add($c0); $cmdGrid.ColumnDefinitions.Add($c1)
+        $cc0 = New-Object System.Windows.Controls.ColumnDefinition; $cc0.Width = New-Object System.Windows.GridLength(1, [System.Windows.GridUnitType]::Star)
+        $cc1 = New-Object System.Windows.Controls.ColumnDefinition; $cc1.Width = [System.Windows.GridLength]::Auto
+        $cmdGrid.ColumnDefinitions.Add($cc0); $cmdGrid.ColumnDefinitions.Add($cc1)
 
         $txtPrompt = New-Object System.Windows.Controls.TextBox
-        $txtPrompt.Height = 36
-        $txtPrompt.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#0A0E1A")
+        $txtPrompt.Height = 40
+        $txtPrompt.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#0A0F1D")
         $txtPrompt.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#00F0FF")
-        $txtPrompt.BorderBrush = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#1E3252")
-        $txtPrompt.BorderThickness = New-Object System.Windows.Thickness(1)
-        $txtPrompt.Padding = New-Object System.Windows.Thickness(10,6,10,6)
-        $txtPrompt.FontSize = 13
-        $txtPrompt.FontFamily = New-Object System.Windows.Media.FontFamily("Consolas")
-        $txtPrompt.Text = "Ask JARVIS: e.g. 'format query', 'analyze performance', 'show active sessions', 'check table size'..."
-        $txtPrompt.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#64748B")
+        $txtPrompt.BorderBrush = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#1E3A8A")
+        $txtPrompt.BorderThickness = New-Object System.Windows.Thickness(1.5)
+        $txtPrompt.Padding = New-Object System.Windows.Thickness(12,8,12,8)
+        $txtPrompt.FontSize = 13.5
+        $txtPrompt.FontFamily = New-Object System.Windows.Media.FontFamily("Consolas, Nirmala UI, Segoe UI")
+        $uDefaultPrompt = "PropertyMast " + (Get-UniStr @(0x092E, 0x0927, 0x0942, 0x0928)) + " top 50 " + (Get-UniStr @(0x092E, 0x093E, 0x0932, 0x0915)) + " " + (Get-UniStr @(0x0906, 0x0923, 0x093F)) + " " + (Get-UniStr @(0x092E, 0x094B, 0x092C, 0x093E, 0x0907, 0x0932)) + " " + (Get-UniStr @(0x0926, 0x093E, 0x0916, 0x0935, 0x093E))
+        $txtPrompt.Text = $uDefaultPrompt
         [System.Windows.Controls.Grid]::SetColumn($txtPrompt, 0)
 
-        $txtPrompt.Add_GotFocus({
-            if ($txtPrompt.Text -like "Ask JARVIS:*") {
-                $txtPrompt.Text = ""
-                $txtPrompt.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#00F0FF")
-            }
-        })
-
-        $btnAsk = New-Object System.Windows.Controls.Button
-        $btnAsk.Content = "ASK JARVIS (ENTER)"
-        $btnAsk.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#00F0FF")
-        $btnAsk.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#060A13")
-        $btnAsk.FontWeight = [System.Windows.FontWeights]::Bold
-        $btnAsk.Padding = New-Object System.Windows.Thickness(14,0,14,0)
-        $btnAsk.Margin = New-Object System.Windows.Thickness(8,0,0,0)
-        $btnAsk.BorderThickness = New-Object System.Windows.Thickness(0)
-        $btnAsk.Cursor = [System.Windows.Input.Cursors]::Hand
-        [System.Windows.Controls.Grid]::SetColumn($btnAsk, 1)
+        $btnRun = New-Object System.Windows.Controls.Button
+        $btnRun.Content = "EXECUTE & AUTO-TEST (ENTER)"
+        $btnRun.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#0284C7")
+        $btnRun.Foreground = [System.Windows.Media.Brushes]::White
+        $btnRun.FontWeight = [System.Windows.FontWeights]::Bold
+        $btnRun.Padding = New-Object System.Windows.Thickness(16,0,16,0)
+        $btnRun.Margin = New-Object System.Windows.Thickness(8,0,0,0)
+        $btnRun.BorderThickness = New-Object System.Windows.Thickness(0)
+        $btnRun.Cursor = [System.Windows.Input.Cursors]::Hand
+        [System.Windows.Controls.Grid]::SetColumn($btnRun, 1)
 
         $cmdGrid.Children.Add($txtPrompt) | Out-Null
-        $cmdGrid.Children.Add($btnAsk) | Out-Null
-        $grid.Children.Add($cmdGrid) | Out-Null
+        $cmdGrid.Children.Add($btnRun) | Out-Null
+        $rootGrid.Children.Add($cmdGrid) | Out-Null
 
-        $txtLog = New-Object System.Windows.Controls.TextBox
-        $txtLog.AcceptsReturn = $true
-        $txtLog.IsReadOnly = $true
-        $txtLog.TextWrapping = [System.Windows.TextWrapping]::Wrap
-        $txtLog.FontFamily = New-Object System.Windows.Media.FontFamily("Consolas")
-        $txtLog.FontSize = 12.5
-        $txtLog.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#0A101E")
-        $txtLog.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#E2E8F0")
-        $txtLog.BorderBrush = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#1E293B")
-        $txtLog.BorderThickness = New-Object System.Windows.Thickness(1)
-        $txtLog.Padding = New-Object System.Windows.Thickness(12)
-        $txtLog.VerticalScrollBarVisibility = [System.Windows.Controls.ScrollBarVisibility]::Auto
-        $txtLog.Text = "JARVIS AI SYSTEM ONLINE`nReady for commands.`n---------------------------------------------------------`nTry commands:`n  - 'format query' (Format T-SQL code cleanly)`n  - 'analyze performance' (Audit SQL query security & performance)`n  - 'show active sessions' (Run sp_who2)`n  - 'check table size' (Run sp_spaceused)`n  - 'new sp' (Generate SP template)`n  - 'test transaction' (Execute inside BEGIN TRAN...ROLLBACK)`n  - 'full screen' (Inspect SP/Function in Full Screen)`n---------------------------------------------------------`n"
-        [System.Windows.Controls.Grid]::SetRow($txtLog, 2)
-        $grid.Children.Add($txtLog) | Out-Null
+        # 3. Quick Action Chips Bar
+        $chipsPanel = New-Object System.Windows.Controls.WrapPanel
+        $chipsPanel.Margin = New-Object System.Windows.Thickness(0,0,0,10)
+        [System.Windows.Controls.Grid]::SetRow($chipsPanel, 2)
 
-        $barGrid = New-Object System.Windows.Controls.Grid
-        $barGrid.Margin = New-Object System.Windows.Thickness(0,12,0,0)
-        [System.Windows.Controls.Grid]::SetRow($barGrid, 3)
+        $sMalmatta  = Get-UniStr @(0x092E, 0x093E, 0x0932, 0x092E, 0x0924, 0x094D, 0x0924, 0x093E)
+        $sThakbaki  = Get-UniStr @(0x0925, 0x0915, 0x092C, 0x093E, 0x0915, 0x0940)
+        $sPavti     = Get-UniStr @(0x092A, 0x093E, 0x0935, 0x0924, 0x0940)
+        $sNav       = Get-UniStr @(0x0928, 0x093E, 0x0935)
+        $sWardNihay = Get-UniStr @(0x0935, 0x0949, 0x0930, 0x094D, 0x0921, 0x0928, 0x093F, 0x0939, 0x093E, 0x092F)
+        $sKar       = Get-UniStr @(0x0915, 0x0930)
 
-        $bStack = New-Object System.Windows.Controls.StackPanel
-        $bStack.Orientation = [System.Windows.Controls.Orientation]::Horizontal
+        $chipConfigs = @(
+            @{ Label = "[ Top 50 Properties ($sMalmatta) ]"; Prompt = "PropertyMast " + (Get-UniStr @(0x092E, 0x0927, 0x0942, 0x0928)) + " top 50 " + (Get-UniStr @(0x092E, 0x093E, 0x0932, 0x0915)) + " " + (Get-UniStr @(0x0906, 0x0923, 0x093F)) + " " + (Get-UniStr @(0x092E, 0x094B, 0x092C, 0x093E, 0x0907, 0x0932)) + " " + (Get-UniStr @(0x0926, 0x093E, 0x0916, 0x0935, 0x093E)) },
+            @{ Label = "[ Pending Tax ($sThakbaki) ]"; Prompt = "top 50 " + $sThakbaki + " " + (Get-UniStr @(0x0906, 0x0923, 0x093F)) + " " + $sKar + " " + (Get-UniStr @(0x0924, 0x092A, 0x0936, 0x0940, 0x0932)) + " " + (Get-UniStr @(0x0926, 0x093E, 0x0916, 0x0935, 0x093E)) },
+            @{ Label = "[ Bill Receipts ($sPavti) ]"; Prompt = "BillTransactionDetails " + (Get-UniStr @(0x092E, 0x0927, 0x0942, 0x0928)) + " top 50 " + $sPavti + " " + (Get-UniStr @(0x0926, 0x093E, 0x0916, 0x0935, 0x093E)) },
+            @{ Label = "[ Search Owner Name ($sNav) ]"; Prompt = "PropertyMast " + (Get-UniStr @(0x092E, 0x0927, 0x0942, 0x0928)) + " " + $sNav + " Patil " + (Get-UniStr @(0x0905, 0x0938, 0x0923, 0x093E, 0x0930, 0x0947)) + " " + (Get-UniStr @(0x092E, 0x093E, 0x0932, 0x0915)) + " " + (Get-UniStr @(0x0926, 0x093E, 0x0916, 0x0935, 0x093E)) },
+            @{ Label = "[ Ward-wise Count ($sWardNihay) ]"; Prompt = $sWardNihay + " " + $sMalmatta + " count " + (Get-UniStr @(0x0926, 0x093E, 0x0916, 0x0935, 0x093E)) },
+            @{ Label = "[ Broken Query Mistake Healer ]"; Prompt = "SELECT TOP 5 OwnerID, Phonexxx, Warrrd FROM PropertyMast" }
+        )
 
-        $btnFmt = New-Object System.Windows.Controls.Button
-        $btnFmt.Content = "FORMAT SQL"
-        $btnFmt.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#0284C7")
-        $btnFmt.Foreground = [System.Windows.Media.Brushes]::White
-        $btnFmt.FontWeight = [System.Windows.FontWeights]::Bold
-        $btnFmt.Padding = New-Object System.Windows.Thickness(12,6,12,6)
-        $btnFmt.Margin = New-Object System.Windows.Thickness(0,0,8,0)
-        $btnFmt.BorderThickness = New-Object System.Windows.Thickness(0)
-        $btnFmt.Cursor = [System.Windows.Input.Cursors]::Hand
-        $btnFmt.Add_Click({
-            Format-SqlQuery
-            $txtLog.AppendText("`n[JARVIS]: Auto-formatted SQL query in Query Editor.`n")
-            $txtLog.ScrollToEnd()
+        foreach ($chip in $chipConfigs) {
+            $btnChip = New-Object System.Windows.Controls.Button
+            $btnChip.Content = $chip.Label
+            $btnChip.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#131E33")
+            $btnChip.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#7DD3FC")
+            $btnChip.BorderBrush = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#1E3A8A")
+            $btnChip.BorderThickness = New-Object System.Windows.Thickness(1)
+            $btnChip.Padding = New-Object System.Windows.Thickness(8,4,8,4)
+            $btnChip.Margin = New-Object System.Windows.Thickness(0,0,6,6)
+            $btnChip.FontSize = 11.5
+            $btnChip.Cursor = [System.Windows.Input.Cursors]::Hand
+            $pVal = $chip.Prompt
+            $btnChip.Add_Click({
+                $txtPrompt.Text = $pVal
+                & $execAction
+            }.GetNewClosure())
+            $chipsPanel.Children.Add($btnChip) | Out-Null
+        }
+        $rootGrid.Children.Add($chipsPanel) | Out-Null
+
+        # 4. TabControl Workstation
+        $tabCtrl = New-Object System.Windows.Controls.TabControl
+        $tabCtrl.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#0A101E")
+        $tabCtrl.BorderBrush = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#1E293B")
+        [System.Windows.Controls.Grid]::SetRow($tabCtrl, 3)
+
+        # Tab 1: DATA TABLE
+        $tabData = New-Object System.Windows.Controls.TabItem
+        $tabData.Header = "  DATA TABLE (RESULTS)  "
+        $tDataGrid = New-Object System.Windows.Controls.Grid
+        $td0 = New-Object System.Windows.Controls.RowDefinition; $td0.Height = [System.Windows.GridLength]::Auto
+        $td1 = New-Object System.Windows.Controls.RowDefinition; $td1.Height = New-Object System.Windows.GridLength(1, [System.Windows.GridUnitType]::Star)
+        $tDataGrid.RowDefinitions.Add($td0); $tDataGrid.RowDefinitions.Add($td1)
+
+        $lblDataStatus = New-Object System.Windows.Controls.TextBlock
+        $lblDataStatus.Text = "Ready. Enter natural language instruction above and press Execute."
+        $lblDataStatus.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#38BDF8")
+        $lblDataStatus.FontSize = 12
+        $lblDataStatus.Margin = New-Object System.Windows.Thickness(8,6,8,6)
+        [System.Windows.Controls.Grid]::SetRow($lblDataStatus, 0)
+        $tDataGrid.Children.Add($lblDataStatus) | Out-Null
+
+        $dgResults = New-Object System.Windows.Controls.DataGrid
+        $dgResults.AutoGenerateColumns = $true
+        $dgResults.IsReadOnly = $true
+        $dgResults.CanUserSortColumns = $true
+        $dgResults.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#0A101E")
+        $dgResults.RowBackground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#0A101E")
+        $dgResults.AlternatingRowBackground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#0F172A")
+        $dgResults.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#E2E8F0")
+        $dgResults.GridLinesVisibility = [System.Windows.Controls.DataGridGridLinesVisibility]::All
+        $dgResults.HorizontalGridLinesBrush = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#1E293B")
+        $dgResults.VerticalGridLinesBrush = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#1E293B")
+        $dgResults.BorderThickness = New-Object System.Windows.Thickness(0)
+        $dgResults.Margin = New-Object System.Windows.Thickness(4)
+        [System.Windows.Controls.Grid]::SetRow($dgResults, 1)
+        $tDataGrid.Children.Add($dgResults) | Out-Null
+        $tabData.Content = $tDataGrid
+        $tabCtrl.Items.Add($tabData) | Out-Null
+
+        # Tab 2: TESTER & HEALING AUDIT
+        $tabTest = New-Object System.Windows.Controls.TabItem
+        $tabTest.Header = "  AUTONOMOUS TESTER & HEALER LOG  "
+        $txtLogs = New-Object System.Windows.Controls.TextBox
+        $txtLogs.AcceptsReturn = $true
+        $txtLogs.IsReadOnly = $true
+        $txtLogs.FontFamily = New-Object System.Windows.Media.FontFamily("Consolas")
+        $txtLogs.FontSize = 12
+        $txtLogs.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#030712")
+        $txtLogs.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#38BDF8")
+        $txtLogs.BorderThickness = New-Object System.Windows.Thickness(0)
+        $txtLogs.Padding = New-Object System.Windows.Thickness(10)
+        $txtLogs.VerticalScrollBarVisibility = [System.Windows.Controls.ScrollBarVisibility]::Auto
+        $txtLogs.Text = "Autonomous SQL Tester & Healer Engine online.
+Waiting for instructions..."
+        $tabTest.Content = $txtLogs
+        $tabCtrl.Items.Add($tabTest) | Out-Null
+
+        # Tab 3: GENERATED T-SQL QUERY
+        $tabSql = New-Object System.Windows.Controls.TabItem
+        $tabSql.Header = "  GENERATED T-SQL QUERY  "
+        $txtGeneratedSql = New-Object System.Windows.Controls.TextBox
+        $txtGeneratedSql.AcceptsReturn = $true
+        $txtGeneratedSql.FontFamily = New-Object System.Windows.Media.FontFamily("Consolas")
+        $txtGeneratedSql.FontSize = 13
+        $txtGeneratedSql.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#030712")
+        $txtGeneratedSql.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#4ADE80")
+        $txtGeneratedSql.BorderThickness = New-Object System.Windows.Thickness(0)
+        $txtGeneratedSql.Padding = New-Object System.Windows.Thickness(10)
+        $txtGeneratedSql.VerticalScrollBarVisibility = [System.Windows.Controls.ScrollBarVisibility]::Auto
+        $tabSql.Content = $txtGeneratedSql
+        $tabCtrl.Items.Add($tabSql) | Out-Null
+
+        $rootGrid.Children.Add($tabCtrl) | Out-Null
+
+        # 5. Bottom Action Bar
+        $btmGrid = New-Object System.Windows.Controls.Grid
+        $btmGrid.Margin = New-Object System.Windows.Thickness(0,10,0,0)
+        [System.Windows.Controls.Grid]::SetRow($btmGrid, 4)
+
+        $bc0 = New-Object System.Windows.Controls.ColumnDefinition; $bc0.Width = New-Object System.Windows.GridLength(1, [System.Windows.GridUnitType]::Star)
+        $bc1 = New-Object System.Windows.Controls.ColumnDefinition; $bc1.Width = [System.Windows.GridLength]::Auto
+        $btmGrid.ColumnDefinitions.Add($bc0); $btmGrid.ColumnDefinitions.Add($bc1)
+
+        $bLeftStack = New-Object System.Windows.Controls.StackPanel
+        $bLeftStack.Orientation = [System.Windows.Controls.Orientation]::Horizontal
+
+        $btnSendToEditor = New-Object System.Windows.Controls.Button
+        $btnSendToEditor.Content = "SEND TO MAIN SQL EDITOR"
+        $btnSendToEditor.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#0284C7")
+        $btnSendToEditor.Foreground = [System.Windows.Media.Brushes]::White
+        $btnSendToEditor.FontWeight = [System.Windows.FontWeights]::Bold
+        $btnSendToEditor.Padding = New-Object System.Windows.Thickness(12,6,12,6)
+        $btnSendToEditor.Margin = New-Object System.Windows.Thickness(0,0,8,0)
+        $btnSendToEditor.BorderThickness = New-Object System.Windows.Thickness(0)
+        $btnSendToEditor.Cursor = [System.Windows.Input.Cursors]::Hand
+        $bLeftStack.Children.Add($btnSendToEditor) | Out-Null
+
+        $btnExportCsv = New-Object System.Windows.Controls.Button
+        $btnExportCsv.Content = "EXPORT CSV"
+        $btnExportCsv.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#059669")
+        $btnExportCsv.Foreground = [System.Windows.Media.Brushes]::White
+        $btnExportCsv.FontWeight = [System.Windows.FontWeights]::Bold
+        $btnExportCsv.Padding = New-Object System.Windows.Thickness(12,6,12,6)
+        $btnExportCsv.Margin = New-Object System.Windows.Thickness(0,0,8,0)
+        $btnExportCsv.BorderThickness = New-Object System.Windows.Thickness(0)
+        $btnExportCsv.Cursor = [System.Windows.Input.Cursors]::Hand
+        $bLeftStack.Children.Add($btnExportCsv) | Out-Null
+
+        [System.Windows.Controls.Grid]::SetColumn($bLeftStack, 0)
+        $btmGrid.Children.Add($bLeftStack) | Out-Null
+
+        $bRightStack = New-Object System.Windows.Controls.StackPanel
+        $bRightStack.Orientation = [System.Windows.Controls.Orientation]::Horizontal
+
+        $btnClear = New-Object System.Windows.Controls.Button
+        $btnClear.Content = "CLEAR"
+        $btnClear.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#334155")
+        $btnClear.Foreground = [System.Windows.Media.Brushes]::White
+        $btnClear.Padding = New-Object System.Windows.Thickness(12,6,12,6)
+        $btnClear.Margin = New-Object System.Windows.Thickness(0,0,8,0)
+        $btnClear.BorderThickness = New-Object System.Windows.Thickness(0)
+        $btnClear.Cursor = [System.Windows.Input.Cursors]::Hand
+        $btnClear.Add_Click({
+            $txtPrompt.Text = ""
+            $dgResults.ItemsSource = $null
+            $txtLogs.Text = "Cleared."
+            $txtGeneratedSql.Text = ""
+            $lblDataStatus.Text = "Ready."
         })
-        $bStack.Children.Add($btnFmt) | Out-Null
-
-        $btnAud = New-Object System.Windows.Controls.Button
-        $btnAud.Content = "ANALYZE SQL PERFORMANCE"
-        $btnAud.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#8B5CF6")
-        $btnAud.Foreground = [System.Windows.Media.Brushes]::White
-        $btnAud.FontWeight = [System.Windows.FontWeights]::Bold
-        $btnAud.Padding = New-Object System.Windows.Thickness(12,6,12,6)
-        $btnAud.Margin = New-Object System.Windows.Thickness(0,0,8,0)
-        $btnAud.BorderThickness = New-Object System.Windows.Thickness(0)
-        $btnAud.Cursor = [System.Windows.Input.Cursors]::Hand
-        $btnAud.Add_Click({
-            Analyze-SqlQuery
-            $txtLog.AppendText("`n[JARVIS]: Executed Performance & Security Audit. Output generated in MESSAGES tab.`n")
-            $txtLog.ScrollToEnd()
-        })
-        $bStack.Children.Add($btnAud) | Out-Null
+        $bRightStack.Children.Add($btnClear) | Out-Null
 
         $btnClose = New-Object System.Windows.Controls.Button
         $btnClose.Content = "CLOSE (ESC)"
-        $btnClose.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#334155")
+        $btnClose.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#475569")
         $btnClose.Foreground = [System.Windows.Media.Brushes]::White
         $btnClose.Padding = New-Object System.Windows.Thickness(12,6,12,6)
         $btnClose.BorderThickness = New-Object System.Windows.Thickness(0)
         $btnClose.Cursor = [System.Windows.Input.Cursors]::Hand
         $btnClose.Add_Click({ $win.Close() })
-        $bStack.Children.Add($btnClose) | Out-Null
+        $bRightStack.Children.Add($btnClose) | Out-Null
 
-        $barGrid.Children.Add($bStack) | Out-Null
-        $grid.Children.Add($barGrid) | Out-Null
+        [System.Windows.Controls.Grid]::SetColumn($bRightStack, 1)
+        $btmGrid.Children.Add($bRightStack) | Out-Null
+        $rootGrid.Children.Add($btmGrid) | Out-Null
 
+        # Core Execution Engine Action
+        $script:JarvisActiveDataTable = $null
         $execAction = {
-            $cmdText = $txtPrompt.Text
-            if ([string]::IsNullOrWhiteSpace($cmdText) -or $cmdText -like "Ask JARVIS:*") { return }
-            $resp = Process-JarvisNaturalLanguage -prompt $cmdText
-            $txtLog.AppendText("`n> $cmdText`n[JARVIS]: $resp`n")
-            $txtLog.ScrollToEnd()
-            $txtPrompt.Text = ""
+            $pText = $txtPrompt.Text
+            if ([string]::IsNullOrWhiteSpace($pText)) { return }
+
+            if (-not $script:SqlConnected -or -not $script:SqlConnection) {
+                [System.Windows.MessageBox]::Show("Please connect to SQL Server in the SQL Console tab first.", "SQL Connection Required", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Warning)
+                return
+            }
+
+            $lblDataStatus.Text = "Executing & Autonomous Testing against live database..."
+            $lblDataStatus.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#FBBF24")
+
+            $parsed = if ($pText -match '(?i)^\s*SELECT\b') {
+                $tGuess = if ($pText -match '(?i)(?:FROM|FORM)\s+\[?(\w+)\]?') { $matches[1] } else { "PropertyMast" }
+                [PSCustomObject]@{ Sql = $pText; Table = $tGuess; Logs = @("[DIRECT SQL]: Executing user SQL query directly.") }
+            } else {
+                Convert-JarvisNLToSql $pText
+            }
+
+            $txtGeneratedSql.Text = $parsed.Sql
+
+            # Run Autonomous Tester & Healer
+            $testRes = Invoke-JarvisAutonomousSqlTester $script:SqlConnection $parsed.Sql $parsed.Table
+            $txtGeneratedSql.Text = $testRes.FinalSql
+
+            # Render Log
+            $logBuilder = [System.Text.StringBuilder]::new()
+            foreach ($l in $parsed.Logs) { [void]$logBuilder.AppendLine($l) }
+            [void]$logBuilder.AppendLine("")
+            foreach ($tl in $testRes.TestLogs) { [void]$logBuilder.AppendLine($tl) }
+            $txtLogs.Text = $logBuilder.ToString()
+            $txtLogs.ScrollToEnd()
+
+            # Render Data Grid
+            if ($testRes.Success -and $testRes.DataTable) {
+                $script:JarvisActiveDataTable = $testRes.DataTable
+                $dgResults.ItemsSource = $testRes.DataTable.DefaultView
+                $lblDataStatus.Text = "SUCCESS: Loaded $($testRes.DataTable.Rows.Count) rows in $($testRes.DataTable.Columns.Count) columns | Autonomous Quality Score: $($testRes.AuditScore)/100"
+                $lblDataStatus.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#4ADE80")
+                $tabCtrl.SelectedItem = $tabData
+            } else {
+                $script:JarvisActiveDataTable = $null
+                $dgResults.ItemsSource = $null
+                $lblDataStatus.Text = "TEST FAILED: Please inspect tester diagnostic logs in 'AUTONOMOUS TESTER' tab."
+                $lblDataStatus.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#EF4444")
+                $tabCtrl.SelectedItem = $tabTest
+            }
         }
 
-        $btnAsk.Add_Click($execAction)
+        $btnRun.Add_Click($execAction)
         $txtPrompt.Add_KeyDown({
             param($s, $e)
             if ($e.Key -eq [System.Windows.Input.Key]::Enter) {
                 & $execAction
                 $e.Handled = $true
             }
+        })
+
+        $btnSendToEditor.Add_Click({
+            if ([string]::IsNullOrWhiteSpace($txtGeneratedSql.Text)) { return }
+            if ($txtSqlQuery) {
+                $txtSqlQuery.Text = $txtGeneratedSql.Text
+                $txtSqlQuery.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#4ADE80")
+            }
+            try { Switch-Tab "SqlConsole" } catch {}
+            if ($lblSqlRowCount) { $lblSqlRowCount.Text = "Query imported from JARVIS AI Agent" }
+            $win.Close()
+        })
+
+        $btnExportCsv.Add_Click({
+            if (-not $script:JarvisActiveDataTable -or $script:JarvisActiveDataTable.Rows.Count -eq 0) {
+                [System.Windows.MessageBox]::Show("No data available to export.", "Export CSV", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Information)
+                return
+            }
+            $desktopPath = [Environment]::GetFolderPath("Desktop")
+            $csvPath = Join-Path $desktopPath ("Jarvis_Sql_Export_" + (Get-Date -Format "yyyyMMdd_HHmmss") + ".csv")
+            
+            $lines = [System.Collections.Generic.List[string]]::new()
+            $colHeaders = @()
+            foreach ($col in $script:JarvisActiveDataTable.Columns) { $colHeaders += ('"' + $col.ColumnName + '"') }
+            $lines.Add(($colHeaders -join ","))
+
+            foreach ($row in $script:JarvisActiveDataTable.Rows) {
+                $rowVals = @()
+                foreach ($col in $script:JarvisActiveDataTable.Columns) {
+                    $val = if ($row.IsNull($col)) { "" } else { $row[$col].ToString().Replace('"', '""') }
+                    $rowVals += ('"' + $val + '"')
+                }
+                $lines.Add(($rowVals -join ","))
+            }
+
+            [System.IO.File]::WriteAllLines($csvPath, $lines, [System.Text.Encoding]::UTF8)
+            [System.Windows.MessageBox]::Show("Data exported successfully to CSV!
+
+File: $csvPath", "Export Success", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Information)
+        })
+
+        $btnReindex.Add_Click({
+            if (-not $script:SqlConnected -or -not $script:SqlConnection) { return }
+            $btnReindex.IsEnabled = $false
+            $btnReindex.Content = "INDEXING..."
+            Build-JarvisSchemaIndex $script:SqlConnection
+            $hdrSub.Text = "Connected: $($script:SqlConnection.DataSource) [$($script:SqlConnection.Database)] | $($script:JarvisSchema.AllTables.Count) Tables Indexed | Multilingual Marathi / English Ready"
+            $btnReindex.Content = "RE-INDEX SCHEMA"
+            $btnReindex.IsEnabled = $true
+            [System.Windows.MessageBox]::Show("Database schema re-indexed successfully!
+Total Tables Indexed: $($script:JarvisSchema.AllTables.Count)", "Schema Indexing", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Information)
         })
 
         $win.Add_PreviewKeyDown({
@@ -8097,7 +9221,7 @@ function Show-JarvisAssistantWindow {
             }
         })
 
-        $win.Content = $grid
+        $win.Content = $rootGrid
         $win.ShowDialog() | Out-Null
     } catch { }
 }
@@ -10055,6 +11179,11 @@ $window.Add_PreviewKeyDown({
     }
 
     if ($viewSqlConsole.Visibility -eq "Visible") {
+        if ($e.Key -eq [System.Windows.Input.Key]::F1) {
+            Show-JarvisAssistantWindow
+            $e.Handled = $true
+            return
+        }
         if ($e.Key -eq [System.Windows.Input.Key]::F5 -and [System.Windows.Input.Keyboard]::Modifiers -eq [System.Windows.Input.ModifierKeys]::Control) {
             Parse-SqlQuery
             $e.Handled = $true
@@ -11913,6 +13042,670 @@ $btnExtractStart.Add_Click({
 })
 
 # =====================================================================
+# --- 3-URL PLAN PHOTO SYNCHRONIZER & SHARER (PARENT MASTER ENGINE) ---
+# =====================================================================
+
+$global:threeUrlLastDesktopFolder = $null
+
+function Update-ThreeUrlParentStyles {
+    if ($rbUrlParent1 -and $rbUrlParent1.IsChecked -eq $true) {
+        $rbUrlParent1.Content = "URL 1: TARGET (192.168.1.19)"
+        $rbUrlParent1.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#34D399")
+        $rbUrlParent2.Content = "URL 2: SOURCE 11 (WARDS)"
+        $rbUrlParent2.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#94A3B8")
+        $rbUrlParent3.Content = "URL 3: SOURCE 22 (PMC)"
+        $rbUrlParent3.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#94A3B8")
+        if ($borderUrl1) { $borderUrl1.BorderBrush = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#059669") }
+        if ($borderUrl2) { $borderUrl2.BorderBrush = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#1E3252") }
+        if ($borderUrl3) { $borderUrl3.BorderBrush = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#1E3252") }
+    } elseif ($rbUrlParent2 -and $rbUrlParent2.IsChecked -eq $true) {
+        $rbUrlParent2.Content = "URL 2: TARGET (MASTER)"
+        $rbUrlParent2.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#34D399")
+        $rbUrlParent1.Content = "URL 1: SECONDARY SOURCE"
+        $rbUrlParent1.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#94A3B8")
+        $rbUrlParent3.Content = "URL 3: SECONDARY SOURCE"
+        $rbUrlParent3.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#94A3B8")
+        if ($borderUrl2) { $borderUrl2.BorderBrush = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#059669") }
+        if ($borderUrl1) { $borderUrl1.BorderBrush = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#1E3252") }
+        if ($borderUrl3) { $borderUrl3.BorderBrush = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#1E3252") }
+    } elseif ($rbUrlParent3 -and $rbUrlParent3.IsChecked -eq $true) {
+        $rbUrlParent3.Content = "URL 3: TARGET (MASTER)"
+        $rbUrlParent3.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#34D399")
+        $rbUrlParent1.Content = "URL 1: SECONDARY SOURCE"
+        $rbUrlParent1.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#94A3B8")
+        $rbUrlParent2.Content = "URL 2: SECONDARY SOURCE"
+        $rbUrlParent2.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#94A3B8")
+        if ($borderUrl3) { $borderUrl3.BorderBrush = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#059669") }
+        if ($borderUrl1) { $borderUrl1.BorderBrush = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#1E3252") }
+        if ($borderUrl2) { $borderUrl2.BorderBrush = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#1E3252") }
+    }
+}
+
+if ($rbUrlParent1) { $rbUrlParent1.Add_Checked({ Update-ThreeUrlParentStyles }) }
+if ($rbUrlParent2) { $rbUrlParent2.Add_Checked({ Update-ThreeUrlParentStyles }) }
+if ($rbUrlParent3) { $rbUrlParent3.Add_Checked({ Update-ThreeUrlParentStyles }) }
+
+if ($btnThreeUrlPresetPanvel) {
+    $btnThreeUrlPresetPanvel.Add_Click({
+        $rbUrlParent1.IsChecked = $true
+        $txtThreeUrl1.Text = "\\192.168.1.19\d\NewWebApps\Tabcollection.Panvelmc.org\Files"
+        $txtThreeUrl2.Text = "\\192.168.1.11\d\Images\NTIS_4030"
+        $txtThreeUrl3.Text = "\\192.168.1.22\d\WebApplicationHost\PMCPhotoStorage.org\wwwroot\Files"
+        if ($rbSyncCategoryBoth) { $rbSyncCategoryBoth.IsChecked = $true }
+        if ($rbSyncActionToParent) { $rbSyncActionToParent.IsChecked = $true }
+        if ($chkSyncRecursive) { $chkSyncRecursive.IsChecked = $true }
+        if ($chkSyncIgnoreCommon) { $chkSyncIgnoreCommon.IsChecked = $true }
+        Update-ThreeUrlParentStyles
+        
+        $txtExtractLogs.Clear()
+        Append-ExtractLog "======================================================="
+        Append-ExtractLog "LOADED PANVEL 3-SERVER CONSOLIDATION PRESET"
+        Append-ExtractLog "Target Hub (Master)  : \\192.168.1.19\d\NewWebApps\Tabcollection.Panvelmc.org\Files"
+        Append-ExtractLog "  -> Target Images   : ...\Files\PropertyImage"
+        Append-ExtractLog "  -> Target Plans    : ...\Files\PlanPhoto"
+        Append-ExtractLog "Source 1 (Wards)     : \\192.168.1.11\d\Images\NTIS_4030"
+        Append-ExtractLog "  -> Auto-detects ward no ...\Photo & ward no ...\Plan"
+        Append-ExtractLog "Source 2 (PMC Host)  : \\192.168.1.22\d\WebApplicationHost\PMCPhotoStorage.org\wwwroot\Files"
+        Append-ExtractLog "  -> Auto-detects PropertyImage & PlanPhoto"
+        Append-ExtractLog "Common Deduplication : ENABLED (Identical files in 19 are ignored)"
+        Append-ExtractLog "======================================================="
+        Append-ExtractLog "Ready. Click '1. SCAN & COMPARE (AUDIT)' or '2. START MIGRATING TO 192.168.1.19'."
+    })
+}
+
+if ($btnSubModeStandardExtract) {
+    $btnSubModeStandardExtract.Add_Click({
+        $btnSubModeStandardExtract.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#0284C7")
+        $btnSubModeStandardExtract.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#FFFFFF")
+        $btnSubModeThreeUrlSync.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#0D1527")
+        $btnSubModeThreeUrlSync.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#94A3B8")
+        
+        $pnlStandardExtract.Visibility = "Visible"
+        $gridStatsStandard.Visibility = "Visible"
+        $gridFooterStandard.Visibility = "Visible"
+        
+        $pnlThreeUrlSync.Visibility = "Collapsed"
+        $gridStatsThreeUrl.Visibility = "Collapsed"
+        $gridFooterThreeUrl.Visibility = "Collapsed"
+    })
+}
+
+if ($btnSubModeThreeUrlSync) {
+    $btnSubModeThreeUrlSync.Add_Click({
+        $btnSubModeThreeUrlSync.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#10B981")
+        $btnSubModeThreeUrlSync.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#FFFFFF")
+        $btnSubModeStandardExtract.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#0D1527")
+        $btnSubModeStandardExtract.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#94A3B8")
+        
+        $pnlStandardExtract.Visibility = "Collapsed"
+        $gridStatsStandard.Visibility = "Collapsed"
+        $gridFooterStandard.Visibility = "Collapsed"
+        
+        $pnlThreeUrlSync.Visibility = "Visible"
+        $gridStatsThreeUrl.Visibility = "Visible"
+        $gridFooterThreeUrl.Visibility = "Visible"
+    })
+}
+
+if ($btnThreeUrlBrowse1) {
+    $btnThreeUrlBrowse1.Add_Click({
+        $dlg = New-Object System.Windows.Forms.FolderBrowserDialog
+        $dlg.Description = "Select URL 1 Server / PlanPhoto Folder"
+        $dlg.SelectedPath = $txtThreeUrl1.Text
+        if ($dlg.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { $txtThreeUrl1.Text = $dlg.SelectedPath }
+    })
+}
+
+if ($btnThreeUrlBrowse2) {
+    $btnThreeUrlBrowse2.Add_Click({
+        $dlg = New-Object System.Windows.Forms.FolderBrowserDialog
+        $dlg.Description = "Select URL 2 Server / PlanPhoto Folder"
+        $dlg.SelectedPath = $txtThreeUrl2.Text
+        if ($dlg.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { $txtThreeUrl2.Text = $dlg.SelectedPath }
+    })
+}
+
+if ($btnThreeUrlBrowse3) {
+    $btnThreeUrlBrowse3.Add_Click({
+        $dlg = New-Object System.Windows.Forms.FolderBrowserDialog
+        $dlg.Description = "Select URL 3 Server / PlanPhoto Folder"
+        $dlg.SelectedPath = $txtThreeUrl3.Text
+        if ($dlg.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { $txtThreeUrl3.Text = $dlg.SelectedPath }
+    })
+}
+
+if ($btnThreeUrlOpenParent) {
+    $btnThreeUrlOpenParent.Add_Click({
+        $targetUrl = ""
+        if ($rbUrlParent1.IsChecked -eq $true) { $targetUrl = $txtThreeUrl1.Text.Trim() }
+        elseif ($rbUrlParent2.IsChecked -eq $true) { $targetUrl = $txtThreeUrl2.Text.Trim() }
+        else { $targetUrl = $txtThreeUrl3.Text.Trim() }
+
+        if ($targetUrl -and (Test-Path -LiteralPath $targetUrl)) {
+            Start-Process "explorer.exe" -ArgumentList "`"$targetUrl`""
+        } else {
+            [System.Windows.MessageBox]::Show("Parent URL folder does not exist or is not reachable:`n$targetUrl", "Folder Not Found", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Warning)
+        }
+    })
+}
+
+if ($btnThreeUrlOpenDesktop) {
+    $btnThreeUrlOpenDesktop.Add_Click({
+        $dest = if ($global:threeUrlLastDesktopFolder -and (Test-Path -LiteralPath $global:threeUrlLastDesktopFolder)) {
+            $global:threeUrlLastDesktopFolder
+        } else {
+            $desktopDir
+        }
+        Start-Process "explorer.exe" -ArgumentList "`"$dest`""
+    })
+}
+
+if ($btnThreeUrlTestConn) {
+    $btnThreeUrlTestConn.Add_Click({
+        $txtExtractLogs.Clear()
+        Append-ExtractLog "======================================================="
+        Append-ExtractLog "TESTING CONNECTIVITY FOR ALL 3 URLs"
+        Append-ExtractLog "======================================================="
+
+        $urls = @(
+            @{ Label = "URL 1"; Path = $txtThreeUrl1.Text.Trim() },
+            @{ Label = "URL 2"; Path = $txtThreeUrl2.Text.Trim() },
+            @{ Label = "URL 3"; Path = $txtThreeUrl3.Text.Trim() }
+        )
+
+        $okCount = 0
+        foreach ($u in $urls) {
+            if ([string]::IsNullOrWhiteSpace($u.Path)) {
+                Append-ExtractLog "[$($u.Label)]: Path is empty (Skipped)"
+                continue
+            }
+            if (Test-Path -LiteralPath $u.Path) {
+                $fCount = 0
+                try { $fCount = [System.IO.Directory]::GetFiles($u.Path, "*.*").Count } catch {}
+                Append-ExtractLog "[$($u.Label)]: CONNECTED SUCCESS -> '$($u.Path)' ($fCount files detected)"
+                $okCount++
+            } else {
+                Append-ExtractLog "[$($u.Label)]: UNREACHABLE / ACCESS DENIED -> '$($u.Path)'"
+            }
+        }
+        Append-ExtractLog "======================================================="
+        Append-ExtractLog "Connectivity test finished. $okCount active URL(s) reached."
+        [System.Windows.MessageBox]::Show("Connectivity test finished: $okCount of 3 URLs reachable.", "URL Connection Test", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Information)
+    })
+}
+
+function Resolve-PanvelTargetFolders($targetInput) {
+    $t = if ($targetInput) { $targetInput.TrimEnd('\', '/') } else { "" }
+    $tImg = ""
+    $tPlan = ""
+    
+    if ($t -match '(?i)PropertyImage$') {
+        $tImg = $t
+        $base = [System.IO.Path]::GetDirectoryName($t)
+        $tPlan = Join-Path $base "PlanPhoto"
+    } elseif ($t -match '(?i)PlanPhoto$') {
+        $tPlan = $t
+        $base = [System.IO.Path]::GetDirectoryName($t)
+        $tImg = Join-Path $base "PropertyImage"
+    } else {
+        if ($t -match '(?i)Files$') {
+            $tImg = Join-Path $t "PropertyImage"
+            $tPlan = Join-Path $t "PlanPhoto"
+        } else {
+            $tImg = Join-Path $t "Files\PropertyImage"
+            $tPlan = Join-Path $t "Files\PlanPhoto"
+        }
+    }
+    return [PSCustomObject]@{ TargetImages = $tImg; TargetPlans = $tPlan }
+}
+
+function Invoke-ThreeUrlPlanSharingCore([bool]$isDryRunOnly) {
+    $u1 = $txtThreeUrl1.Text.Trim()
+    $u2 = $txtThreeUrl2.Text.Trim()
+    $u3 = $txtThreeUrl3.Text.Trim()
+
+    $parentInfo = $null
+    $childList = [System.Collections.Generic.List[PSCustomObject]]::new()
+
+    if ($rbUrlParent1.IsChecked -eq $true) {
+        $parentInfo = [PSCustomObject]@{ Label = "URL 1 (Target Master)"; Path = $u1 }
+        if ($u2) { $childList.Add([PSCustomObject]@{ Label = "URL 2 (Source 11)"; Path = $u2 }) }
+        if ($u3) { $childList.Add([PSCustomObject]@{ Label = "URL 3 (Source 22)"; Path = $u3 }) }
+    } elseif ($rbUrlParent2.IsChecked -eq $true) {
+        $parentInfo = [PSCustomObject]@{ Label = "URL 2 (Target Master)"; Path = $u2 }
+        if ($u1) { $childList.Add([PSCustomObject]@{ Label = "URL 1"; Path = $u1 }) }
+        if ($u3) { $childList.Add([PSCustomObject]@{ Label = "URL 3"; Path = $u3 }) }
+    } else {
+        $parentInfo = [PSCustomObject]@{ Label = "URL 3 (Target Master)"; Path = $u3 }
+        if ($u1) { $childList.Add([PSCustomObject]@{ Label = "URL 1"; Path = $u1 }) }
+        if ($u2) { $childList.Add([PSCustomObject]@{ Label = "URL 2"; Path = $u2 }) }
+    }
+
+    if (-not $parentInfo.Path -or -not (Test-Path -LiteralPath $parentInfo.Path)) {
+        [System.Windows.MessageBox]::Show("Cannot access the designated Target URL Master folder:`n$($parentInfo.Path)", "Target URL Inaccessible", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Error)
+        return
+    }
+
+    $validChildren = @($childList | Where-Object { $_.Path -and (Test-Path -LiteralPath $_.Path) })
+    if ($validChildren.Count -eq 0) {
+        [System.Windows.MessageBox]::Show("At least one secondary source URL must be valid and accessible.`n`nPlease verify source paths and network connectivity.", "No Valid Source URLs", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Warning)
+        return
+    }
+
+    $btnThreeUrlStart.IsEnabled = $false
+    $btnThreeUrlAnalyze.IsEnabled = $false
+    $txtExtractLogs.Clear()
+    $extractProgressBar.Value = 5
+
+    $migratePhotos = ($rbSyncCategoryBoth -and $rbSyncCategoryBoth.IsChecked -eq $true) -or ($rbSyncCategoryPhotosOnly -and $rbSyncCategoryPhotosOnly.IsChecked -eq $true) -or (-not $rbSyncCategoryBoth -and -not $rbSyncCategoryPhotosOnly)
+    $migratePlans  = ($rbSyncCategoryBoth -and $rbSyncCategoryBoth.IsChecked -eq $true) -or ($rbSyncCategoryPlansOnly -and $rbSyncCategoryPlansOnly.IsChecked -eq $true) -or (-not $rbSyncCategoryBoth -and -not $rbSyncCategoryPlansOnly)
+
+    $lblExtractStatus.Text = if ($isDryRunOnly) { "Status: Analyzing sources for common and new images & plans..." } else { "Status: Consolidating images & plans to Target..." }
+
+    $isRecursive = $chkSyncRecursive.IsChecked -eq $true
+    $isWhiteCanvas = $chkSyncWhiteCanvas.IsChecked -eq $true
+    $isExtractDesktop = $rbSyncActionExtractDesktop.IsChecked -eq $true
+    $skipCommon = if ($chkSyncIgnoreCommon) { $chkSyncIgnoreCommon.IsChecked -eq $true } else { $true }
+
+    $imgExts  = @('.jpg', '.jpeg', '.png', '.bmp', '.webp', '.tif', '.tiff')
+    $planExts = @('.wmf', '.emf', '.jpg', '.jpeg', '.png', '.bmp', '.tif', '.tiff', '.webp', '.pdf', '.dwg', '.dxf', '.svg')
+
+    # Resolve Target Folders
+    $tgtFolders = Resolve-PanvelTargetFolders $parentInfo.Path
+    $targetImgDir  = $tgtFolders.TargetImages
+    $targetPlanDir = $tgtFolders.TargetPlans
+
+    Append-ExtractLog "======================================================="
+    Append-ExtractLog if ($isDryRunOnly) { "STARTING MULTI-SERVER AUDIT & COMPARISON" } else { "STARTING MULTI-SERVER MIGRATION ENGINE" }
+    Append-ExtractLog "Target Host (Master)   : $($parentInfo.Path)"
+    Append-ExtractLog "  -> Target Images Dest : $targetImgDir"
+    Append-ExtractLog "  -> Target Plans Dest  : $targetPlanDir"
+    foreach ($c in $validChildren) {
+        Append-ExtractLog "Source Location        : $($c.Label) -> $($c.Path)"
+    }
+    Append-ExtractLog "Content Scope          : $(if ($migratePhotos -and $migratePlans) {'BOTH WHOLE IMAGES & PLANS'} elseif ($migratePhotos) {'WHOLE IMAGES ONLY'} else {'PLANS ONLY'})"
+    Append-ExtractLog "Recursive Scan         : $(if ($isRecursive) {'ENABLED'} else {'Disabled'})"
+    Append-ExtractLog "Skip Common Files      : $(if ($skipCommon) {'ENABLED (Ignore Identical Files)'} else {'Overwrite'})"
+    Append-ExtractLog "======================================================="
+    [System.Windows.Forms.Application]::DoEvents()
+
+    # Step 1: Index Existing Target Master Files (O(1) duplicate lookup)
+    $existingImages = [System.Collections.Generic.Dictionary[string, long]]::new([System.StringComparer]::OrdinalIgnoreCase)
+    $existingPlans  = [System.Collections.Generic.Dictionary[string, long]]::new([System.StringComparer]::OrdinalIgnoreCase)
+
+    if (Test-Path -LiteralPath $targetImgDir) {
+        try {
+            foreach ($f in [System.IO.Directory]::GetFiles($targetImgDir, "*.*")) {
+                $fn = [System.IO.Path]::GetFileName($f)
+                $existingImages[$fn] = (Get-Item -LiteralPath $f).Length
+            }
+        } catch {}
+    }
+    if (Test-Path -LiteralPath $targetPlanDir) {
+        try {
+            foreach ($f in [System.IO.Directory]::GetFiles($targetPlanDir, "*.*")) {
+                $fn = [System.IO.Path]::GetFileName($f)
+                $existingPlans[$fn] = (Get-Item -LiteralPath $f).Length
+            }
+        } catch {}
+    }
+
+    Append-ExtractLog "Target currently holds $($existingImages.Count) images and $($existingPlans.Count) plans."
+
+    # Step 2: Scan and Classify Source Folders
+    $commonImagesIgnored = [System.Collections.Generic.List[string]]::new()
+    $commonPlansIgnored  = [System.Collections.Generic.List[string]]::new()
+    $newImagesToTransfer = [System.Collections.Generic.List[PSCustomObject]]::new()
+    $newPlansToTransfer  = [System.Collections.Generic.List[PSCustomObject]]::new()
+    $totalScanned = ($existingImages.Count + $existingPlans.Count)
+
+    foreach ($child in $validChildren) {
+        Append-ExtractLog "Scanning $($child.Label) ($($child.Path))..."
+        $q = [System.Collections.Generic.Queue[string]]::new()
+        $q.Enqueue($child.Path)
+
+        while ($q.Count -gt 0) {
+            $curr = $q.Dequeue()
+            try {
+                $dirName = [System.IO.Path]::GetFileName($curr)
+                $isPhotoFolder = ($dirName -match '(?i)^(photo|photos|propertyimage|propimage)$')
+                $isPlanFolder  = ($dirName -match '(?i)^(plan|plans|planphoto)$')
+
+                if ($isPhotoFolder) {
+                    if ($migratePhotos) {
+                        foreach ($fl in [System.IO.Directory]::GetFiles($curr, "*.*")) {
+                            $totalScanned++
+                            $ext = [System.IO.Path]::GetExtension($fl).ToLower()
+                            if ($imgExts -contains $ext) {
+                                $fn = [System.IO.Path]::GetFileName($fl)
+                                if ($skipCommon -and $existingImages.ContainsKey($fn)) {
+                                    $commonImagesIgnored.Add($fn)
+                                } else {
+                                    $newImagesToTransfer.Add([PSCustomObject]@{ Source = $fl; FileName = $fn; Category = "Image"; Origin = $child.Label; IsWmf = $false })
+                                    $existingImages[$fn] = 1 # Mark so duplicate in other source isn't re-queued
+                                }
+                            }
+                        }
+                    }
+                } elseif ($isPlanFolder) {
+                    if ($migratePlans) {
+                        foreach ($fl in [System.IO.Directory]::GetFiles($curr, "*.*")) {
+                            $totalScanned++
+                            $ext = [System.IO.Path]::GetExtension($fl).ToLower()
+                            if ($planExts -contains $ext) {
+                                $fn = [System.IO.Path]::GetFileName($fl)
+                                if ($skipCommon -and $existingPlans.ContainsKey($fn)) {
+                                    $commonPlansIgnored.Add($fn)
+                                } else {
+                                    $newPlansToTransfer.Add([PSCustomObject]@{ Source = $fl; FileName = $fn; Category = "Plan"; Origin = $child.Label; IsWmf = ($ext -eq ".wmf" -or $ext -eq ".emf") })
+                                    $existingPlans[$fn] = 1
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    # Generic / Root / Ward folder
+                    if ($curr -ieq $child.Path -or -not $isRecursive) {
+                        # Root files
+                        foreach ($fl in [System.IO.Directory]::GetFiles($curr, "*.*")) {
+                            $totalScanned++
+                            $ext = [System.IO.Path]::GetExtension($fl).ToLower()
+                            $fn = [System.IO.Path]::GetFileName($fl)
+                            if ($migratePlans -and ($planExts -contains $ext) -and ($ext -eq ".wmf" -or $ext -eq ".emf" -or $ext -eq ".dwg" -or $ext -eq ".dxf")) {
+                                if ($skipCommon -and $existingPlans.ContainsKey($fn)) { $commonPlansIgnored.Add($fn) }
+                                else { $newPlansToTransfer.Add([PSCustomObject]@{ Source = $fl; FileName = $fn; Category = "Plan"; Origin = $child.Label; IsWmf = ($ext -eq ".wmf" -or $ext -eq ".emf") }); $existingPlans[$fn] = 1 }
+                            } elseif ($migratePhotos -and ($imgExts -contains $ext)) {
+                                if ($skipCommon -and $existingImages.ContainsKey($fn)) { $commonImagesIgnored.Add($fn) }
+                                else { $newImagesToTransfer.Add([PSCustomObject]@{ Source = $fl; FileName = $fn; Category = "Image"; Origin = $child.Label; IsWmf = $false }); $existingImages[$fn] = 1 }
+                            }
+                        }
+                    }
+
+                    # Enqueue subdirectories
+                    if ($isRecursive) {
+                        foreach ($sd in [System.IO.Directory]::GetDirectories($curr)) {
+                            $sName = [System.IO.Path]::GetFileName($sd)
+                            if ($sName -notmatch '(?i)backup' -and -not $sName.StartsWith('.')) {
+                                $q.Enqueue($sd)
+                            }
+                        }
+                    }
+                }
+            } catch {}
+        }
+    }
+
+    $lblThreeUrlScanned.Text    = $totalScanned.ToString()
+    $lblThreeUrlCommon.Text     = ($commonImagesIgnored.Count + $commonPlansIgnored.Count).ToString()
+    if ($lblThreeUrlNewPhotos)  { $lblThreeUrlNewPhotos.Text = $newImagesToTransfer.Count.ToString() }
+    if ($lblThreeUrlNewPlans)   { $lblThreeUrlNewPlans.Text  = $newPlansToTransfer.Count.ToString() }
+    if ($lblThreeUrlNewToShare) { $lblThreeUrlNewToShare.Text = ($newImagesToTransfer.Count + $newPlansToTransfer.Count).ToString() }
+    if ($lblThreeUrlParentTotal){ $lblThreeUrlParentTotal.Text= ($existingImages.Count + $existingPlans.Count).ToString() }
+
+    Append-ExtractLog "-------------------------------------------------------"
+    Append-ExtractLog "AUDIT & SCAN SUMMARY:"
+    Append-ExtractLog "  Total Files Scanned      : $totalScanned"
+    Append-ExtractLog "  Common Files Ignored     : $($commonImagesIgnored.Count + $commonPlansIgnored.Count) (Images: $($commonImagesIgnored.Count), Plans: $($commonPlansIgnored.Count))"
+    Append-ExtractLog "  New Images to Transfer   : $($newImagesToTransfer.Count) -> $targetImgDir"
+    Append-ExtractLog "  New Plans to Transfer    : $($newPlansToTransfer.Count) -> $targetPlanDir"
+    Append-ExtractLog "-------------------------------------------------------"
+
+    if ($isDryRunOnly -or ($chkSyncDryRun -and $chkSyncDryRun.IsChecked -eq $true)) {
+        $extractProgressBar.Value = 100
+        $lblExtractStatus.Text = "Status: Audit Complete. $($newImagesToTransfer.Count) new images and $($newPlansToTransfer.Count) new plans found."
+        [System.Windows.MessageBox]::Show("Multi-Server Audit Complete!`n`nExisting on Target 19: $($existingImages.Count) images, $($existingPlans.Count) plans`nCommon Files (Ignored): $($commonImagesIgnored.Count + $commonPlansIgnored.Count)`n`nNew to Transfer:`n- New Images: $($newImagesToTransfer.Count)`n- New Plans : $($newPlansToTransfer.Count)`n`nClick '2. START MIGRATING TO 192.168.1.19' to begin copying.", "Multi-Server Comparison Audit", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Information)
+        $btnThreeUrlStart.IsEnabled = $true
+        $btnThreeUrlAnalyze.IsEnabled = $true
+        return
+    }
+
+    $totalToTransfer = $newImagesToTransfer.Count + $newPlansToTransfer.Count
+    if ($totalToTransfer -eq 0) {
+        $extractProgressBar.Value = 100
+        $lblExtractStatus.Text = "Status: Target 19 is already 100% up to date. Zero new files needed."
+        Append-ExtractLog "SUCCESS: Target \\192.168.1.19 is already 100% complete! All $($commonImagesIgnored.Count + $commonPlansIgnored.Count) files already exist in Target."
+        [System.Windows.MessageBox]::Show("Target Server \\192.168.1.19 is already 100% complete!`n`nAll files from 192.168.1.11 and 192.168.1.22 already exist in Target PropertyImage and PlanPhoto.", "Already Complete", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Information)
+        $btnThreeUrlStart.IsEnabled = $true
+        $btnThreeUrlAnalyze.IsEnabled = $true
+        return
+    }
+
+    # Step 3: Execute Migration Copy
+    if (-not (Test-Path -LiteralPath $targetImgDir))  { New-Item -ItemType Directory -Path $targetImgDir -Force | Out-Null }
+    if (-not (Test-Path -LiteralPath $targetPlanDir)) { New-Item -ItemType Directory -Path $targetPlanDir -Force | Out-Null }
+
+    $desktopExportDir = $null
+    if ($isExtractDesktop) {
+        $dtStamp = (Get-Date).ToString("yyyyMMdd_HHmmss")
+        $desktopExportDir = Join-Path $desktopDir "Panvel_Migrated_Files_$dtStamp"
+        if (-not (Test-Path -LiteralPath $desktopExportDir)) { New-Item -ItemType Directory -Path $desktopExportDir -Force | Out-Null }
+        $global:threeUrlLastDesktopFolder = $desktopExportDir
+    }
+
+    $copiedImgs = 0
+    $copiedPlans = 0
+    $currentIdx = 0
+
+    # Transfer Images
+    foreach ($im in $newImagesToTransfer) {
+        $currentIdx++
+        $destFile = Join-Path $targetImgDir $im.FileName
+        try {
+            [System.IO.File]::Copy($im.Source, $destFile, $true)
+            $copiedImgs++
+            Append-ExtractLog "[IMAGE -> 19] ($currentIdx/$totalToTransfer) '$($im.FileName)' from $($im.Origin) -> OK"
+            if ($isExtractDesktop -and $desktopExportDir) {
+                [System.IO.File]::Copy($destFile, (Join-Path $desktopExportDir $im.FileName), $true)
+            }
+        } catch {
+            Append-ExtractLog "[ERROR COPYING IMAGE] '$($im.FileName)': $($_.Exception.Message)"
+        }
+
+        if ($currentIdx % 10 -eq 0 -or $currentIdx -eq $totalToTransfer) {
+            $pct = [int]($currentIdx / $totalToTransfer * 100)
+            $extractProgressBar.Value = [Math]::Min(100, $pct)
+            $lblExtractStatus.Text = "Status: Transferring file $currentIdx of $totalToTransfer ($pct%)..."
+            [System.Windows.Forms.Application]::DoEvents()
+        }
+    }
+
+    # Transfer Plans
+    foreach ($pl in $newPlansToTransfer) {
+        $currentIdx++
+        $destFile = Join-Path $targetPlanDir $pl.FileName
+        try {
+            $copiedOk = $false
+            if ($pl.IsWmf -and $isWhiteCanvas) {
+                $srcLen = (Get-Item -LiteralPath $pl.Source).Length
+                if ($srcLen -gt (25 * 1024)) {
+                    $wmfRes = [AppWmfOptimizer]::ProcessWmf($pl.Source, $destFile, 700, 96, 25, $true)
+                    if ($wmfRes -and -not $wmfRes.StartsWith("ERROR")) { $copiedOk = $true }
+                }
+            }
+            if (-not $copiedOk) {
+                [System.IO.File]::Copy($pl.Source, $destFile, $true)
+            }
+            $copiedPlans++
+            Append-ExtractLog "[PLAN -> 19] ($currentIdx/$totalToTransfer) '$($pl.FileName)' from $($pl.Origin) -> OK"
+            if ($isExtractDesktop -and $desktopExportDir) {
+                [System.IO.File]::Copy($destFile, (Join-Path $desktopExportDir $pl.FileName), $true)
+            }
+        } catch {
+            Append-ExtractLog "[ERROR COPYING PLAN] '$($pl.FileName)': $($_.Exception.Message)"
+        }
+
+        if ($currentIdx % 10 -eq 0 -or $currentIdx -eq $totalToTransfer) {
+            $pct = [int]($currentIdx / $totalToTransfer * 100)
+            $extractProgressBar.Value = [Math]::Min(100, $pct)
+            $lblExtractStatus.Text = "Status: Transferring file $currentIdx of $totalToTransfer ($pct%)..."
+            [System.Windows.Forms.Application]::DoEvents()
+        }
+    }
+
+    $finalTargetImgs = 0
+    $finalTargetPlans = 0
+    try { $finalTargetImgs  = [System.IO.Directory]::GetFiles($targetImgDir, "*.*").Count } catch {}
+    try { $finalTargetPlans = [System.IO.Directory]::GetFiles($targetPlanDir, "*.*").Count } catch {}
+
+    if ($lblThreeUrlNewPhotos)  { $lblThreeUrlNewPhotos.Text = $copiedImgs.ToString() }
+    if ($lblThreeUrlNewPlans)   { $lblThreeUrlNewPlans.Text  = $copiedPlans.ToString() }
+    if ($lblThreeUrlNewToShare) { $lblThreeUrlNewToShare.Text = ($copiedImgs + $copiedPlans).ToString() }
+    if ($lblThreeUrlParentTotal){ $lblThreeUrlParentTotal.Text= ($finalTargetImgs + $finalTargetPlans).ToString() }
+
+    $extractProgressBar.Value = 100
+    $lblExtractStatus.Text = "Status: Migration to \\192.168.1.19 Complete! ($copiedImgs images, $copiedPlans plans transferred)."
+    Append-ExtractLog "======================================================="
+    Append-ExtractLog "MIGRATION TO \\192.168.1.19 COMPLETED SUCCESSFULLY!"
+    Append-ExtractLog "Target Images Folder : $targetImgDir ($finalTargetImgs total)"
+    Append-ExtractLog "Target Plans Folder  : $targetPlanDir ($finalTargetPlans total)"
+    Append-ExtractLog "New Images Migrated  : $copiedImgs"
+    Append-ExtractLog "New Plans Migrated   : $copiedPlans"
+    Append-ExtractLog "Common Files Skipped : $($commonImagesIgnored.Count + $commonPlansIgnored.Count)"
+    if ($isExtractDesktop -and $desktopExportDir) {
+        Append-ExtractLog "Desktop Export Folder: $desktopExportDir"
+    }
+    Append-ExtractLog "======================================================="
+
+    try { Set-MascotState "success" "Migrated $($copiedImgs + $copiedPlans) Files to 19!" } catch {}
+
+    [System.Windows.MessageBox]::Show("Migration to \\192.168.1.19 Complete!`n`nTarget Location: $($parentInfo.Path)`n`nTransferred to Target:`n- New Images Copied: $copiedImgs`n- New Plans Copied : $copiedPlans`n- Common Files Skipped: $($commonImagesIgnored.Count + $commonPlansIgnored.Count)`n`nCurrent Target Totals:`n- Total Images on 19: $finalTargetImgs`n- Total Plans on 19 : $finalTargetPlans", "Migration Complete", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Information)
+
+    $btnThreeUrlStart.IsEnabled = $true
+    $btnThreeUrlAnalyze.IsEnabled = $true
+}
+
+if ($btnThreeUrlAnalyze) { $btnThreeUrlAnalyze.Add_Click({ Invoke-ThreeUrlPlanSharingCore $true }) }
+if ($btnThreeUrlStart) { $btnThreeUrlStart.Add_Click({ Invoke-ThreeUrlPlanSharingCore $false }) }
+
+function Export-WardPhotosAndPlansPaths($targetRoot) {
+    if ([string]::IsNullOrWhiteSpace($targetRoot) -or -not (Test-Path -LiteralPath $targetRoot)) {
+        [System.Windows.MessageBox]::Show("Please select a valid Server root folder first.`n`nFolder path: '$targetRoot'", "Invalid Server Folder", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Warning)
+        return
+    }
+
+    $txtExtractLogs.Clear()
+    Append-ExtractLog "======================================================="
+    Append-ExtractLog "SCANNING WARD FOLDERS FOR PHOTOS & PLANS"
+    Append-ExtractLog "Target Location : $targetRoot"
+    Append-ExtractLog "======================================================="
+    [System.Windows.Forms.Application]::DoEvents()
+
+    $allDirs = [System.Collections.Generic.List[string]]::new()
+    $q = [System.Collections.Generic.Queue[string]]::new()
+    $q.Enqueue($targetRoot)
+
+    while ($q.Count -gt 0) {
+        $curr = $q.Dequeue()
+        try {
+            $sds = [System.IO.Directory]::GetDirectories($curr)
+            foreach ($sd in $sds) {
+                $allDirs.Add($sd)
+                $sdName = [System.IO.Path]::GetFileName($sd)
+                if ($sdName -notmatch '(?i)backup' -and -not $sdName.StartsWith('.')) {
+                    $q.Enqueue($sd)
+                }
+            }
+        } catch {}
+    }
+
+    $photosDirs = @($allDirs | Where-Object { [System.IO.Path]::GetFileName($_) -ieq "photos" })
+    $plansDirs  = @($allDirs | Where-Object { [System.IO.Path]::GetFileName($_) -ieq "plans" })
+
+    Append-ExtractLog "Found $($photosDirs.Count) 'photos' folders and $($plansDirs.Count) 'plans' folders across server hierarchy."
+
+    $dtDir = [System.Environment]::GetFolderPath('Desktop')
+    $pathPhotosTxt = Join-Path $dtDir "Photos_Paths.txt"
+    $pathPlansTxt  = Join-Path $dtDir "Plans_Paths.txt"
+
+    [System.IO.File]::WriteAllLines($pathPhotosTxt, $photosDirs, [System.Text.Encoding]::ASCII)
+    [System.IO.File]::WriteAllLines($pathPlansTxt, $plansDirs, [System.Text.Encoding]::ASCII)
+    Append-ExtractLog "[OPTION A GENERATED] Photos_Paths.txt ($($photosDirs.Count) paths) & Plans_Paths.txt ($($plansDirs.Count) paths)"
+
+    $pathAllPhotoFilesTxt = Join-Path $dtDir "Photos_AllFiles.txt"
+    $pathAllPlanFilesTxt  = Join-Path $dtDir "Plans_AllFiles.txt"
+
+    $allPhotoFiles = [System.Collections.Generic.List[string]]::new()
+    $allPlanFiles  = [System.Collections.Generic.List[string]]::new()
+
+    foreach ($pd in $photosDirs) {
+        try {
+            foreach ($fl in [System.IO.Directory]::GetFiles($pd, "*.*")) { $allPhotoFiles.Add($fl) }
+        } catch {}
+    }
+
+    foreach ($pld in $plansDirs) {
+        try {
+            foreach ($fl in [System.IO.Directory]::GetFiles($pld, "*.*")) { $allPlanFiles.Add($fl) }
+        } catch {}
+    }
+
+    [System.IO.File]::WriteAllLines($pathAllPhotoFilesTxt, $allPhotoFiles, [System.Text.Encoding]::ASCII)
+    [System.IO.File]::WriteAllLines($pathAllPlanFilesTxt, $allPlanFiles, [System.Text.Encoding]::ASCII)
+    Append-ExtractLog "[OPTION B GENERATED] Photos_AllFiles.txt ($($allPhotoFiles.Count) files) & Plans_AllFiles.txt ($($allPlanFiles.Count) files)"
+
+    $pathWardCsv = Join-Path $dtDir "Ward_Photos_And_Plans_Paths.csv"
+    $csvLines = [System.Collections.Generic.List[string]]::new()
+    $csvLines.Add('"Ward Name","Photos Folder Path","Plans Folder Path","Total Photos","Total Plans","Status"')
+
+    $wardMap = [System.Collections.Generic.Dictionary[string, PSCustomObject]]::new([System.StringComparer]::OrdinalIgnoreCase)
+
+    foreach ($pd in $photosDirs) {
+        $wardParent = [System.IO.Path]::GetDirectoryName($pd)
+        $wName = [System.IO.Path]::GetFileName($wardParent)
+        if (-not $wardMap.ContainsKey($wName)) {
+            $wardMap[$wName] = [PSCustomObject]@{ WardName = $wName; PhotosPath = $pd; PlansPath = ""; PhotoCount = 0; PlanCount = 0 }
+        } else {
+            $wardMap[$wName].PhotosPath = $pd
+        }
+        try { $wardMap[$wName].PhotoCount = [System.IO.Directory]::GetFiles($pd, "*.*").Count } catch {}
+    }
+
+    foreach ($pld in $plansDirs) {
+        $wardParent = [System.IO.Path]::GetDirectoryName($pld)
+        $wName = [System.IO.Path]::GetFileName($wardParent)
+        if (-not $wardMap.ContainsKey($wName)) {
+            $wardMap[$wName] = [PSCustomObject]@{ WardName = $wName; PhotosPath = ""; PlansPath = $pld; PhotoCount = 0; PlanCount = 0 }
+        } else {
+            $wardMap[$wName].PlansPath = $pld
+        }
+        try { $wardMap[$wName].PlanCount = [System.IO.Directory]::GetFiles($pld, "*.*").Count } catch {}
+    }
+
+    foreach ($kv in $wardMap.Values) {
+        $st = if ($kv.PhotoCount -gt 0 -and $kv.PlanCount -gt 0) { "Both Present" } elseif ($kv.PhotoCount -gt 0) { "Photos Only" } elseif ($kv.PlanCount -gt 0) { "Plans Only" } else { "Empty" }
+        $pVal = if ($kv.PhotosPath) { $kv.PhotosPath } else { "(Not Found)" }
+        $plVal = if ($kv.PlansPath) { $kv.PlansPath } else { "(Not Found)" }
+        $csvLines.Add("`"$($kv.WardName)`",`"$pVal`",`"$plVal`",$($kv.PhotoCount),$($kv.PlanCount),`"$st`"")
+    }
+
+    [System.IO.File]::WriteAllLines($pathWardCsv, $csvLines, [System.Text.Encoding]::ASCII)
+    Append-ExtractLog "[OPTION C GENERATED] Ward_Photos_And_Plans_Paths.csv ($($wardMap.Count) Wards in 2 separate columns)"
+    Append-ExtractLog "======================================================="
+    Append-ExtractLog "All Ward exports generated on Desktop successfully!"
+
+    try { Start-Process "explorer.exe" -ArgumentList "`"$pathWardCsv`"" } catch {}
+
+    [System.Windows.MessageBox]::Show("Ward Photos & Plans extraction complete!`n`nSource: $targetRoot`nTotal Wards Found: $($wardMap.Count)`nTotal Photos: $($allPhotoFiles.Count)`nTotal Plans: $($allPlanFiles.Count)`n`nCreated on Desktop:`n- Option C: Ward_Photos_And_Plans_Paths.csv (2 separate columns)`n- Option B: Photos_AllFiles.txt & Plans_AllFiles.txt`n- Option A: Photos_Paths.txt & Plans_Paths.txt", "Ward Paths Exported", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Information)
+}
+
+if ($btnExtractExportWard) {
+    $btnExtractExportWard.Add_Click({
+        $src = $txtExtractSource.Text.Trim()
+        Export-WardPhotosAndPlansPaths $src
+    })
+}
+
+if ($btnThreeUrlExportWard) {
+    $btnThreeUrlExportWard.Add_Click({
+        $src = ""
+        if ($rbUrlParent1.IsChecked -eq $true) { $src = $txtThreeUrl1.Text.Trim() }
+        elseif ($rbUrlParent2.IsChecked -eq $true) { $src = $txtThreeUrl2.Text.Trim() }
+        else { $src = $txtThreeUrl3.Text.Trim() }
+        Export-WardPhotosAndPlansPaths $src
+    })
+}
+
+# =====================================================================
 # --- TAB 6: BG REMOVER & SIGNATURE EXTRACTOR LOGIC ---
 # =====================================================================
 
@@ -12460,7 +14253,7 @@ try {
     $script:LanTimer = $null
     $script:LanBeaconCounter = 0
     $script:LanUpdateTimerCounter = 0
-    $script:AppVersion = "5.4.0"
+    $script:AppVersion = "5.5.0"
     $script:PendingUpdate = $null
     $script:UpdateDialogOpen = $false
     $script:UpdateSnoozedUntil = $null
@@ -14337,7 +16130,7 @@ function Connect-LanTcpPeer ($ip, $port, [int]$timeoutMs = 3500) {
                 if (-not (Test-Path $curSc)) { $curSc = Join-Path $PSScriptRoot "PMC-ImageResizer-App.ps1" }
                 $locHash = if (Test-Path $curSc) { (Get-FileHash -Path $curSc -Algorithm SHA256).Hash } else { "" }
                 $peerIp = if ($script:LanLocalIP) { $script:LanLocalIP } else { "127.0.0.1" }
-                $peerVer = if ($script:AppVersion) { $script:AppVersion } else { "5.4.0" }
+                $peerVer = if ($script:AppVersion) { $script:AppVersion } else { "5.5.0" }
 
                 $cmd = $conn.CreateCommand()
                 $cmd.CommandText = "MERGE _NexusActivePeers AS target USING (SELECT @comp AS ComputerName) AS source ON (target.ComputerName = source.ComputerName) WHEN MATCHED THEN UPDATE SET UserName = @usr, IPAddress = @ip, AppVersion = @ver, ScriptHash = @hash, LastHeartbeat = GETDATE(), Status = 'ONLINE' WHEN NOT MATCHED THEN INSERT (ComputerName, UserName, IPAddress, AppVersion, ScriptHash, LastHeartbeat, Status) VALUES (@comp, @usr, @ip, @ver, @hash, GETDATE(), 'ONLINE');"
