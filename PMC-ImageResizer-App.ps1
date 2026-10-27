@@ -1,4 +1,4 @@
-# ================================================================================
+﻿# ================================================================================
 # NEXUS PHOTO & DOCUMENT OPTIMIZER (ENTERPRISE EDITION)
 # Startup Initialization: SmartScreen Unblock, Admin Privilege Detection & Config
 # ================================================================================
@@ -1135,6 +1135,381 @@ public class BackgroundRemovalEngine
 try {
     Add-Type -TypeDefinition $csharp -ReferencedAssemblies "System.Drawing" -ErrorAction SilentlyContinue
 } catch {}
+
+# --- Turbo Batch Engine (32-thread selective backup + 12-core parallel resizing) ---
+if (-not ([System.Management.Automation.PSTypeName]'TurboBatchEngine').Type) {
+$turboSource = @"
+using System;
+using System.IO;
+using System.Drawing;
+using System.Drawing.Imaging;
+using System.Runtime.InteropServices;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Collections.Generic;
+
+public class TurboBatchEngine
+{
+    [DllImport("gdi32.dll")]
+    public static extern bool DeleteEnhMetaFile(IntPtr hemf);
+
+    [DllImport("gdiplus.dll", SetLastError = true)]
+    public static extern int GdipEmfToWmfBits(IntPtr hEmf, int uBufferSize, byte[] bBuffer, int iMappingMode, int flags);
+
+    public class FileTask
+    {
+        public string SourcePath;
+        public string DestPath;
+        public long OriginalLength;
+        public bool NeedsOptimization;
+    }
+
+    public class ExecutionResult
+    {
+        public int TotalScanned;
+        public int AlreadyCompliant;
+        public int BackedUpCount;
+        public int ResizedCount;
+        public int FailedCount;
+        public long OriginalBytes;
+        public long FinalBytes;
+        public double BackupSeconds;
+        public double ProcessSeconds;
+        public double TotalSeconds;
+    }
+
+    // 1. FAST PARALLEL SELECTIVE BACKUP (32 THREADS)
+    public static int ExecuteParallelBackup(List<string> filesToBackup, string backupDir, int maxThreads)
+    {
+        if (filesToBackup == null || filesToBackup.Count == 0) return 0;
+        if (!Directory.Exists(backupDir)) Directory.CreateDirectory(backupDir);
+
+        int count = 0;
+        int threads = (maxThreads > 0) ? maxThreads : 32;
+        var pOpts = new ParallelOptions { MaxDegreeOfParallelism = threads };
+
+        Parallel.ForEach(filesToBackup, pOpts, src =>
+        {
+            try
+            {
+                string dest = Path.Combine(backupDir, Path.GetFileName(src));
+                File.Copy(src, dest, true);
+                Interlocked.Increment(ref count);
+            }
+            catch {}
+        });
+
+        return count;
+    }
+
+    // 2. PARALLEL PHOTO RESIZING ENGINE (<= 25 KB)
+    public static byte[] OptimizePhotoBytes(byte[] rawBytes, int maxDim, int dpi, int maxKB)
+    {
+        long limitBytes = (maxKB > 0) ? (maxKB * 1024) : (25 * 1024);
+        if (rawBytes.Length <= limitBytes) return rawBytes;
+
+        try
+        {
+            using (MemoryStream inMs = new MemoryStream(rawBytes))
+            using (Image src = Image.FromStream(inMs))
+            {
+                int srcW = src.Width > 0 ? src.Width : 700;
+                int srcH = src.Height > 0 ? src.Height : 700;
+                int targetW = srcW;
+                int targetH = srcH;
+
+                if (srcW > maxDim || srcH > maxDim)
+                {
+                    if (srcW >= srcH)
+                    {
+                        targetW = maxDim;
+                        targetH = Math.Max(1, (int)Math.Round(srcH * ((double)maxDim / srcW)));
+                    }
+                    else
+                    {
+                        targetH = maxDim;
+                        targetW = Math.Max(1, (int)Math.Round(srcW * ((double)maxDim / srcH)));
+                    }
+                }
+
+                ImageCodecInfo jpegCodec = null;
+                foreach (ImageCodecInfo c in ImageCodecInfo.GetImageEncoders())
+                {
+                    if (c.MimeType == "image/jpeg") { jpegCodec = c; break; }
+                }
+
+                int[] qualities = new int[] { 85, 75, 65, 50, 38, 25 };
+                double[] scales = new double[] { 1.0, 0.85, 0.70, 0.55, 0.40 };
+                byte[] bestJpg = null;
+
+                foreach (double sc in scales)
+                {
+                    int runW = Math.Max(1, (int)Math.Round(targetW * sc));
+                    int runH = Math.Max(1, (int)Math.Round(targetH * sc));
+
+                    using (Bitmap bmp = new Bitmap(runW, runH, PixelFormat.Format24bppRgb))
+                    {
+                        bmp.SetResolution(dpi, dpi);
+                        using (Graphics g = Graphics.FromImage(bmp))
+                        {
+                            g.CompositingQuality = System.Drawing.Drawing2D.CompositingQuality.HighQuality;
+                            g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+                            g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+                            using (SolidBrush wb = new SolidBrush(Color.White))
+                            {
+                                g.FillRectangle(wb, 0, 0, runW, runH);
+                            }
+                            g.DrawImage(src, 0, 0, runW, runH);
+                        }
+
+                        foreach (int q in qualities)
+                        {
+                            using (EncoderParameters ep = new EncoderParameters(1))
+                            {
+                                ep.Param[0] = new EncoderParameter(System.Drawing.Imaging.Encoder.Quality, (long)q);
+                                using (MemoryStream outMs = new MemoryStream())
+                                {
+                                    bmp.Save(outMs, jpegCodec, ep);
+                                    byte[] res = outMs.ToArray();
+                                    if (res.Length <= limitBytes)
+                                    {
+                                        return res;
+                                    }
+                                    if (bestJpg == null || res.Length < bestJpg.Length)
+                                    {
+                                        bestJpg = res;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                return bestJpg;
+            }
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    // 3. PARALLEL WMF OPTIMIZATION ENGINE (SOLID WHITE CANVAS <= 25 KB)
+    public static byte[] OptimizeWmfBytes(byte[] rawBytes, int maxDim, int dpi, int maxKB)
+    {
+        long limitBytes = (maxKB > 0) ? (maxKB * 1024) : (25 * 1024);
+        if (rawBytes.Length <= limitBytes) return rawBytes;
+
+        string tempEmf = Path.Combine(Path.GetTempPath(), "wmf_" + Guid.NewGuid().ToString("N") + ".emf");
+        Image src = null;
+        Metafile emf = null;
+        Graphics emfG = null;
+        Bitmap refBmp = null;
+        Graphics refG = null;
+        Bitmap solidBmp = null;
+        Graphics solidG = null;
+
+        try
+        {
+            using (MemoryStream inMs = new MemoryStream(rawBytes))
+            {
+                src = Image.FromStream(inMs);
+            }
+
+            int srcW = src.Width > 0 ? src.Width : 700;
+            int srcH = src.Height > 0 ? src.Height : 700;
+            int targetW = srcW;
+            int targetH = srcH;
+
+            if (srcW > maxDim || srcH > maxDim)
+            {
+                if (srcW >= srcH)
+                {
+                    targetW = maxDim;
+                    targetH = Math.Max(1, (int)Math.Round(srcH * ((double)maxDim / srcW)));
+                }
+                else
+                {
+                    targetH = maxDim;
+                    targetW = Math.Max(1, (int)Math.Round(srcW * ((double)maxDim / srcH)));
+                }
+            }
+
+            double[] scales = new double[] { 1.0, 0.85, 0.70, 0.55, 0.40 };
+            byte[] bestWmf = null;
+
+            foreach (double sc in scales)
+            {
+                int runW = Math.Max(1, (int)Math.Round(targetW * sc));
+                int runH = Math.Max(1, (int)Math.Round(targetH * sc));
+
+                if (File.Exists(tempEmf)) try { File.Delete(tempEmf); } catch {}
+
+                solidBmp = new Bitmap(runW, runH, PixelFormat.Format24bppRgb);
+                solidBmp.SetResolution(dpi, dpi);
+                solidG = Graphics.FromImage(solidBmp);
+                solidG.CompositingQuality = System.Drawing.Drawing2D.CompositingQuality.HighQuality;
+                solidG.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+                solidG.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+
+                using (SolidBrush wb = new SolidBrush(Color.White))
+                {
+                    solidG.FillRectangle(wb, 0, 0, runW, runH);
+                }
+                solidG.DrawImage(src, 0, 0, runW, runH);
+
+                refBmp = new Bitmap(1, 1);
+                refBmp.SetResolution(dpi, dpi);
+                refG = Graphics.FromImage(refBmp);
+                IntPtr hdc = refG.GetHdc();
+                emf = new Metafile(tempEmf, hdc, new RectangleF(0, 0, runW, runH), MetafileFrameUnit.Pixel, EmfType.EmfOnly);
+                refG.ReleaseHdc(hdc);
+
+                emfG = Graphics.FromImage(emf);
+                emfG.CompositingQuality = System.Drawing.Drawing2D.CompositingQuality.HighQuality;
+                emfG.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+                emfG.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+
+                using (SolidBrush wb = new SolidBrush(Color.White))
+                {
+                    emfG.FillRectangle(wb, 0, 0, runW, runH);
+                }
+                emfG.DrawImage(solidBmp, 0, 0, runW, runH);
+
+                emfG.Dispose(); emfG = null;
+                emf.Dispose(); emf = null;
+                refG.Dispose(); refG = null;
+                refBmp.Dispose(); refBmp = null;
+                solidG.Dispose(); solidG = null;
+                solidBmp.Dispose(); solidBmp = null;
+
+                if (File.Exists(tempEmf))
+                {
+                    using (Metafile readEmf = new Metafile(tempEmf))
+                    {
+                        IntPtr hEmf = readEmf.GetHenhmetafile();
+                        try
+                        {
+                            int bufSize = GdipEmfToWmfBits(hEmf, 0, null, 8, 0);
+                            if (bufSize > 0)
+                            {
+                                byte[] rawWmf = new byte[bufSize];
+                                GdipEmfToWmfBits(hEmf, bufSize, rawWmf, 8, 0);
+
+                                byte[] header = new byte[] {
+                                    0xD7, 0xCD, 0xC6, 0x9A, 0x00, 0x00, 0x00, 0x00,
+                                    0x00, 0x00, (byte)(runW & 0xFF), (byte)((runW >> 8) & 0xFF),
+                                    (byte)(runH & 0xFF), (byte)((runH >> 8) & 0xFF),
+                                    (byte)(dpi & 0xFF), (byte)((dpi >> 8) & 0xFF),
+                                    0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+                                };
+
+                                int checksum = 0;
+                                checksum ^= 0xCDD7; checksum ^= 0x9AC6;
+                                checksum ^= (runW & 0xFFFF); checksum ^= (runH & 0xFFFF);
+                                checksum ^= (dpi & 0xFFFF);
+                                header[20] = (byte)(checksum & 0xFF);
+                                header[21] = (byte)((checksum >> 8) & 0xFF);
+
+                                byte[] full = new byte[header.Length + rawWmf.Length];
+                                Buffer.BlockCopy(header, 0, full, 0, header.Length);
+                                Buffer.BlockCopy(rawWmf, 0, full, header.Length, rawWmf.Length);
+
+                                if (full.Length <= limitBytes)
+                                {
+                                    return full;
+                                }
+                                else if (bestWmf == null || full.Length < bestWmf.Length)
+                                {
+                                    bestWmf = full;
+                                }
+                            }
+                        }
+                        finally
+                        {
+                            DeleteEnhMetaFile(hEmf);
+                        }
+                    }
+                }
+
+                if (bestWmf != null && bestWmf.Length <= limitBytes) break;
+            }
+
+            return bestWmf;
+        }
+        catch
+        {
+            return null;
+        }
+        finally
+        {
+            if (src != null) try { src.Dispose(); } catch {}
+            if (emfG != null) try { emfG.Dispose(); } catch {}
+            if (emf != null) try { emf.Dispose(); } catch {}
+            if (refG != null) try { refG.Dispose(); } catch {}
+            if (refBmp != null) try { refBmp.Dispose(); } catch {}
+            if (solidG != null) try { solidG.Dispose(); } catch {}
+            if (solidBmp != null) try { solidBmp.Dispose(); } catch {}
+            try { if (File.Exists(tempEmf)) File.Delete(tempEmf); } catch {}
+        }
+    }
+
+    public static int[] ProcessFileListParallel(List<string> files, bool isWmf, int maxDim, int dpi, int maxKB, int maxDegreeOfParallelism)
+    {
+        return ProcessFileListParallel(files, null, isWmf, maxDim, dpi, maxKB, maxDegreeOfParallelism);
+    }
+
+    public static int[] ProcessFileListParallel(List<string> files, string outputFolder, bool isWmf, int maxDim, int dpi, int maxKB, int maxDegreeOfParallelism)
+    {
+        int resized = 0;
+        int failed = 0;
+        int skipped = 0;
+        int threads = (maxDegreeOfParallelism > 0) ? maxDegreeOfParallelism : Environment.ProcessorCount;
+        var pOpts = new ParallelOptions { MaxDegreeOfParallelism = threads };
+
+        Parallel.ForEach(files, pOpts, file =>
+        {
+            try
+            {
+                FileInfo fi = new FileInfo(file);
+                long limitBytes = (maxKB > 0) ? (maxKB * 1024) : (25 * 1024);
+                if (fi.Length <= limitBytes)
+                {
+                    Interlocked.Increment(ref skipped);
+                    if (!string.IsNullOrEmpty(outputFolder) && !string.Equals(Path.GetDirectoryName(file), outputFolder, StringComparison.OrdinalIgnoreCase))
+                    {
+                        string dest = Path.Combine(outputFolder, Path.GetFileName(file));
+                        File.Copy(file, dest, true);
+                    }
+                    return;
+                }
+
+                byte[] raw = File.ReadAllBytes(file);
+                byte[] opt = isWmf ? OptimizeWmfBytes(raw, maxDim, dpi, maxKB) : OptimizePhotoBytes(raw, maxDim, dpi, maxKB);
+                if (opt != null && opt.Length > 0)
+                {
+                    string destFile = (!string.IsNullOrEmpty(outputFolder) && !string.Equals(Path.GetDirectoryName(file), outputFolder, StringComparison.OrdinalIgnoreCase))
+                        ? Path.Combine(outputFolder, Path.GetFileName(file))
+                        : file;
+                    File.WriteAllBytes(destFile, opt);
+                    Interlocked.Increment(ref resized);
+                }
+                else
+                {
+                    Interlocked.Increment(ref failed);
+                }
+            }
+            catch
+            {
+                Interlocked.Increment(ref failed);
+            }
+        });
+
+        return new int[] { resized, skipped, failed };
+    }
+}
+"@
+    Add-Type -TypeDefinition $turboSource -ReferencedAssemblies "System.Drawing" -ErrorAction SilentlyContinue
+}
 
 # --- Load Nexus AI Vision Engine (ONNX Runtime + U-2-Net Neural Segmentation) ---
 $global:hasAiVision = $false
@@ -12201,112 +12576,120 @@ $btnStart.Add_Click({
         return
     }
 
-    # Full Backup
-    if ($doBackup) {
-        $lblStatus.Text = "Status: Backing up $($matchedFiles.Count) files..."
-        $stamp = Get-Date -Format "yyyyMMdd_HHmmss"
-        $backupDirName = if ($isWmfMode) { "PlanPhoto_Backup_$stamp" } else { "PropertyImage_Backup_$stamp" }
-        $backupPath = Join-Path $targetFolder $backupDirName
-        $lastBackupPath = $backupPath
+    # --- TURBO BATCH OPTIMIZATION PIPELINE ---
+    $limitBytes = if ($maxKB -gt 0) { [long]($maxKB * 1024) } else { [long](25 * 1024) }
+    $filesNeedingResize = [System.Collections.Generic.List[string]]::new()
+    $filesAlreadyCompliant = [System.Collections.Generic.List[string]]::new()
+    $totalOrig = 0L
 
-        if (-not (Test-Path $backupPath)) {
-            New-Item -ItemType Directory -Path $backupPath -Force | Out-Null
-        }
-        $btnOpenBackup.IsEnabled = $true
-        Append-Log "Backup folder created: $backupPath"
+    $lblStatus.Text = "Status: Fast scanning $($matchedFiles.Count) files..."
+    [System.Windows.Forms.Application]::DoEvents()
 
-        $backedCount = 0
-        for ($i = 0; $i -lt $matchedFiles.Count; $i++) {
-            $f = $matchedFiles[$i]
-            $dest = Join-Path $backupPath ([System.IO.Path]::GetFileName($f))
-            try {
-                [System.IO.File]::Copy($f, $dest, $true)
-                $backedCount++
-            } catch {}
-
-            if (($i + 1) % 100 -eq 0 -or ($i + 1) -eq $matchedFiles.Count) {
-                $lblBackedUp.Text = $backedCount.ToString()
-                $progressBar.Value = [Math]::Round((($i + 1) / $matchedFiles.Count) * 50)
-                [System.Windows.Forms.Application]::DoEvents()
+    foreach ($f in $matchedFiles) {
+        try {
+            $fi = New-Object System.IO.FileInfo($f)
+            $totalOrig += $fi.Length
+            if ($fi.Length -gt $limitBytes) {
+                $filesNeedingResize.Add($f)
+            } else {
+                $filesAlreadyCompliant.Add($f)
             }
+        } catch {
+            $filesNeedingResize.Add($f)
         }
-        Append-Log "Backup completed: $backedCount files backed up safely."
     }
 
-    # Resize & Optimize Under MaxKB (with Solid White Crystal Reports Canvas)
-    $lblStatus.Text = "Status: Resizing & optimizing files under $maxKB KB with Solid White Canvas..."
-    $resizedCount = 0
-    $skippedCount = 0
-    $totalOrig = 0L
-    $totalNew = 0L
-    $totalFiles = $matchedFiles.Count
+    Append-Log "Pre-Scan Complete: $($matchedFiles.Count) matched | $($filesNeedingResize.Count) need optimization (> $maxKB KB) | $($filesAlreadyCompliant.Count) compliant (<= $maxKB KB)"
 
-    for ($i = 0; $i -lt $totalFiles; $i++) {
-        $file = $matchedFiles[$i]
-        $fileName = [System.IO.Path]::GetFileName($file)
-        $origLen = (Get-Item $file).Length
-        $totalOrig += $origLen
-
-        if ($isWmfMode) {
-            # Enhancement: ONLY resize WMF files that have MORE THAN 25 KB (or custom maxKB)
-            $wmfLimitBytes = if ($maxKB -gt 0) { [long]($maxKB * 1024) } else { [long](25 * 1024) }
-            if ($origLen -le $wmfLimitBytes) {
-                $skippedCount++
-                $totalNew += $origLen
-                if ($totalFiles -le 200 -or ($i + 1) % 50 -eq 0) {
-                    Append-Log "Skipped (Already <= 25 KB): $fileName ($([Math]::Round($origLen / 1KB, 1)) KB)"
-                }
-                continue
-            }
-
-            $res = [AppWmfOptimizer]::ProcessWmf($file, $file, $maxDim, $dpi, $maxKB, $false)
-            if ($res.StartsWith("OK:")) {
-                $resizedCount++
-                $newLen = (Get-Item $file).Length
-                $totalNew += $newLen
-                Append-Log "Resized WMF (> 25 KB): $fileName ($([Math]::Round($origLen / 1KB, 1)) KB -> $([Math]::Round($newLen / 1KB, 1)) KB)"
-            } elseif ($res.StartsWith("SKIPPED:")) {
-                $skippedCount++
-                $totalNew += $origLen
-            } else {
-                $skippedCount++
-                $totalNew += $origLen
-                Append-Log "Warning on ${fileName}: $res"
-            }
+    # 1. SMART SELECTIVE PARALLEL BACKUP (32 THREADS)
+    $backedCount = 0
+    if ($doBackup) {
+        if ($filesNeedingResize.Count -eq 0) {
+            Append-Log "Selective Backup Skipped: All $($matchedFiles.Count) files are already <= $maxKB KB. No backup needed."
+            $lblBackedUp.Text = "0 (Compliant)"
         } else {
-            $bytes = [System.IO.File]::ReadAllBytes($file)
-            $resBytes = [AppWmfOptimizer]::ConvertBlobToCrystalReportJpg($bytes, $maxDim, $dpi, $maxKB)
-            if ($resBytes -and $resBytes.Length -gt 0) {
-                [System.IO.File]::WriteAllBytes($file, $resBytes)
-                $resizedCount++
-                $totalNew += $resBytes.Length
-            } else {
-                $skippedCount++
-                $totalNew += $origLen
-            }
-        }
+            $lblStatus.Text = "Status: Selective 32-thread parallel backup ($($filesNeedingResize.Count) files)..."
+            $stamp = Get-Date -Format "yyyyMMdd_HHmmss"
+            $backupDirName = if ($isWmfMode) { "PlanPhoto_Backup_$stamp" } else { "PropertyImage_Backup_$stamp" }
+            $backupPath = Join-Path $targetFolder $backupDirName
+            $lastBackupPath = $backupPath
 
-        if (($i + 1) % 50 -eq 0 -or ($i + 1) -eq $totalFiles) {
-            $lblResized.Text = $resizedCount.ToString()
-            $savedMB = [Math]::Round(($totalOrig - $totalNew) / 1MB, 2)
-            if ($savedMB -lt 0) { $savedMB = 0.0 }
-            $lblSaved.Text = "$savedMB MB"
-            $pct = 50 + [Math]::Round((($i + 1) / $totalFiles) * 50)
+            if (-not (Test-Path $backupPath)) {
+                New-Item -ItemType Directory -Path $backupPath -Force | Out-Null
+            }
+            $btnOpenBackup.IsEnabled = $true
+            Append-Log "Backup folder created: $backupPath"
+
+            $backupSw = [System.Diagnostics.Stopwatch]::StartNew()
+            $backedCount = [TurboBatchEngine]::ExecuteParallelBackup($filesNeedingResize, $backupPath, 32)
+            $backupSw.Stop()
+
+            $lblBackedUp.Text = $backedCount.ToString()
+            Append-Log "Smart Parallel Backup completed in $([Math]::Round($backupSw.Elapsed.TotalSeconds, 2))s: $backedCount files copied (preserved $($filesAlreadyCompliant.Count) compliant files untouched)."
+        }
+    }
+
+    # 2. 12-CORE PARALLEL RESIZING & OPTIMIZING UNDER MaxKB
+    $lblStatus.Text = "Status: Turbo 12-core parallel resizing ($($filesNeedingResize.Count) files)..."
+    $resizedCount = 0
+    $skippedCount = $filesAlreadyCompliant.Count
+    $failedCount = 0
+    $totalWork = $filesNeedingResize.Count
+    $processedWork = 0
+
+    $processSw = [System.Diagnostics.Stopwatch]::StartNew()
+
+    if ($totalWork -gt 0) {
+        $chunkSize = 50
+        $numChunks = [Math]::Ceiling($totalWork / [double]$chunkSize)
+
+        for ($chunkIdx = 0; $chunkIdx -lt $numChunks; $chunkIdx++) {
+            $start = $chunkIdx * $chunkSize
+            $count = [Math]::Min($chunkSize, $totalWork - $start)
+            $chunk = $filesNeedingResize.GetRange($start, $count)
+
+            $res = [TurboBatchEngine]::ProcessFileListParallel($chunk, $isWmfMode, $maxDim, $dpi, $maxKB, [Environment]::ProcessorCount)
+            $resizedCount += $res[0]
+            $skippedCount += $res[1]
+            $failedCount += $res[2]
+            $processedWork += $count
+
+            $pct = [Math]::Round(($processedWork / $totalWork) * 100)
             $progressBar.Value = $pct
-            $lblStatus.Text = "Status: Processed $($i+1)/$totalFiles images ($pct%)..."
+            $lblResized.Text = $resizedCount.ToString()
+            $lblStatus.Text = "Status: Turbo 12-Core Resizing $processedWork / $totalWork files ($pct%)..."
             [System.Windows.Forms.Application]::DoEvents()
         }
+    } else {
+        $progressBar.Value = 100
+        $lblResized.Text = "0"
+        $lblStatus.Text = "Status: All files are already <= $maxKB KB. Nothing to resize."
+    }
+
+    $processSw.Stop()
+
+    # Calculate final space saved
+    $totalNew = 0L
+    foreach ($f in $matchedFiles) {
+        try {
+            $totalNew += (New-Object System.IO.FileInfo($f)).Length
+        } catch {}
     }
 
     $savedMB = [Math]::Round(($totalOrig - $totalNew) / 1MB, 2)
+    if ($savedMB -lt 0) { $savedMB = 0.0 }
     $lblSaved.Text = "$savedMB MB"
-    $lblStatus.Text = "Status: Process completed successfully!"
+    $totalElapsed = [Math]::Round($processSw.Elapsed.TotalSeconds, 2)
+    $lblStatus.Text = "Status: Turbo process completed successfully in ${totalElapsed}s!"
     $progressBar.Value = 100
+
     Append-Log "========================================="
-    Append-Log "COMPLETED! Resized (> 25 KB): $resizedCount | Preserved (<= 25 KB): $skippedCount | Saved: $savedMB MB"
+    Append-Log "TURBO OPTIMIZATION COMPLETED!"
+    Append-Log "Matched: $($matchedFiles.Count) | Resized: $resizedCount | Already <= $maxKB KB: $skippedCount | Failed: $failedCount"
+    Append-Log "Space Saved: $savedMB MB | Resizing Time: ${totalElapsed}s"
     Append-Log "========================================="
 
-    [System.Windows.MessageBox]::Show("Optimization complete!`n`nTotal Matched: $totalFiles`nResized (> 25 KB): $resizedCount`nAlready <= 25 KB (Skipped/Preserved): $skippedCount`nSaved Space: $savedMB MB`nSolid White Background Applied for Crystal Reports.", "Success", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Information)
+    [System.Windows.MessageBox]::Show("Turbo Optimization complete in ${totalElapsed} seconds!`n`nTotal Files: $($matchedFiles.Count)`nResized (> $maxKB KB): $resizedCount`nAlready <= $maxKB KB (Preserved): $skippedCount`nFailed: $failedCount`nSaved Space: $savedMB MB`nSolid White Crystal Reports Canvas Applied.", "Turbo Success", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Information)
 
     $btnStart.IsEnabled = $true
 })

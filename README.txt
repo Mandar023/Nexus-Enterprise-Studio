@@ -14,6 +14,7 @@ A high-performance all-in-one desktop and CLI utility suite for:
 --------------------------------------------------------------------------------
 QUICK LAUNCH:
 --------------------------------------------------------------------------------
+- Ultra-Fast Turbo Batch Optimizer (12-Core + 32-Thread Selective Backup): Double-click "Launch-Turbo-Batch-Optimizer.cmd"
 - Full Graphical UI Suite: Double-click "Open-Nexus-App.cmd" or "Open-PMC-App.cmd"
 - 1-Click Background Remover: Double-click "Remove-Background.cmd"
 - 1-Click Server Photo Extractor: Double-click "Collect-PropertyPhotos.cmd"
