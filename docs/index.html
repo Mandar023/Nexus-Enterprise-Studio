@@ -3,29 +3,28 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Nexus Enterprise Studio — High-Performance Municipal Workspace</title>
+  <title>Nexus Enterprise Studio — High-Performance Distributed Systems Workspace</title>
   <link rel="icon" type="image/x-icon" href="../nexus_app.ico">
   
-  <!-- Premium Typography: Syne, Space Grotesk, Fira Code -->
+  <!-- Premium Typography: Syne, Space Grotesk, Plus Jakarta Sans, Fira Code -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700;800&family=Syne:wght@700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@500;600;700;800&family=Syne:wght@700;800;900&display=swap" rel="stylesheet">
   
-  <!-- Three.js for 3D PBR WebGL Engine -->
+  <!-- Three.js for 3D PBR WebGL Interactive Stage -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
   <style>
     :root {
       --bg: #03050c;
-      --card-bg: rgba(7, 12, 26, 0.85);
+      --card-bg: rgba(8, 14, 28, 0.85);
       --card-border: rgba(56, 189, 248, 0.22);
-      --card-border-glow: rgba(0, 242, 254, 0.5);
+      --card-border-glow: rgba(0, 242, 254, 0.6);
       --cyan: #38bdf8;
       --neon-cyan: #00f2fe;
       --emerald: #10b981;
       --purple: #a855f7;
       --amber: #f59e0b;
-      --red: #ef4444;
       --text: #f8fafc;
       --text-muted: #94a3b8;
     }
@@ -35,7 +34,7 @@
     html {
       background-color: var(--bg);
       color: var(--text);
-      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
       overflow-x: hidden;
       overflow-y: scroll !important;
       scroll-behavior: smooth;
@@ -62,78 +61,78 @@
       pointer-events: none;
     }
 
-    /* Ambient Aurora Glow Lights (Awwwards Style) */
+    /* Ambient Aurora Lights */
     .aurora-glow {
       position: fixed;
-      width: 600px;
-      height: 600px;
+      width: 550px;
+      height: 550px;
       border-radius: 50%;
-      filter: blur(140px);
-      opacity: 0.18;
+      filter: blur(150px);
+      opacity: 0.16;
       pointer-events: none;
       z-index: 2;
-      animation: drift 18s ease-in-out infinite alternate;
+      animation: drift 20s ease-in-out infinite alternate;
     }
-    .aurora-1 { top: -100px; left: -100px; background: #00f2fe; }
-    .aurora-2 { bottom: -150px; right: -150px; background: #8b5cf6; animation-delay: -6s; }
-    .aurora-3 { top: 40%; left: 60%; background: #0284c7; animation-delay: -12s; }
+    .aurora-1 { top: -80px; left: -80px; background: #00f2fe; }
+    .aurora-2 { bottom: -120px; right: -120px; background: #8b5cf6; animation-delay: -7s; }
+    .aurora-3 { top: 45%; left: 55%; background: #0284c7; animation-delay: -14s; }
 
     @keyframes drift {
       0% { transform: translate(0, 0) scale(1); }
-      50% { transform: translate(80px, 60px) scale(1.15); }
-      100% { transform: translate(-40px, -30px) scale(0.9); }
+      50% { transform: translate(60px, 40px) scale(1.15); }
+      100% { transform: translate(-30px, -20px) scale(0.95); }
     }
 
-    /* Cinematic Vignette & Grain */
+    /* Vignette Overlay */
     .vignette {
       position: fixed;
       inset: 0;
-      background: radial-gradient(circle at 50% 50%, transparent 35%, rgba(2, 4, 10, 0.94) 100%);
+      background: radial-gradient(circle at 50% 50%, transparent 40%, rgba(3, 5, 12, 0.92) 100%);
       z-index: 3;
       pointer-events: none;
     }
 
-    /* Floating Navigation Header */
+    /* Navigation Header */
     nav {
       position: fixed;
-      top: 24px;
+      top: 20px;
       left: 50%;
       transform: translateX(-50%);
-      width: min(92%, 1320px);
-      padding: 14px 30px;
+      width: min(92%, 1280px);
+      padding: 12px 28px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background: rgba(5, 9, 20, 0.78);
-      backdrop-filter: blur(28px);
-      -webkit-backdrop-filter: blur(28px);
+      background: rgba(6, 11, 24, 0.88);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
       border: 1px solid rgba(56, 189, 248, 0.25);
       border-radius: 999px;
       z-index: 100;
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 30px rgba(2, 132, 199, 0.15);
+      box-shadow: 0 16px 45px rgba(0, 0, 0, 0.8);
     }
 
     .brand {
       display: flex;
       align-items: center;
-      gap: 14px;
+      gap: 12px;
       text-decoration: none;
       color: inherit;
     }
 
     .brand-mark {
-      width: 38px;
-      height: 38px;
-      border-radius: 10px;
+      width: 36px;
+      height: 36px;
+      border-radius: 9px;
       background: linear-gradient(135deg, #00f2fe, #4facfe, #8b5cf6);
       display: grid;
       place-items: center;
-      box-shadow: 0 0 20px rgba(0, 242, 254, 0.6);
+      box-shadow: 0 0 18px rgba(0, 242, 254, 0.6);
     }
 
     .brand-title {
       font-family: 'Space Grotesk', sans-serif;
-      font-size: 16px;
+      font-size: 15px;
       font-weight: 800;
       letter-spacing: 0.8px;
       color: #ffffff;
@@ -141,30 +140,30 @@
 
     .brand-tag {
       font-family: 'Fira Code', monospace;
-      font-size: 10.5px;
-      padding: 3px 9px;
+      font-size: 10px;
+      padding: 3px 8px;
       background: rgba(16, 185, 129, 0.18);
       color: #10b981;
       border: 1px solid rgba(16, 185, 129, 0.4);
       border-radius: 999px;
       font-weight: 700;
-      margin-left: 8px;
+      margin-left: 6px;
     }
 
     .nav-actions {
       display: flex;
       align-items: center;
-      gap: 16px;
+      gap: 14px;
     }
 
     .nav-btn-gh {
       color: var(--text-muted);
       text-decoration: none;
-      font-size: 13.5px;
+      font-size: 13px;
       font-weight: 600;
       padding: 8px 16px;
       border-radius: 999px;
-      transition: all 0.25s;
+      transition: all 0.2s;
     }
 
     .nav-btn-gh:hover {
@@ -173,16 +172,16 @@
     }
 
     .nav-btn-download {
-      padding: 10px 24px;
+      padding: 9px 22px;
       border-radius: 999px;
-      font-size: 13.5px;
+      font-size: 13px;
       font-weight: 800;
       color: #ffffff;
       background: linear-gradient(135deg, #0284c7, #2563eb);
       text-decoration: none;
       display: inline-flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
       border: 1px solid rgba(56, 189, 248, 0.4);
       box-shadow: 0 0 25px rgba(2, 132, 199, 0.45);
       transition: all 0.25s;
@@ -193,28 +192,28 @@
       box-shadow: 0 0 35px rgba(0, 242, 254, 0.7);
     }
 
-    /* Fixed Bottom Timeline Navigation */
+    /* Fixed Bottom Timeline Navigation Scrubber */
     .timeline-bar {
       position: fixed;
-      bottom: 24px;
+      bottom: 20px;
       left: 50%;
       transform: translateX(-50%);
-      width: min(92%, 1180px);
-      padding: 10px 24px;
-      background: rgba(5, 9, 20, 0.88);
+      width: min(94%, 1160px);
+      padding: 8px 18px;
+      background: rgba(6, 11, 24, 0.92);
       backdrop-filter: blur(24px);
       border: 1px solid rgba(56, 189, 248, 0.25);
       border-radius: 999px;
       z-index: 100;
       display: flex;
       justify-content: space-between;
-      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.8);
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.85);
     }
 
     .timeline-step {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
       padding: 6px 14px;
       border-radius: 999px;
       cursor: pointer;
@@ -223,16 +222,17 @@
       color: #64748b;
       font-weight: 700;
       letter-spacing: 0.5px;
-      transition: all 0.3s;
+      transition: all 0.25s;
+      white-space: nowrap;
     }
 
     .timeline-step:hover, .timeline-step.active {
       color: #38bdf8;
       background: rgba(2, 132, 199, 0.22);
-      box-shadow: 0 0 16px rgba(2, 132, 199, 0.3);
+      box-shadow: 0 0 14px rgba(2, 132, 199, 0.35);
     }
 
-    /* Main Scrollable Content Container */
+    /* Scrollable Container */
     .scroll-container {
       position: relative;
       z-index: 10;
@@ -245,27 +245,38 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 120px min(6vw, 80px);
+      padding: 100px min(5vw, 64px);
       position: relative;
     }
 
-    /* Two-Column Studio Layout */
+    /* Showcase Two-Column Grid */
     .showcase-grid {
       display: grid;
-      grid-template-columns: 1fr 1.35fr;
-      gap: 48px;
+      grid-template-columns: 1fr 1.32fr;
+      gap: 40px;
       align-items: center;
-      width: min(100%, 1360px);
+      width: min(100%, 1320px);
+    }
+
+    @media (max-width: 980px) {
+      .showcase-grid {
+        grid-template-columns: 1fr;
+        gap: 32px;
+      }
+      nav, .timeline-bar {
+        display: none;
+      }
     }
 
     /* Left Narrative Glassmorphic Card */
     .narrative-card {
       background: var(--card-bg);
-      backdrop-filter: blur(32px);
+      backdrop-filter: blur(28px);
+      -webkit-backdrop-filter: blur(28px);
       border: 1px solid var(--card-border);
-      border-radius: 28px;
-      padding: 44px;
-      box-shadow: 0 30px 70px rgba(0, 0, 0, 0.7);
+      border-radius: 24px;
+      padding: 38px;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7);
       position: relative;
     }
 
@@ -279,11 +290,11 @@
 
     .chapter-tag {
       font-family: 'Space Grotesk', sans-serif;
-      font-size: 12.5px;
+      font-size: 12px;
       font-weight: 700;
       color: var(--cyan);
       letter-spacing: 2px;
-      margin-bottom: 14px;
+      margin-bottom: 12px;
       display: flex;
       align-items: center;
       gap: 8px;
@@ -291,45 +302,45 @@
 
     .chapter-heading {
       font-family: 'Space Grotesk', sans-serif;
-      font-size: clamp(28px, 3.2vw, 42px);
+      font-size: clamp(26px, 2.8vw, 38px);
       font-weight: 800;
-      line-height: 1.12;
-      margin-bottom: 18px;
+      line-height: 1.15;
+      margin-bottom: 16px;
       color: #ffffff;
       letter-spacing: -0.5px;
     }
 
     .chapter-text {
-      font-size: 15px;
+      font-size: 14.5px;
       color: var(--text-muted);
-      line-height: 1.75;
-      margin-bottom: 26px;
+      line-height: 1.7;
+      margin-bottom: 24px;
     }
 
     .stat-row {
       display: flex;
-      gap: 14px;
-      margin-bottom: 24px;
+      gap: 12px;
+      margin-bottom: 22px;
     }
 
     .stat-box {
       flex: 1;
       background: rgba(3, 7, 18, 0.75);
       border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 14px;
-      padding: 14px 16px;
+      border-radius: 12px;
+      padding: 12px 14px;
     }
 
     .stat-num {
       font-family: 'Fira Code', monospace;
-      font-size: 20px;
+      font-size: 19px;
       font-weight: 800;
       color: #38bdf8;
-      margin-bottom: 3px;
+      margin-bottom: 2px;
     }
 
     .stat-label {
-      font-size: 11px;
+      font-size: 10.5px;
       color: #64748b;
       font-weight: 700;
       text-transform: uppercase;
@@ -344,8 +355,8 @@
 
     .tech-badge {
       font-family: 'Fira Code', monospace;
-      font-size: 11px;
-      padding: 6px 14px;
+      font-size: 10.5px;
+      padding: 5px 12px;
       background: rgba(2, 132, 199, 0.12);
       border: 1px solid rgba(56, 189, 248, 0.25);
       border-radius: 8px;
@@ -353,25 +364,25 @@
       font-weight: 600;
     }
 
-    /* Right Side: AUTHENTIC PHOTOREALISTIC SOFTWARE WINDOW FRAME */
+    /* Right Side: PHOTOREALISTIC SOFTWARE WINDOW FRAME */
     .studio-window {
       background: #080d1a;
       border: 1px solid rgba(56, 189, 248, 0.35);
-      border-radius: 20px;
-      box-shadow: 0 40px 100px -15px rgba(0, 0, 0, 0.9), 0 0 40px rgba(2, 132, 199, 0.2);
+      border-radius: 18px;
+      box-shadow: 0 35px 90px -15px rgba(0, 0, 0, 0.9), 0 0 35px rgba(2, 132, 199, 0.2);
       overflow: hidden;
       position: relative;
-      transition: transform 0.4s ease, border-color 0.4s ease;
+      transition: transform 0.3s ease, border-color 0.3s ease;
     }
 
     .studio-window:hover {
       border-color: var(--card-border-glow);
-      transform: translateY(-4px);
+      transform: translateY(-3px);
     }
 
     .window-titlebar {
       background: #0b1224;
-      padding: 12px 18px;
+      padding: 11px 16px;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -380,12 +391,12 @@
 
     .window-dots {
       display: flex;
-      gap: 7px;
+      gap: 6px;
     }
 
     .window-dot {
-      width: 10px;
-      height: 10px;
+      width: 9px;
+      height: 9px;
       border-radius: 50%;
     }
     .dot-red { background: #ef4444; }
@@ -394,14 +405,14 @@
 
     .window-title {
       font-family: 'Fira Code', monospace;
-      font-size: 11.5px;
+      font-size: 11px;
       color: #94a3b8;
       font-weight: 600;
     }
 
     .window-status-pill {
       font-family: 'Fira Code', monospace;
-      font-size: 10px;
+      font-size: 9.5px;
       color: #10b981;
       background: rgba(16, 185, 129, 0.15);
       border: 1px solid rgba(16, 185, 129, 0.3);
@@ -426,12 +437,12 @@
     }
 
     /* -------------------------------------------------------------
-       WINDOW 1: MULTI-SERVER CONSOLIDATOR LIVE TOPOLOGY
+       CHAPTER 01: MULTI-SERVER CONSOLIDATOR LIVE TOPOLOGY
        ------------------------------------------------------------- */
     .consolidator-body {
-      padding: 24px;
+      padding: 22px;
       position: relative;
-      height: 380px;
+      height: 360px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
@@ -451,129 +462,132 @@
     }
 
     .server-card {
-      width: 175px;
-      background: rgba(12, 20, 42, 0.95);
-      border: 1px solid rgba(56, 189, 248, 0.3);
-      border-radius: 12px;
-      padding: 12px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+      background: rgba(15, 23, 42, 0.92);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      border-radius: 10px;
+      padding: 10px 14px;
+      width: 170px;
     }
 
-    .server-card.target-hub {
-      width: 260px;
-      margin: 0 auto;
-      border-color: #10b981;
-      box-shadow: 0 0 30px rgba(16, 185, 129, 0.25);
-    }
-
-    .server-card-header {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-family: 'Fira Code', monospace;
+    .server-header {
+      font-family: 'Space Grotesk', sans-serif;
       font-size: 11px;
-      color: #fff;
-      font-weight: 700;
-      margin-bottom: 4px;
+      font-weight: 800;
+      color: #ffffff;
+      margin-bottom: 2px;
+      display: flex;
+      justify-content: space-between;
     }
 
-    .server-card-path {
+    .server-ip {
       font-family: 'Fira Code', monospace;
-      font-size: 9.5px;
-      color: #64748b;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
+      font-size: 10px;
+      color: #38bdf8;
     }
 
-    .filter-prism {
+    .filter-chamber {
       align-self: center;
-      background: rgba(15, 23, 42, 0.95);
-      border: 1.5px solid #00f2fe;
-      border-radius: 14px;
-      padding: 10px 20px;
-      font-family: 'Fira Code', monospace;
-      font-size: 11px;
-      color: #e2e8f0;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      box-shadow: 0 0 30px rgba(0, 242, 254, 0.35);
       z-index: 5;
+      background: #030712;
+      border: 2px solid #00f2fe;
+      border-radius: 50%;
+      width: 76px;
+      height: 76px;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      box-shadow: 0 0 25px rgba(0, 242, 254, 0.45);
+    }
+
+    .master-destination {
+      align-self: center;
+      z-index: 5;
+      background: #064e3b;
+      border: 1px solid #10b981;
+      border-radius: 12px;
+      padding: 10px 22px;
+      text-align: center;
+      box-shadow: 0 0 25px rgba(16, 185, 129, 0.35);
     }
 
     /* -------------------------------------------------------------
-       WINDOW 2: BEYOND COMPARE 5 STUDIO
+       CHAPTER 02: BEYOND COMPARE 5 DUAL PANE DIFF
        ------------------------------------------------------------- */
     .diff-body {
-      padding: 0;
       display: grid;
       grid-template-columns: 1fr 1fr;
-      font-family: 'Fira Code', monospace;
-      font-size: 11.5px;
-      height: 380px;
+      height: 360px;
       position: relative;
+      background: #030712;
     }
 
-    .diff-column {
-      padding: 16px;
+    .diff-pane {
+      padding: 14px;
+      font-family: 'Fira Code', monospace;
+      font-size: 10.5px;
+      line-height: 1.8;
       overflow: hidden;
+      border-right: 1px solid rgba(255, 255, 255, 0.08);
     }
 
-    .diff-column:first-child {
-      border-right: 1px solid rgba(255, 255, 255, 0.08);
-      background: rgba(9, 14, 28, 0.5);
+    .diff-pane:last-child {
+      border-right: none;
     }
 
     .diff-laser-sweep {
       position: absolute;
-      left: 0; right: 0;
-      height: 2px;
+      top: 0; bottom: 0;
+      width: 2px;
       background: #00f2fe;
       box-shadow: 0 0 16px #00f2fe, 0 0 30px #00f2fe;
       z-index: 10;
-      animation: sweep-diff-bar 3.5s ease-in-out infinite alternate;
+      animation: sweepLaser 5s ease-in-out infinite;
     }
 
-    @keyframes sweep-diff-bar {
-      0% { top: 30px; }
-      100% { top: 350px; }
+    @keyframes sweepLaser {
+      0% { left: 4%; }
+      50% { left: 96%; }
+      100% { left: 4%; }
     }
 
-    .code-line {
-      padding: 5px 8px;
-      border-radius: 4px;
-      margin-bottom: 4px;
-      display: flex;
-      gap: 12px;
-      white-space: nowrap;
+    .line-add {
+      background: rgba(16, 185, 129, 0.2);
+      color: #6ee7b7;
+      border-left: 2px solid #10b981;
+      padding-left: 6px;
+      margin: 2px 0;
     }
 
-    .ln { color: #475569; width: 20px; }
-    .code-line.same { color: #94a3b8; }
-    .code-line.removed { background: rgba(239, 68, 68, 0.18); color: #f87171; border-left: 3px solid #ef4444; }
-    .code-line.added { background: rgba(16, 185, 129, 0.18); color: #34d399; border-left: 3px solid #10b981; }
+    .line-del {
+      background: rgba(239, 68, 68, 0.2);
+      color: #fca5a5;
+      border-left: 2px solid #ef4444;
+      padding-left: 6px;
+      margin: 2px 0;
+    }
 
     /* -------------------------------------------------------------
-       WINDOW 3: SSMS SQL STUDIO TERMINAL
+       CHAPTER 03: SSMS SQL STUDIO
        ------------------------------------------------------------- */
     .ssms-body {
       display: grid;
-      grid-template-columns: 180px 1fr;
-      height: 380px;
-      font-family: 'Fira Code', monospace;
+      grid-template-columns: 140px 1fr;
+      height: 360px;
+      background: #030712;
     }
 
     .object-explorer {
-      background: #070b17;
+      background: #080e1c;
       border-right: 1px solid rgba(255, 255, 255, 0.08);
-      padding: 14px;
-      font-size: 10.5px;
+      padding: 12px;
+      font-family: 'Fira Code', monospace;
+      font-size: 10px;
       color: #94a3b8;
     }
 
     .tree-item {
       padding: 4px 0;
+      cursor: pointer;
       display: flex;
       align-items: center;
       gap: 6px;
@@ -582,171 +596,199 @@
     .sql-workspace {
       display: flex;
       flex-direction: column;
-      background: #090e1c;
+      overflow: hidden;
     }
 
     .sql-editor-pane {
-      padding: 16px;
-      font-size: 11.5px;
-      line-height: 1.6;
+      background: #0a1122;
       border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 12px 16px;
+      font-family: 'Fira Code', monospace;
+      font-size: 11px;
+      color: #e2e8f0;
+      line-height: 1.6;
     }
 
     .sql-grid-pane {
       flex: 1;
-      padding: 12px;
-      background: #040814;
-      overflow: hidden;
+      overflow: auto;
+      padding: 10px;
     }
 
     .sql-table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 10.5px;
+      font-family: 'Fira Code', monospace;
+      font-size: 10px;
       text-align: left;
     }
 
     .sql-table th {
-      color: #64748b;
-      padding: 6px 8px;
+      background: #0f172a;
+      color: #94a3b8;
+      padding: 6px 10px;
       border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     }
 
     .sql-table td {
-      padding: 6px 8px;
-      color: #e2e8f0;
+      padding: 6px 10px;
       border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      color: #cbd5e1;
     }
 
-    .sql-table tr.pulse-row td {
-      color: #38bdf8;
-      background: rgba(56, 189, 248, 0.12);
+    .pulse-row {
+      animation: fadeInRow 0.5s ease-out;
+    }
+
+    @keyframes fadeInRow {
+      from { background: rgba(0, 242, 254, 0.25); }
+      to { background: transparent; }
     }
 
     /* -------------------------------------------------------------
-       WINDOW 4: CRYSTAL REPORTS VECTOR WMF SLIDER
+       CHAPTER 04: VECTOR WMF BEFORE & AFTER SLIDER
        ------------------------------------------------------------- */
     .wmf-body {
-      height: 380px;
       position: relative;
+      height: 360px;
       overflow: hidden;
-      cursor: ew-resize;
+      background: #111827;
     }
 
-    .wmf-view {
+    .slider-pane-before {
       position: absolute;
       inset: 0;
+      background: #0f172a;
       display: flex;
       flex-direction: column;
-      justify-content: center;
       align-items: center;
-      text-align: center;
-      padding: 30px;
+      justify-content: center;
     }
 
-    .wmf-view.raw {
-      background: repeating-conic-gradient(#1e293b 0% 25%, #0f172a 0% 50%) 50% / 24px 24px;
-      clip-path: polygon(0 0, 50% 0, 50% 100%, 0 100%);
-    }
-
-    .wmf-view.optimized {
+    .slider-pane-after {
+      position: absolute;
+      inset: 0;
       background: #ffffff;
       color: #0f172a;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      clip-path: polygon(50% 0, 100% 0, 100% 100%, 50% 100%);
+      transition: clip-path 0.1s ease-out;
     }
 
-    .slider-divider-line {
+    .wmf-divider-line {
       position: absolute;
       top: 0; bottom: 0; left: 50%;
       width: 3px;
       background: #00f2fe;
-      box-shadow: 0 0 20px #00f2fe;
-      z-index: 10;
-      animation: drag-slider 4s ease-in-out infinite alternate;
+      box-shadow: 0 0 16px #00f2fe;
+      z-index: 20;
+      cursor: ew-resize;
     }
 
-    @keyframes drag-slider {
-      0% { left: 25%; }
-      100% { left: 75%; }
+    .wmf-badge-left {
+      position: absolute;
+      bottom: 16px;
+      left: 18px;
+      background: rgba(69, 10, 10, 0.9);
+      border: 1px solid #ef4444;
+      border-radius: 6px;
+      padding: 6px 12px;
+      font-family: 'Fira Code', monospace;
+      font-size: 10px;
+      font-weight: 700;
+      color: #fca5a5;
+      z-index: 10;
+    }
+
+    .wmf-badge-right {
+      position: absolute;
+      bottom: 16px;
+      right: 18px;
+      background: rgba(4, 120, 87, 0.95);
+      border: 1px solid #10b981;
+      border-radius: 6px;
+      padding: 6px 12px;
+      font-family: 'Fira Code', monospace;
+      font-size: 10px;
+      font-weight: 800;
+      color: #ffffff;
+      z-index: 10;
     }
 
     /* -------------------------------------------------------------
-       WINDOW 5: AI BACKGROUND REMOVER
+       CHAPTER 05: OFFLINE AI SCANNER
        ------------------------------------------------------------- */
     .ai-body {
-      height: 380px;
+      padding: 24px;
+      height: 360px;
       display: flex;
+      gap: 24px;
       align-items: center;
-      justify-content: center;
-      background: #080d1a;
-      position: relative;
+      background: #030712;
     }
 
-    .ai-scanner-line {
-      position: absolute;
-      top: 0; bottom: 0;
-      width: 3px;
-      background: #ec4899;
-      box-shadow: 0 0 25px #ec4899;
-      z-index: 10;
-      animation: ai-laser-wipe 3.2s ease-in-out infinite alternate;
-    }
-
-    @keyframes ai-laser-wipe {
-      0% { left: 15%; }
-      100% { left: 85%; }
-    }
-
-    .ai-card-preview {
-      width: 300px;
-      background: rgba(15, 23, 42, 0.9);
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      border-radius: 16px;
-      padding: 20px;
-      display: flex;
-      gap: 16px;
-      align-items: center;
-    }
-
-    .ai-avatar {
-      width: 80px;
-      height: 96px;
+    .ai-photo-frame {
+      width: 170px;
+      height: 220px;
+      background: #ffffff;
+      border: 2px solid #38bdf8;
       border-radius: 8px;
-      background: linear-gradient(135deg, #0284c7, #818cf8);
+      position: relative;
+      overflow: hidden;
       display: grid;
       place-items: center;
-      font-size: 32px;
+      box-shadow: 0 0 25px rgba(56, 189, 248, 0.35);
+    }
+
+    .ai-laser-wipe {
+      position: absolute;
+      left: 0; right: 0;
+      height: 2px;
+      background: #a855f7;
+      box-shadow: 0 0 14px #a855f7, 0 0 24px #a855f7;
+      animation: aiScan 3s ease-in-out infinite alternate;
+    }
+
+    @keyframes aiScan {
+      0% { top: 0%; }
+      100% { top: 100%; }
     }
 
     /* -------------------------------------------------------------
-       WINDOW 6: P2P LAN RADAR
+       CHAPTER 06: P2P LAN MESH RADAR
        ------------------------------------------------------------- */
     .lan-body {
-      height: 380px;
-      background: #030611;
+      position: relative;
+      height: 360px;
+      background: #020c09;
       display: grid;
       place-items: center;
-      position: relative;
       overflow: hidden;
     }
 
     .radar-ring {
       position: absolute;
+      border: 1px dashed rgba(16, 185, 129, 0.4);
       border-radius: 50%;
-      border: 1px solid rgba(16, 185, 129, 0.25);
+      pointer-events: none;
     }
 
     .radar-ray {
       position: absolute;
-      width: 280px;
-      height: 280px;
+      width: 320px;
+      height: 320px;
       border-radius: 50%;
-      background: conic-gradient(from 0deg, rgba(16, 185, 129, 0.45) 0deg, transparent 60deg);
-      animation: radar-spin 3s linear infinite;
+      background: conic-gradient(from 0deg, rgba(16, 185, 129, 0.7) 0deg, rgba(16, 185, 129, 0.1) 60deg, transparent 65deg);
+      animation: spinRadar 5s linear infinite;
+      pointer-events: none;
     }
 
-    @keyframes radar-spin {
-      from { transform: rotate(0deg); }
-      to { transform: rotate(360deg); }
+    @keyframes spinRadar {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
 
     .mesh-node {
@@ -755,33 +797,33 @@
       height: 12px;
       border-radius: 50%;
       background: #10b981;
-      box-shadow: 0 0 16px #10b981;
-      z-index: 5;
+      box-shadow: 0 0 14px #10b981;
+      animation: nodePing 2s infinite;
+    }
+
+    @keyframes nodePing {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.35); }
     }
 
     .node-label {
       position: absolute;
+      top: -18px;
+      left: -20px;
       font-family: 'Fira Code', monospace;
-      font-size: 9.5px;
-      color: #a7f3d0;
+      font-size: 9px;
+      color: #6ee7b7;
       white-space: nowrap;
-      transform: translate(-50%, -22px);
-    }
-
-    /* Responsive */
-    @media (max-width: 1024px) {
-      .showcase-grid { grid-template-columns: 1fr; }
-      nav { width: 95%; padding: 12px 18px; }
-      .timeline-bar { display: none; }
+      font-weight: 700;
     }
   </style>
 </head>
 <body>
 
-  <!-- WebGL 3D Background Canvas -->
+  <!-- Fixed WebGL 3D Canvas Background -->
   <canvas id="webgl-canvas"></canvas>
 
-  <!-- Ambient Cinematic Aurora Glows -->
+  <!-- Ambient Luxury Lights & Vignette -->
   <div class="aurora-glow aurora-1"></div>
   <div class="aurora-glow aurora-2"></div>
   <div class="aurora-glow aurora-3"></div>
@@ -789,27 +831,28 @@
 
   <!-- Top Navigation Header -->
   <nav>
-    <a href="https://github.com/Mandar023/Nexus-Enterprise-Studio" class="brand">
+    <a href="#" class="brand">
       <div class="brand-mark">
-        <svg viewBox="0 0 24 24" width="22" height="22" fill="#02040a">
-          <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+          <polygon points="12,2 22,8 12,14 2,8" fill="#ffffff" />
+          <polygon points="12,14 22,20 12,26 2,20" fill="rgba(255,255,255,0.7)" />
         </svg>
       </div>
       <div>
         <span class="brand-title">NEXUS ENTERPRISE STUDIO</span>
-        <span class="brand-tag">v5.5.0 ENTERPRISE</span>
+        <span class="brand-tag">v5.5.0</span>
       </div>
     </a>
     <div class="nav-actions">
-      <a href="https://github.com/Mandar023" target="_blank" class="nav-btn-gh">Mandar's GitHub Profile</a>
-      <a href="https://github.com/Mandar023/Nexus-Enterprise-Studio" target="_blank" class="nav-btn-gh">Source Code</a>
+      <a href="https://github.com/Mandar023" class="nav-btn-gh">Mandar's GitHub Profile</a>
+      <a href="https://github.com/Mandar023/Nexus-Enterprise-Studio" class="nav-btn-gh">Source Code</a>
       <a href="https://github.com/Mandar023/Nexus-Enterprise-Studio/releases/latest" class="nav-btn-download">
         Download v5.5.0 Portable
       </a>
     </div>
   </nav>
 
-  <!-- Bottom Timeline Bar -->
+  <!-- Fixed Bottom Chapter Scrubber Bar -->
   <div class="timeline-bar">
     <div class="timeline-step active" onclick="scrollToSec('sec-hero')">00 // OVERVIEW</div>
     <div class="timeline-step" onclick="scrollToSec('sec-sync')">01 // CONSOLIDATOR</div>
@@ -824,17 +867,20 @@
 
     <!-- HERO SECTION -->
     <section id="sec-hero">
-      <div style="text-align: center; max-width: 960px;">
-        <div style="font-family:'Fira Code'; font-size:12px; color:#38bdf8; letter-spacing:3px; margin-bottom:20px; font-weight:700;">
-          ● ZERO-DEPENDENCY ENTERPRISE WORKSPACE // 60 FPS
+      <div style="text-align: center; max-width: 920px;">
+        <div style="font-family:'Fira Code'; font-size:11.5px; color:#38bdf8; letter-spacing:2.5px; margin-bottom:18px; font-weight:700;">
+          &#9679; ZERO-DEPENDENCY ENTERPRISE WORKSPACE // 60 FPS
         </div>
-        <h1 style="font-family:'Syne', 'Space Grotesk', sans-serif; font-size: clamp(44px, 7.5vw, 92px); font-weight:900; line-height:1.02; letter-spacing:-2.5px; margin-bottom:24px; background: linear-gradient(135deg, #ffffff 30%, #cbd5e1 60%, #38bdf8 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">
-          PRECISION DATA &amp; SYSTEMS ARCHITECTURE
+        <h1 style="font-family:'Space Grotesk', -apple-system, sans-serif; font-size: clamp(34px, 5.2vw, 68px); font-weight:900; line-height:1.1; letter-spacing:-1.2px; margin-bottom:14px; background: linear-gradient(135deg, #ffffff 40%, #cbd5e1 70%, #38bdf8 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">
+          NEXUS ENTERPRISE STUDIO
         </h1>
-        <p style="font-size: clamp(16px, 1.8vw, 21px); color: var(--text-muted); line-height: 1.65; max-width: 760px; margin: 0 auto 40px auto;">
+        <div style="font-family:'Space Grotesk', sans-serif; font-size: clamp(17px, 2.2vw, 26px); font-weight:700; color:#38bdf8; letter-spacing: -0.5px; margin-bottom: 22px;">
+          Distributed Systems &amp; Municipal Data Infrastructure
+        </div>
+        <p style="font-size: clamp(14.5px, 1.5vw, 18px); color: var(--text-muted); line-height: 1.65; max-width: 720px; margin: 0 auto 36px auto;">
           Experience all 6 enterprise engines physically operating in real time: watch live network UNC packets route, laser diff scanners compare code, infinite-timeout SQL loops execute, and CAD drawings shrink below 25KB.
         </p>
-        <button onclick="scrollToSec('sec-sync')" class="nav-btn-download" style="padding: 16px 42px; font-size: 15px; cursor:pointer;">
+        <button onclick="scrollToSec('sec-sync')" class="nav-btn-download" style="padding: 14px 38px; font-size: 14.5px; cursor:pointer;">
           Explore Live Engine Simulations &darr;
         </button>
       </div>
@@ -844,7 +890,7 @@
     <section id="sec-sync">
       <div class="showcase-grid">
         <div class="narrative-card">
-          <div class="chapter-tag"><span style="color:#10b981;">●</span> CHAPTER 01 // HIGH-SPEED SYNC</div>
+          <div class="chapter-tag"><span style="color:#10b981;">&#9679;</span> CHAPTER 01 // HIGH-SPEED SYNC</div>
           <h2 class="chapter-heading">Multi-Server Consolidator Engine</h2>
           <p class="chapter-text">
             Monitors remote municipal servers (`192.168.1.11` and `192.168.1.22`), detects camera photos and survey layout plans across all Ward folders, filters duplicate files via instant O(1) hash indexing, and synchronizes only newly added records directly to `192.168.1.19`.
@@ -860,14 +906,14 @@
             </div>
             <div class="stat-box">
               <div class="stat-num" id="cnt-synced" style="color:#10b981;">820</div>
-              <div class="stat-label">New Consolidated</div>
+              <div class="stat-label">Newly Synced</div>
             </div>
           </div>
           <div class="pill-wrap">
-            <span class="tech-badge">PropertyImage Routing</span>
-            <span class="tech-badge">PlanPhoto Routing</span>
-            <span class="tech-badge">Ward Directory Crawler</span>
-            <span class="tech-badge">Options A, B, C Dual-CSV</span>
+            <span class="tech-badge">UNC Path Traversal</span>
+            <span class="tech-badge">O(1) Hash Cache</span>
+            <span class="tech-badge">Dual-Stream Routing</span>
+            <span class="tech-badge">Zero Overwrites</span>
           </div>
         </div>
 
@@ -879,37 +925,45 @@
               <div class="window-dot dot-yellow"></div>
               <div class="window-dot dot-green"></div>
             </div>
-            <div class="window-title">Nexus Multi-Server Consolidator &bull; UNC Conduit Hub</div>
+            <div class="window-title">Consolidator Conduit Engine &bull; 192.168.1.19 [MASTER]</div>
             <div class="window-status-pill">
               <div class="live-pulse"></div>
-              112 MB/S ACTIVE
+              ACTIVE ROUTING
             </div>
           </div>
           <div class="consolidator-body">
-            <canvas id="conduit-canvas" width="600" height="380"></canvas>
-            <!-- Source Server Nodes -->
+            <canvas id="conduit-canvas" width="600" height="360"></canvas>
+            <!-- Top Server Deck -->
             <div class="server-deck">
               <div class="server-card">
-                <div class="server-card-header">📁 192.168.1.11</div>
-                <div class="server-card-path">\\192.168.1.11\d\Images\NTIS_4030</div>
+                <div class="server-header">
+                  <span>REMOTE 11</span>
+                  <span style="color:#10b981;">ONLINE</span>
+                </div>
+                <div class="server-ip">\\192.168.1.11\Ward</div>
               </div>
               <div class="server-card">
-                <div class="server-card-header">🗄️ 192.168.1.22</div>
-                <div class="server-card-path">\\192.168.1.22\d\PMCPhotoStorage</div>
+                <div class="server-header">
+                  <span>REMOTE 22</span>
+                  <span style="color:#10b981;">ONLINE</span>
+                </div>
+                <div class="server-ip">\\192.168.1.22\Ward</div>
               </div>
             </div>
 
-            <!-- In-Memory Deduplication Prism -->
-            <div class="filter-prism">
-              <div class="live-pulse" style="background:#00f2fe;"></div>
-              <span>O(1) HASH DEDUPLICATION CORE &bull; ZERO NETWORK OVERHEAD</span>
+            <!-- Central Filter Chamber -->
+            <div class="filter-chamber">
+              <div style="font-family:'Fira Code'; font-size:11px; font-weight:800; color:#00f2fe;">O(1)</div>
+              <div style="font-size:8.5px; color:#94a3b8; font-weight:600;">DEDUP</div>
             </div>
 
-            <!-- Target Hub -->
-            <div class="server-deck" style="justify-content:center;">
-              <div class="server-card target-hub">
-                <div class="server-card-header" style="color:#10b981;">🏛️ 192.168.1.19 (CENTRAL PRODUCTION SERVER)</div>
-                <div class="server-card-path">&rarr; \Files\PropertyImage &amp; \Files\PlanPhoto</div>
+            <!-- Destination Master Node -->
+            <div class="master-destination">
+              <div style="font-family:'Space Grotesk'; font-size:12px; font-weight:800; color:#ffffff;">
+                MASTER REPOSITORY &bull; 192.168.1.19
+              </div>
+              <div style="font-family:'Fira Code'; font-size:9.5px; color:#6ee7b7; margin-top:2px;">
+                Verified Output Folders (PropertyImage &amp; PlanPhoto)
               </div>
             </div>
           </div>
@@ -917,30 +971,30 @@
       </div>
     </section>
 
-    <!-- CHAPTER 02: BEYOND COMPARE 5 DUAL-PANE DIFF -->
+    <!-- CHAPTER 02: BEYOND COMPARE 5 DIFF STUDIO -->
     <section id="sec-diff">
       <div class="showcase-grid">
         <div class="narrative-card">
-          <div class="chapter-tag"><span style="color:#00f2fe;">●</span> CHAPTER 02 // NATIVE DIFF ENGINE</div>
+          <div class="chapter-tag"><span style="color:#a855f7;">&#9679;</span> CHAPTER 02 // CODE &amp; FOLDER DIFF</div>
           <h2 class="chapter-heading">Beyond Compare 5 Studio</h2>
           <p class="chapter-text">
-            100% offline, zero-dependency code and folder comparison engine matching commercial standards. Watch the animated laser scanline compare line-by-line syntax, isolating differences using Myers and Patience algorithms.
+            100% offline Myers and Patience diff engine. Compare full municipal project folder structures, verify CRC32 file checksums, inspect 3-way code merges, and view raw byte hex tables with zero external dependencies.
           </p>
           <div class="stat-row">
             <div class="stat-box">
-              <div class="stat-num">Myers</div>
-              <div class="stat-label">Algorithm</div>
+              <div class="stat-num">CRC32</div>
+              <div class="stat-label">Integrity Match</div>
             </div>
             <div class="stat-box">
-              <div class="stat-num">CRC32</div>
-              <div class="stat-label">Binary Checksums</div>
+              <div class="stat-num" style="color:#10b981;">0 ms</div>
+              <div class="stat-label">Cloud Latency</div>
             </div>
           </div>
           <div class="pill-wrap">
+            <span class="tech-badge">Myers Diff Algorithm</span>
             <span class="tech-badge">Folder Directory Tree</span>
-            <span class="tech-badge">Bi-Directional Sync</span>
-            <span class="tech-badge">3-Way Code Merge</span>
-            <span class="tech-badge">Structured CSV Diff</span>
+            <span class="tech-badge">3-Way Merge Tool</span>
+            <span class="tech-badge">Hex Table Viewer</span>
           </div>
         </div>
 
@@ -952,49 +1006,47 @@
               <div class="window-dot dot-yellow"></div>
               <div class="window-dot dot-green"></div>
             </div>
-            <div class="window-title">Beyond Compare 5 Studio &bull; Text &amp; Code Diff</div>
+            <div class="window-title">Beyond Compare 5 &bull; Myers Code Comparison Pane</div>
             <div class="window-status-pill">
               <div class="live-pulse"></div>
-              DUAL SCAN ACTIVE
+              DIFF SCANNING
             </div>
           </div>
           <div class="diff-body">
             <div class="diff-laser-sweep"></div>
-            <!-- Left Column: Source -->
-            <div class="diff-column">
-              <div style="color:#64748b; font-weight:bold; margin-bottom:10px;">// SOURCE (Remote 192.168.1.11)</div>
-              <div class="code-line same"><span class="ln">01</span><span>$conn.Open()</span></div>
-              <div class="code-line removed"><span class="ln">02</span><span>- $cmd.CommandTimeout = 30;</span></div>
-              <div class="code-line same"><span class="ln">03</span><span>$res = $cmd.ExecuteReader()</span></div>
-              <div class="code-line removed"><span class="ln">04</span><span>- $planExt = @('.jpg');</span></div>
-              <div class="code-line same"><span class="ln">05</span><span>foreach ($f in $files)</span></div>
-              <div class="code-line removed"><span class="ln">06</span><span>- Copy-Item $f $dest;</span></div>
-              <div class="code-line same"><span class="ln">07</span><span>$conn.Close()</span></div>
+            <!-- Left Pane -->
+            <div class="diff-pane">
+              <div style="color:#64748b; margin-bottom:8px;">// Left: TaxConfig_v5.4.ps1</div>
+              <div>01 $Timeout = 30</div>
+              <div class="line-del">02 - $MaxRetries = 3</div>
+              <div>03 $Server = "192.168.1.11"</div>
+              <div>04 Invoke-Consolidate</div>
+              <div class="line-del">05 - Write-Log "Legacy"</div>
+              <div>06 return $true</div>
             </div>
-            <!-- Right Column: Target / Nexus v5.5 -->
-            <div class="diff-column">
-              <div style="color:#64748b; font-weight:bold; margin-bottom:10px;">// TARGET (Nexus Enterprise Studio v5.5)</div>
-              <div class="code-line same"><span class="ln">01</span><span>$conn.Open()</span></div>
-              <div class="code-line added"><span class="ln">02</span><span>+ $cmd.CommandTimeout = 0; // INFINITE</span></div>
-              <div class="code-line same"><span class="ln">03</span><span>$res = $cmd.ExecuteReader()</span></div>
-              <div class="code-line added"><span class="ln">04</span><span>+ $planExt = @(13 Vector Formats);</span></div>
-              <div class="code-line same"><span class="ln">05</span><span>foreach ($f in $files)</span></div>
-              <div class="code-line added"><span class="ln">06</span><span>+ Resolve-PanvelTargetFolders();</span></div>
-              <div class="code-line same"><span class="ln">07</span><span>$conn.Close()</span></div>
+            <!-- Right Pane -->
+            <div class="diff-pane">
+              <div style="color:#64748b; margin-bottom:8px;">// Right: TaxConfig_v5.5.ps1</div>
+              <div>01 $Timeout = 0 # Infinite</div>
+              <div class="line-add">02 + $O1HashFilter = $true</div>
+              <div>03 $Server = "192.168.1.19"</div>
+              <div>04 Invoke-ConsolidateFast</div>
+              <div class="line-add">05 + Write-Log "Zero-Loss Engine"</div>
+              <div>06 return $true</div>
             </div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- CHAPTER 03: SSMS SQL STUDIO LIVE QUERY CONSOLE -->
+    <!-- CHAPTER 03: SSMS SQL STUDIO -->
     <section id="sec-sql">
       <div class="showcase-grid">
         <div class="narrative-card">
-          <div class="chapter-tag"><span style="color:#a855f7;">●</span> CHAPTER 03 // ENTERPRISE DATABASE</div>
-          <h2 class="chapter-heading">SSMS SQL Management Console</h2>
+          <div class="chapter-tag"><span style="color:#00f2fe;">&#9679;</span> CHAPTER 03 // DATABASE OPERATIONS</div>
+          <h2 class="chapter-heading">SSMS-Grade SQL Studio</h2>
           <p class="chapter-text">
-            Engineered with `CommandTimeout = 0` (No Timeout / Infinite). Heavy stored procedures executing multi-owner municipal tax calculations across hundreds of properties run without client timeout abortions.
+            Enterprise database terminal configured with `CommandTimeout = 0` (infinite). Execute deep municipal stored procedures like `prcAddTaxesForSingleOwnerID` without transaction timeouts or UI freezes.
           </p>
           <div class="stat-row">
             <div class="stat-box">
@@ -1032,11 +1084,11 @@
             <!-- Sidebar Object Explorer -->
             <div class="object-explorer">
               <div style="font-weight:bold; color:#fff; margin-bottom:8px;">OBJECT EXPLORER</div>
-              <div class="tree-item">🗄️ PanvelTaxDB</div>
-              <div class="tree-item" style="padding-left:12px;">📁 Tables (142)</div>
-              <div class="tree-item" style="padding-left:12px;">📁 Views (28)</div>
-              <div class="tree-item" style="padding-left:12px; color:#38bdf8;">⚡ Stored Procs</div>
-              <div class="tree-item" style="padding-left:20px; font-size:9.5px; color:#38bdf8;">&bull; prcAddTaxes</div>
+              <div class="tree-item">&#9662; PanvelTaxDB</div>
+              <div class="tree-item" style="padding-left:10px;">&#9656; Tables (142)</div>
+              <div class="tree-item" style="padding-left:10px;">&#9656; Views (28)</div>
+              <div class="tree-item" style="padding-left:10px; color:#38bdf8;">&#9662; Stored Procs</div>
+              <div class="tree-item" style="padding-left:16px; font-size:9px; color:#38bdf8;">&bull; prcAddTaxes</div>
             </div>
             <!-- Query Workspace -->
             <div class="sql-workspace">
@@ -1049,7 +1101,7 @@
                     <tr><th>Row</th><th>OwnerID</th><th>PropertyNo</th><th>Assessment</th><th>Tax Amount</th><th>Status</th></tr>
                   </thead>
                   <tbody id="sql-dyn-tbody">
-                    <!-- Populated by JavaScript loop -->
+                    <!-- Populated dynamically -->
                   </tbody>
                 </table>
               </div>
@@ -1063,7 +1115,7 @@
     <section id="sec-wmf">
       <div class="showcase-grid">
         <div class="narrative-card">
-          <div class="chapter-tag"><span style="color:#f59e0b;">●</span> CHAPTER 04 // VECTOR OPTIMIZATION</div>
+          <div class="chapter-tag"><span style="color:#f59e0b;">&#9679;</span> CHAPTER 04 // VECTOR OPTIMIZATION</div>
           <h2 class="chapter-heading">Crystal Reports Vector Optimizer</h2>
           <p class="chapter-text">
             Compare a raw 4.8MB CAD layout plan against Nexus's solid pure-white canvas vector output (&le;25 KB). Notice how 100% vector line sharpness is preserved while eliminating transparent background printing bugs in Crystal Reports.
@@ -1096,53 +1148,66 @@
             </div>
             <div class="window-title">Vector WMF Compressor &bull; Before &amp; After Comparison</div>
             <div class="window-status-pill" style="color:#f59e0b; background:rgba(245,158,11,0.15);">
-              <div class="live-pulse" style="background:#f59e0b;"></div>
-              22.4 KB (PASS)
+              <div class="live-pulse"></div>
+              99.5% SHRUNK
             </div>
           </div>
-          <div class="wmf-body">
-            <div class="slider-divider-line"></div>
-            <!-- Before Side (Left) -->
-            <div class="wmf-view raw">
-              <div style="font-size:42px; margin-bottom:12px;">📉</div>
-              <div style="font-family:'Space Grotesk'; font-size:18px; font-weight:800; color:#ef4444;">RAW CAD SURVEY DRAWING</div>
-              <div style="font-family:'Fira Code'; font-size:12px; color:#cbd5e1; margin-top:6px;">Size: 4.82 MB &bull; Transparent Print Glitch</div>
+          <div class="wmf-body" id="wmf-slider-box">
+            <!-- Left: Raw 4.8MB Plan (Dark, blurred raster) -->
+            <div class="slider-pane-before">
+              <svg width="240" height="200" viewBox="0 0 240 200" opacity="0.5" stroke="#ef4444" stroke-width="2.5" fill="none">
+                <rect x="20" y="20" width="200" height="160" stroke-dasharray="4,4" />
+                <line x1="20" y1="80" x2="220" y2="80" />
+                <line x1="120" y1="20" x2="120" y2="180" />
+                <circle cx="70" cy="130" r="30" />
+              </svg>
             </div>
-            <!-- After Side (Right) -->
-            <div class="wmf-view optimized">
-              <div style="font-size:42px; margin-bottom:12px;">📈</div>
-              <div style="font-family:'Space Grotesk'; font-size:18px; font-weight:800; color:#0284c7;">NEXUS SOLID-WHITE WMF</div>
-              <div style="font-family:'Fira Code'; font-size:12px; color:#334155; margin-top:6px;">Size: 22.4 KB &bull; Crystal Reports 100% OK</div>
+
+            <!-- Right: Solid White Pure Vector Output (Crisp, pure white) -->
+            <div class="slider-pane-after" id="wmf-after-pane">
+              <svg width="240" height="200" viewBox="0 0 240 200" stroke="#0f172a" stroke-width="1.5" fill="none">
+                <rect x="20" y="20" width="200" height="160" />
+                <line x1="20" y1="80" x2="220" y2="80" />
+                <line x1="120" y1="20" x2="120" y2="180" />
+                <circle cx="70" cy="130" r="30" />
+                <line x1="30" y1="30" x2="70" y2="70" stroke="#0284c7" stroke-width="2" />
+              </svg>
             </div>
+
+            <!-- Dedicated badges that never overlap -->
+            <div class="wmf-badge-left">RAW CAD: 4,890 KB (PRINT GLITCH)</div>
+            <div class="wmf-badge-right">NEXUS WMF: 24.2 KB (100% SHARP)</div>
+
+            <div class="wmf-divider-line" id="wmf-divider"></div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- CHAPTER 05: OFFLINE AI BACKGROUND REMOVER -->
+    <!-- CHAPTER 05: OFFLINE AI BIOMETRIC RESIZER -->
     <section id="sec-ai">
       <div class="showcase-grid">
         <div class="narrative-card">
-          <div class="chapter-tag"><span style="color:#ec4899;">●</span> CHAPTER 05 // NEURAL RUNTIME</div>
-          <h2 class="chapter-heading">Offline AI Background Removal</h2>
+          <div class="chapter-tag"><span style="color:#a855f7;">&#9679;</span> CHAPTER 05 // NEURAL COMPUTATION</div>
+          <h2 class="chapter-heading">Offline AI Biometric Resizer</h2>
           <p class="chapter-text">
-            Embedded U2Net ONNX neural network running 100% offline with zero cloud latency. Automatically erases background noise, isolates signatures, and enforces strict government exam dimensions.
+            Embedded ONNX machine learning model performing 100% offline background subtraction, biometric face detection, and strict government exam resolution clamping (300 DPI, 20-50KB).
           </p>
           <div class="stat-row">
             <div class="stat-box">
-              <div class="stat-num">U2Net</div>
-              <div class="stat-label">ONNX Model</div>
+              <div class="stat-num">300 DPI</div>
+              <div class="stat-label">Resolution Lock</div>
             </div>
             <div class="stat-box">
-              <div class="stat-num" style="color:#10b981;">100%</div>
-              <div class="stat-label">Offline Runtime</div>
+              <div class="stat-num" style="color:#a855f7;">ONNX</div>
+              <div class="stat-label">Neural Engine</div>
             </div>
           </div>
           <div class="pill-wrap">
-            <span class="tech-badge">U2Net ONNX Engine</span>
-            <span class="tech-badge">Signature Extractor</span>
-            <span class="tech-badge">Govt Exam Constraints</span>
-            <span class="tech-badge">OTP Decryptor</span>
+            <span class="tech-badge">U2Net AI Embedded</span>
+            <span class="tech-badge">Zero Cloud Leak</span>
+            <span class="tech-badge">Government Strict (UPSC/MPSC)</span>
+            <span class="tech-badge">OTP Decryptor Built-In</span>
           </div>
         </div>
 
@@ -1154,21 +1219,35 @@
               <div class="window-dot dot-yellow"></div>
               <div class="window-dot dot-green"></div>
             </div>
-            <div class="window-title">AI Background Removal &bull; U2Net ONNX Neural Layer</div>
-            <div class="window-status-pill" style="color:#ec4899; background:rgba(236,72,153,0.15);">
-              <div class="live-pulse" style="background:#ec4899;"></div>
-              14MS INFERENCE
+            <div class="window-title">AI Biometric Scanner &bull; 100% Offline ONNX Engine</div>
+            <div class="window-status-pill" style="color:#a855f7; background:rgba(168,85,247,0.15);">
+              <div class="live-pulse"></div>
+              NEURAL INFERENCE
             </div>
           </div>
           <div class="ai-body">
-            <div class="ai-scanner-line"></div>
-            <div class="ai-card-preview">
-              <div class="ai-avatar">👤</div>
-              <div>
-                <div style="font-family:'Space Grotesk'; font-size:14px; font-weight:bold; color:#fff;">APPLICANT PHOTO</div>
-                <div style="font-family:'Fira Code'; font-size:11px; color:#10b981; margin-top:2px;">✓ Background Subtracted</div>
-                <div style="font-family:'Fira Code'; font-size:11px; color:#38bdf8; margin-top:4px;">3.5cm &times; 4.5cm | 28.4 KB</div>
-                <div style="font-family:'Fira Code'; font-size:10px; color:#94a3b8; margin-top:2px;">DPI: 300 | Strict Compliance</div>
+            <!-- Left Photo Scanner -->
+            <div class="ai-photo-frame">
+              <svg width="120" height="150" viewBox="0 0 120 150">
+                <circle cx="60" cy="50" r="28" fill="#cbd5e1" />
+                <path d="M 20 130 C 25 90, 95 90, 100 130 Z" fill="#94a3b8" />
+                <!-- Bounding Box -->
+                <rect x="25" y="16" width="70" height="70" fill="none" stroke="#a855f7" stroke-width="2" stroke-dasharray="6,4" />
+              </svg>
+              <div class="ai-laser-wipe"></div>
+            </div>
+
+            <!-- Right Telemetry -->
+            <div style="flex:1;">
+              <div style="font-family:'Fira Code'; font-size:11px; color:#10b981; font-weight:700; margin-bottom:8px;">
+                &#10003; FACE DETECTED (CONFIDENCE: 99.4%)
+              </div>
+              <div style="font-size:12px; color:#cbd5e1; line-height:1.7; margin-bottom:14px;">
+                Background mask calculated in 48ms via embedded ONNX runtime. Clamping DPI to strict 300 DPI government exam specification.
+              </div>
+              <div style="background:#0f172a; border:1px solid #1e293b; border-radius:8px; padding:10px 14px; font-family:'Fira Code'; font-size:11px;">
+                <div style="color:#38bdf8;">Output Size: 34.6 KB (Target: 20-50 KB)</div>
+                <div style="color:#10b981; margin-top:4px;">Strict Compliance Verified</div>
               </div>
             </div>
           </div>
@@ -1180,7 +1259,7 @@
     <section id="sec-lan">
       <div class="showcase-grid">
         <div class="narrative-card">
-          <div class="chapter-tag"><span style="color:#10b981;">●</span> CHAPTER 06 // P2P LAN MESH</div>
+          <div class="chapter-tag"><span style="color:#10b981;">&#9679;</span> CHAPTER 06 // P2P LAN MESH</div>
           <h2 class="chapter-heading">Peer-to-Peer LAN Mesh Radar</h2>
           <p class="chapter-text">
             Automatic UDP subnet peer discovery on port 52822 with high-speed direct TCP transfers on port 52824. Watch the radar locate peers and establish instant mesh synchronization.
@@ -1255,10 +1334,10 @@
     const ctx = canvas.getContext('2d');
     let particles = [];
 
-    for (let i = 0; i < 28; i++) {
+    for (let i = 0; i < 24; i++) {
       particles.push({
-        x: Math.random() < 0.5 ? 90 : 510,
-        y: 45,
+        x: Math.random() < 0.5 ? 85 : 515,
+        y: 40,
         progress: Math.random(),
         isCommon: Math.random() < 0.65,
         speed: 0.007 + Math.random() * 0.008
@@ -1272,20 +1351,20 @@
     function renderConduits() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Draw Conduits
+      // Draw Conduit Paths
       ctx.strokeStyle = 'rgba(56, 189, 248, 0.22)';
       ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.moveTo(90, 45); ctx.lineTo(300, 190);
-      ctx.moveTo(510, 45); ctx.lineTo(300, 190);
-      ctx.moveTo(300, 190); ctx.lineTo(300, 330);
+      ctx.moveTo(85, 40); ctx.lineTo(300, 180);
+      ctx.moveTo(515, 40); ctx.lineTo(300, 180);
+      ctx.moveTo(300, 180); ctx.lineTo(300, 320);
       ctx.stroke();
 
       particles.forEach(p => {
         p.progress += p.speed;
         if (p.progress > 1) {
           p.progress = 0;
-          p.x = Math.random() < 0.5 ? 90 : 510;
+          p.x = Math.random() < 0.5 ? 85 : 515;
           p.isCommon = Math.random() < 0.65;
           scanned++;
           if (p.isCommon) skipped++; else synced++;
@@ -1295,15 +1374,15 @@
         }
 
         let curX, curY;
-        if (p.progress <= 0.6) {
-          const t = p.progress / 0.6;
+        if (p.progress <= 0.55) {
+          const t = p.progress / 0.55;
           curX = p.x + (300 - p.x) * t;
-          curY = 45 + (190 - 45) * t;
+          curY = 40 + (180 - 40) * t;
         } else {
-          const t = (p.progress - 0.6) / 0.4;
+          const t = (p.progress - 0.55) / 0.45;
           curX = 300;
-          curY = 190 + (330 - 190) * t;
-          if (p.isCommon) return; // Dropped by O(1) filter!
+          curY = 180 + (320 - 180) * t;
+          if (p.isCommon) return; // Duplicate filtered out!
         }
 
         ctx.fillStyle = p.isCommon ? '#f59e0b' : '#10b981';
@@ -1323,12 +1402,12 @@
     // LIVE ENGINE 2: Real-Time SSMS SQL Loop
     // -------------------------------------------------------------
     const sampleTaxRows = [
-      { id: 3441047, prop: 'WARD-KH1-089', tax: '₹14,850.00' },
-      { id: 3441046, prop: 'WARD-KH1-090', tax: '₹18,220.00' },
-      { id: 3441045, prop: 'WARD-KH1-091', tax: '₹9,410.00' },
-      { id: 822234,  prop: 'WARD-TPPG-012', tax: '₹24,600.00' },
-      { id: 3439917, prop: 'WARD-TPPG-015', tax: '₹11,150.00' },
-      { id: 738737,  prop: 'WARD-KH2-044', tax: '₹32,400.00' }
+      { id: 3441047, prop: 'WARD-KH1-089', tax: '&#8377;14,850.00' },
+      { id: 3441048, prop: 'WARD-KH1-090', tax: '&#8377;18,220.00' },
+      { id: 3441049, prop: 'WARD-KH1-091', tax: '&#8377;9,410.00' },
+      { id: 822234,  prop: 'WARD-TPPG-012', tax: '&#8377;24,600.00' },
+      { id: 3439917, prop: 'WARD-TPPG-015', tax: '&#8377;11,150.00' },
+      { id: 738737,  prop: 'WARD-KH2-044', tax: '&#8377;32,400.00' }
     ];
 
     let rowIdx = 0;
@@ -1346,7 +1425,7 @@
         <td>${row.prop}</td>
         <td>2026-27</td>
         <td style="color:#10b981; font-weight:bold;">${row.tax}</td>
-        <td><span style="color:#10b981;">✓ CALCULATED</span></td>
+        <td><span style="color:#10b981;">&#10003; CALCULATED</span></td>
       `;
       sqlTbody.prepend(tr);
 
@@ -1355,53 +1434,109 @@
       }
 
       rowIdx++;
-      setTimeout(runSqlStep, 1700);
+      setTimeout(runSqlStep, 1800);
     }
     runSqlStep();
 
     // -------------------------------------------------------------
-    // LIVE ENGINE 3: Three.js 3D Background Atmosphere
+    // LIVE ENGINE 3: Interactive WMF Before/After Slider
+    // -------------------------------------------------------------
+    const sliderBox = document.getElementById('wmf-slider-box');
+    const afterPane = document.getElementById('wmf-after-pane');
+    const divider = document.getElementById('wmf-divider');
+
+    if (sliderBox) {
+      sliderBox.addEventListener('mousemove', (e) => {
+        const rect = sliderBox.getBoundingClientRect();
+        const x = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
+        const pct = (x / rect.width) * 100;
+        divider.style.left = `${pct}%`;
+        afterPane.style.clipPath = `polygon(${pct}% 0, 100% 0, 100% 100%, ${pct}% 100%)`;
+      });
+    }
+
+    // -------------------------------------------------------------
+    // LIVE ENGINE 4: Three.js 3D Monolithic Stage (Mont-fort / Tubik)
     // -------------------------------------------------------------
     const bgCanvas = document.getElementById('webgl-canvas');
     const bgScene = new THREE.Scene();
-    bgScene.fog = new THREE.FogExp2(0x03050c, 0.038);
+    bgScene.fog = new THREE.FogExp2(0x03050c, 0.035);
 
     const bgCamera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
-    bgCamera.position.set(0, 0, 16);
+    bgCamera.position.set(0, 0, 15);
 
     const bgRenderer = new THREE.WebGLRenderer({ canvas: bgCanvas, antialias: true, alpha: true });
     bgRenderer.setSize(window.innerWidth, window.innerHeight);
     bgRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-    const ambLight = new THREE.AmbientLight(0xffffff, 0.7);
+    const ambLight = new THREE.AmbientLight(0xffffff, 0.8);
     bgScene.add(ambLight);
 
-    const light1 = new THREE.DirectionalLight(0x00f2fe, 2.5);
-    light1.position.set(10, 12, 10);
+    const light1 = new THREE.DirectionalLight(0x00f2fe, 3.0);
+    light1.position.set(8, 10, 8);
     bgScene.add(light1);
 
-    const light2 = new THREE.DirectionalLight(0xa855f7, 2.0);
-    light2.position.set(-10, -8, 8);
+    const light2 = new THREE.DirectionalLight(0xa855f7, 2.2);
+    light2.position.set(-8, -6, 6);
     bgScene.add(light2);
 
     const coreGroup = new THREE.Group();
-    const coreMesh = new THREE.Mesh(
-      new THREE.IcosahedronGeometry(2.2, 2),
-      new THREE.MeshStandardMaterial({ color: 0x0284c7, wireframe: true, transparent: true, opacity: 0.35 })
-    );
-    coreGroup.add(coreMesh);
 
-    const ringMesh = new THREE.Mesh(
-      new THREE.TorusGeometry(3.4, 0.08, 16, 64),
-      new THREE.MeshStandardMaterial({ color: 0x38bdf8, metalness: 0.9, roughness: 0.2 })
-    );
-    coreGroup.add(ringMesh);
+    // Monolithic Prism
+    const prismGeo = new THREE.OctahedronGeometry(2.2, 0);
+    const prismMat = new THREE.MeshStandardMaterial({
+      color: 0x0284c7,
+      metalness: 0.85,
+      roughness: 0.2,
+      wireframe: false
+    });
+    const prismMesh = new THREE.Mesh(prismGeo, prismMat);
+    coreGroup.add(prismMesh);
+
+    // Outer Wireframe Cage
+    const cageGeo = new THREE.IcosahedronGeometry(3.0, 1);
+    const cageMat = new THREE.MeshStandardMaterial({
+      color: 0x38bdf8,
+      wireframe: true,
+      transparent: true,
+      opacity: 0.28
+    });
+    const cageMesh = new THREE.Mesh(cageGeo, cageMat);
+    coreGroup.add(cageMesh);
+
+    // Glowing Holographic Orbital Torus
+    const torusGeo = new THREE.TorusGeometry(3.6, 0.06, 16, 64);
+    const torusMat = new THREE.MeshStandardMaterial({
+      color: 0x00f2fe,
+      metalness: 0.9,
+      roughness: 0.1
+    });
+    const torusMesh = new THREE.Mesh(torusGeo, torusMat);
+    torusMesh.rotation.x = Math.PI / 3;
+    coreGroup.add(torusMesh);
+
     bgScene.add(coreGroup);
 
+    // Mouse Parallax
+    let mouseX = 0, mouseY = 0;
+    window.addEventListener('mousemove', (e) => {
+      mouseX = (e.clientX / window.innerWidth - 0.5) * 1.2;
+      mouseY = (e.clientY / window.innerHeight - 0.5) * 1.2;
+    });
+
+    // 3D Motion Loop with Scroll-reactive Orbiting
     function renderBg() {
       requestAnimationFrame(renderBg);
-      coreGroup.rotation.y += 0.003;
-      ringMesh.rotation.x += 0.004;
+      const scrollFrac = window.scrollY / (document.body.scrollHeight - window.innerHeight || 1);
+
+      // Smooth interpolation
+      coreGroup.rotation.y += 0.003 + (mouseX * 0.02);
+      coreGroup.rotation.x = mouseY * 0.3 + scrollFrac * 2.5;
+      torusMesh.rotation.z += 0.005;
+
+      // Subtle float
+      coreGroup.position.y = Math.sin(Date.now() * 0.0015) * 0.25;
+
       bgRenderer.render(bgScene, bgCamera);
     }
     renderBg();
@@ -1410,13 +1545,12 @@
       bgCamera.aspect = window.innerWidth / window.innerHeight;
       bgCamera.updateProjectionMatrix();
       bgRenderer.setSize(window.innerWidth, window.innerHeight);
-      canvas.width = canvas.parentElement.clientWidth;
     });
 
-    // Timeline Scroll Highlight
+    // Timeline Scrubber Scroll Spy
     const secList = ['sec-hero', 'sec-sync', 'sec-diff', 'sec-sql', 'sec-wmf', 'sec-ai', 'sec-lan'];
     window.addEventListener('scroll', () => {
-      const pos = window.scrollY + 320;
+      const pos = window.scrollY + 280;
       secList.forEach((sId, i) => {
         const el = document.getElementById(sId);
         if (el && pos >= el.offsetTop && pos < el.offsetTop + el.offsetHeight) {
