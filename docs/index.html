@@ -3,48 +3,40 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Nexus Enterprise Studio — Spatial 3D Experience (Inspired by Montfort)</title>
+  <title>Nexus Enterprise Studio — Live Animated Architecture &amp; Functionality</title>
   <link rel="icon" type="image/x-icon" href="../nexus_app.ico">
   
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;600;700;800&display=swap" rel="stylesheet">
   
-  <!-- Three.js & GSAP -->
+  <!-- Three.js for 3D Spatial Background -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 
   <style>
     :root {
       --bg: #02040a;
-      --card-bg: rgba(6, 11, 24, 0.75);
-      --card-border: rgba(56, 189, 248, 0.2);
-      --card-border-hover: rgba(0, 242, 254, 0.45);
+      --card-bg: rgba(6, 12, 26, 0.88);
+      --card-border: rgba(56, 189, 248, 0.25);
       --cyan: #38bdf8;
       --neon-cyan: #00f2fe;
       --emerald: #10b981;
       --purple: #a855f7;
       --amber: #f59e0b;
+      --red: #ef4444;
       --text: #f8fafc;
       --text-muted: #94a3b8;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
     html {
       background-color: var(--bg);
       color: var(--text);
-      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-family: 'Plus Jakarta Sans', sans-serif;
       overflow-x: hidden;
       overflow-y: scroll !important;
-      width: 100%;
-      min-height: 100%;
       scroll-behavior: smooth;
       -webkit-font-smoothing: antialiased;
     }
@@ -54,10 +46,8 @@
       color: var(--text);
       overflow-x: hidden;
       overflow-y: visible !important;
-      width: 100%;
       min-height: 100vh;
       position: relative;
-      cursor: default;
     }
 
     /* Fixed WebGL 3D Canvas Background */
@@ -71,92 +61,37 @@
       pointer-events: none;
     }
 
-    /* Cinematic Atmospheric Dust & Vignette */
     .vignette {
       position: fixed;
       inset: 0;
-      background: radial-gradient(circle at 50% 50%, transparent 35%, rgba(2, 4, 10, 0.92) 100%);
+      background: radial-gradient(circle at 50% 50%, transparent 40%, rgba(2, 4, 10, 0.95) 100%);
       z-index: 2;
       pointer-events: none;
     }
 
-    .ambient-scanline {
-      position: fixed;
-      inset: 0;
-      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.02), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.02));
-      background-size: 100% 3px, 6px 100%;
-      z-index: 2;
-      pointer-events: none;
-      opacity: 0.6;
-    }
-
-    /* Custom Fluid Cursor */
-    #cursor-dot {
-      width: 8px;
-      height: 8px;
-      background: var(--neon-cyan);
-      border-radius: 50%;
-      position: fixed;
-      top: 0;
-      left: 0;
-      pointer-events: none;
-      z-index: 9999;
-      transform: translate(-50%, -50%);
-      box-shadow: 0 0 12px var(--neon-cyan);
-      transition: width 0.2s, height 0.2s, background-color 0.2s;
-    }
-
-    #cursor-ring {
-      width: 38px;
-      height: 38px;
-      border: 1.5px solid rgba(56, 189, 248, 0.4);
-      border-radius: 50%;
-      position: fixed;
-      top: 0;
-      left: 0;
-      pointer-events: none;
-      z-index: 9998;
-      transform: translate(-50%, -50%);
-      transition: width 0.25s, height 0.25s, border-color 0.25s, transform 0.1s ease-out;
-    }
-
-    body:hover #cursor-dot.hovered {
-      width: 14px;
-      height: 14px;
-      background: #ffffff;
-      box-shadow: 0 0 20px #ffffff;
-    }
-
-    body:hover #cursor-ring.hovered {
-      width: 56px;
-      height: 56px;
-      border-color: var(--neon-cyan);
-    }
-
-    /* Fixed Top Navbar (Montfort Minimalist Luxury Style) */
+    /* Floating Navbar */
     nav {
       position: fixed;
-      top: 24px;
+      top: 20px;
       left: 50%;
       transform: translateX(-50%);
       width: min(92%, 1320px);
-      padding: 14px 28px;
+      padding: 12px 28px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background: rgba(4, 8, 20, 0.72);
+      background: rgba(6, 11, 24, 0.82);
       backdrop-filter: blur(24px);
-      -webkit-backdrop-filter: blur(24px);
-      border: 1px solid rgba(56, 189, 248, 0.2);
+      border: 1px solid rgba(56, 189, 248, 0.25);
       border-radius: 999px;
       z-index: 100;
-      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7), 0 0 25px rgba(2, 132, 199, 0.15);
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7);
     }
 
     .brand {
       display: flex;
       align-items: center;
-      gap: 14px;
+      gap: 12px;
       text-decoration: none;
       color: inherit;
     }
@@ -171,21 +106,15 @@
       box-shadow: 0 0 16px rgba(0, 242, 254, 0.5);
     }
 
-    .brand-mark svg {
-      width: 20px;
-      height: 20px;
-      fill: #02040a;
-    }
-
     .brand-title {
       font-family: 'Space Grotesk', sans-serif;
       font-size: 16px;
       font-weight: 700;
-      letter-spacing: 1px;
+      letter-spacing: 0.5px;
       color: #ffffff;
     }
 
-    .brand-version {
+    .version-pill {
       font-family: 'Fira Code', monospace;
       font-size: 10px;
       padding: 3px 8px;
@@ -197,29 +126,8 @@
       margin-left: 6px;
     }
 
-    .nav-actions {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-    }
-
-    .nav-link {
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--text-muted);
-      text-decoration: none;
-      padding: 8px 16px;
-      border-radius: 999px;
-      transition: all 0.25s;
-    }
-
-    .nav-link:hover {
-      color: #ffffff;
-      background: rgba(56, 189, 248, 0.12);
-    }
-
     .nav-btn-primary {
-      padding: 10px 22px;
+      padding: 9px 22px;
       border-radius: 999px;
       font-size: 13px;
       font-weight: 700;
@@ -239,901 +147,1152 @@
       box-shadow: 0 0 30px rgba(0, 242, 254, 0.6);
     }
 
-    /* Fixed Bottom Chapter Timeline (Montfort SOTD Style) */
+    /* Fixed Bottom Timeline Navigation */
     .timeline-bar {
       position: fixed;
-      bottom: 24px;
+      bottom: 20px;
       left: 50%;
       transform: translateX(-50%);
-      width: min(92%, 1100px);
-      padding: 10px 20px;
-      background: rgba(6, 11, 24, 0.85);
+      width: min(92%, 1160px);
+      padding: 8px 18px;
+      background: rgba(6, 11, 24, 0.88);
       backdrop-filter: blur(20px);
-      border: 1px solid rgba(56, 189, 248, 0.2);
+      border: 1px solid rgba(56, 189, 248, 0.22);
       border-radius: 999px;
       z-index: 100;
       display: flex;
-      align-items: center;
       justify-content: space-between;
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
-    }
-
-    .timeline-chapters {
-      display: flex;
-      gap: 8px;
-      width: 100%;
-      justify-content: space-between;
     }
 
     .timeline-step {
       display: flex;
       align-items: center;
-      gap: 8px;
-      padding: 6px 14px;
+      gap: 6px;
+      padding: 6px 12px;
       border-radius: 999px;
       cursor: pointer;
-      transition: all 0.3s;
       font-family: 'Space Grotesk', sans-serif;
-      font-size: 11.5px;
+      font-size: 11px;
       color: #64748b;
       font-weight: 600;
+      transition: all 0.3s;
     }
 
-    .timeline-step:hover {
-      color: #ffffff;
-      background: rgba(56, 189, 248, 0.1);
-    }
-
-    .timeline-step.active {
+    .timeline-step:hover, .timeline-step.active {
       color: #38bdf8;
       background: rgba(2, 132, 199, 0.2);
-      border: 1px solid rgba(56, 189, 248, 0.35);
-      box-shadow: 0 0 15px rgba(2, 132, 199, 0.3);
     }
 
-    .timeline-step .dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: currentColor;
-    }
-
-    /* Scrollable Container */
+    /* Main Content Sections */
     .scroll-container {
       position: relative;
       z-index: 10;
       width: 100%;
     }
 
-    /* Full-Height Architectural Sections */
     section {
       min-height: 100vh;
       width: 100%;
       display: flex;
       align-items: center;
-      padding: 120px min(8vw, 120px);
+      justify-content: center;
+      padding: 100px min(6vw, 80px);
       position: relative;
     }
 
-    .hero-section {
-      min-height: 100vh;
-      flex-direction: column;
-      justify-content: center;
+    /* Two-Column Showcase Layout (Card + Live Interactive Animation Engine) */
+    .showcase-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.15fr;
+      gap: 40px;
       align-items: center;
-      text-align: center;
+      width: min(100%, 1300px);
     }
 
-    .align-left {
-      justify-content: flex-start;
-    }
-
-    .align-right {
-      justify-content: flex-end;
-    }
-
-    .align-center {
-      justify-content: center;
-      text-align: center;
-    }
-
-    /* Hero Typography */
-    .hero-tagline {
-      font-family: 'Fira Code', monospace;
-      font-size: 12px;
-      color: var(--cyan);
-      letter-spacing: 3px;
-      text-transform: uppercase;
-      margin-bottom: 24px;
-      padding: 6px 18px;
-      background: rgba(2, 132, 199, 0.12);
-      border: 1px solid rgba(56, 189, 248, 0.3);
-      border-radius: 999px;
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .hero-title {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: clamp(42px, 7vw, 92px);
-      font-weight: 800;
-      line-height: 1.05;
-      letter-spacing: -2px;
-      max-width: 1200px;
-      margin-bottom: 24px;
-      background: linear-gradient(135deg, #ffffff 20%, #e2e8f0 50%, #38bdf8 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      text-shadow: 0 20px 60px rgba(0, 0, 0, 0.9);
-    }
-
-    .hero-desc {
-      font-size: clamp(16px, 1.8vw, 21px);
-      color: var(--text-muted);
-      max-width: 760px;
-      line-height: 1.65;
-      margin-bottom: 40px;
-    }
-
-    .cta-row {
-      display: flex;
-      gap: 16px;
-      justify-content: center;
-      flex-wrap: wrap;
-    }
-
-    .btn-hero {
-      padding: 16px 36px;
-      border-radius: 14px;
-      font-size: 15px;
-      font-weight: 700;
-      text-decoration: none;
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      transition: all 0.3s;
-      cursor: pointer;
-    }
-
-    .btn-hero-primary {
-      background: linear-gradient(135deg, #0284c7, #2563eb);
-      color: #ffffff;
-      border: 1px solid rgba(56, 189, 248, 0.5);
-      box-shadow: 0 10px 30px rgba(2, 132, 199, 0.4);
-    }
-
-    .btn-hero-primary:hover {
-      transform: translateY(-3px) scale(1.02);
-      box-shadow: 0 15px 45px rgba(0, 242, 254, 0.6);
-    }
-
-    .btn-hero-secondary {
-      background: rgba(11, 19, 38, 0.7);
-      color: #ffffff;
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      backdrop-filter: blur(12px);
-    }
-
-    .btn-hero-secondary:hover {
-      background: rgba(30, 41, 59, 0.85);
-      border-color: var(--cyan);
-      transform: translateY(-3px);
-    }
-
-    /* Montfort Luxury Glassmorphic Architecture Cards */
-    .mont-card {
-      width: min(100%, 560px);
+    /* Left Narrative Card */
+    .narrative-card {
       background: var(--card-bg);
       backdrop-filter: blur(28px);
-      -webkit-backdrop-filter: blur(28px);
       border: 1px solid var(--card-border);
-      border-radius: 28px;
-      padding: 44px;
-      box-shadow: 0 40px 80px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+      border-radius: 24px;
+      padding: 38px;
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6);
       position: relative;
-      transition: border-color 0.4s, transform 0.4s;
     }
 
-    .mont-card:hover {
-      border-color: var(--card-border-hover);
-      transform: translateY(-6px);
-    }
-
-    .mont-card::before {
+    .narrative-card::before {
       content: '';
       position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
+      top: 0; left: 0; right: 0;
       height: 2px;
       background: linear-gradient(90deg, transparent, var(--neon-cyan), transparent);
     }
 
-    .chapter-num {
+    .chapter-tag {
       font-family: 'Space Grotesk', sans-serif;
-      font-size: 14px;
+      font-size: 12px;
       font-weight: 700;
       color: var(--cyan);
       letter-spacing: 2px;
-      margin-bottom: 14px;
+      margin-bottom: 12px;
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
     }
 
-    .chapter-title {
+    .chapter-heading {
       font-family: 'Space Grotesk', sans-serif;
-      font-size: clamp(26px, 3.2vw, 36px);
+      font-size: clamp(26px, 2.8vw, 36px);
       font-weight: 800;
       line-height: 1.15;
-      margin-bottom: 18px;
+      margin-bottom: 16px;
       color: #ffffff;
       letter-spacing: -0.5px;
     }
 
-    .chapter-desc {
-      font-size: 15px;
+    .chapter-text {
+      font-size: 14.5px;
       color: var(--text-muted);
-      line-height: 1.75;
-      margin-bottom: 28px;
+      line-height: 1.7;
+      margin-bottom: 22px;
     }
 
-    .feature-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 14px;
-      margin-bottom: 28px;
+    .stat-row {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
     }
 
-    .feature-item {
-      background: rgba(4, 9, 22, 0.8);
+    .stat-box {
+      flex: 1;
+      background: rgba(3, 7, 18, 0.7);
       border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 14px;
-      padding: 16px;
+      border-radius: 12px;
+      padding: 12px 14px;
     }
 
-    .feature-val {
+    .stat-num {
       font-family: 'Fira Code', monospace;
-      font-size: 22px;
+      font-size: 18px;
       font-weight: 800;
       color: #38bdf8;
-      margin-bottom: 4px;
+      margin-bottom: 2px;
     }
 
-    .feature-lbl {
-      font-size: 12px;
+    .stat-label {
+      font-size: 11px;
       color: #64748b;
       font-weight: 600;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
     }
 
-    .badge-wrap {
+    .tag-row {
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
     }
 
-    .feature-badge {
+    .pill {
       font-family: 'Fira Code', monospace;
       font-size: 11px;
-      padding: 6px 14px;
+      padding: 5px 12px;
       background: rgba(2, 132, 199, 0.12);
       border: 1px solid rgba(56, 189, 248, 0.25);
-      border-radius: 8px;
+      border-radius: 6px;
       color: #bae6fd;
       font-weight: 600;
     }
 
-    /* Outro Showcase */
-    .outro-box {
-      width: min(92%, 1020px);
-      margin: 0 auto;
-      background: rgba(6, 11, 24, 0.9);
-      backdrop-filter: blur(32px);
+    /* Right Side: LIVE ANIMATION ENGINE CONTAINER */
+    .animation-stage {
+      background: rgba(4, 8, 20, 0.95);
       border: 1px solid rgba(56, 189, 248, 0.35);
-      border-radius: 36px;
-      padding: 64px 44px;
+      border-radius: 24px;
+      padding: 24px;
+      box-shadow: 0 40px 80px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+      position: relative;
+      overflow: hidden;
+      min-height: 440px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .stage-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding-bottom: 12px;
+      margin-bottom: 16px;
+    }
+
+    .stage-title {
+      font-family: 'Fira Code', monospace;
+      font-size: 12px;
+      color: var(--cyan);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .stage-badge {
+      font-family: 'Fira Code', monospace;
+      font-size: 10px;
+      padding: 3px 8px;
+      border-radius: 4px;
+      background: rgba(16, 185, 129, 0.15);
+      color: #10b981;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* -------------------------------------------------------------
+       ANIMATION 1: MULTI-SERVER CONSOLIDATOR FLOW
+       ------------------------------------------------------------- */
+    .consolidator-viz {
+      position: relative;
+      height: 320px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .servers-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 5;
+    }
+
+    .server-node {
+      width: 130px;
+      background: rgba(11, 19, 43, 0.9);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      border-radius: 10px;
+      padding: 10px;
       text-align: center;
-      box-shadow: 0 40px 120px rgba(0, 0, 0, 0.9), 0 0 50px rgba(2, 132, 199, 0.25);
+      font-family: 'Fira Code', monospace;
+      box-shadow: 0 0 15px rgba(2, 132, 199, 0.2);
+    }
+
+    .server-node.target {
+      border-color: #10b981;
+      box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+      width: 170px;
+    }
+
+    .server-icon {
+      font-size: 18px;
+      margin-bottom: 4px;
+    }
+
+    .server-ip {
+      font-size: 10.5px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .server-role {
+      font-size: 9px;
+      color: #64748b;
+    }
+
+    /* Conduits Canvas */
+    #conduit-canvas {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    /* Filter Chamber in Middle */
+    .filter-chamber {
+      align-self: center;
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid #38bdf8;
+      border-radius: 12px;
+      padding: 8px 16px;
+      font-family: 'Fira Code', monospace;
+      font-size: 11px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 0 20px rgba(56, 189, 248, 0.3);
+      z-index: 5;
+      margin: 14px 0;
+    }
+
+    .filter-pulse {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #00f2fe;
+      animation: pulse-ring 1.5s infinite;
+    }
+
+    /* -------------------------------------------------------------
+       ANIMATION 2: BEYOND COMPARE 5 DUAL-PANE DIFF
+       ------------------------------------------------------------- */
+    .diff-panes {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      background: #090e1a;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 12px;
+      font-family: 'Fira Code', monospace;
+      font-size: 11px;
+      position: relative;
+      overflow: hidden;
+      height: 300px;
+    }
+
+    .diff-scanline {
+      position: absolute;
+      left: 0; right: 0;
+      height: 2px;
+      background: #00f2fe;
+      box-shadow: 0 0 12px #00f2fe;
+      z-index: 10;
+      animation: sweep-diff 3s ease-in-out infinite alternate;
+    }
+
+    @keyframes sweep-diff {
+      0% { top: 10px; }
+      100% { top: 280px; }
+    }
+
+    .diff-line {
+      padding: 4px 6px;
+      border-radius: 4px;
+      margin-bottom: 4px;
+      display: flex;
+      justify-content: space-between;
+      white-space: nowrap;
+    }
+
+    .diff-line.same { color: #94a3b8; }
+    .diff-line.deleted { background: rgba(239, 68, 68, 0.2); color: #f87171; border-left: 2px solid #ef4444; }
+    .diff-line.added { background: rgba(16, 185, 129, 0.2); color: #34d399; border-left: 2px solid #10b981; }
+
+    /* -------------------------------------------------------------
+       ANIMATION 3: SSMS SQL STUDIO TERMINAL & DATA GRID
+       ------------------------------------------------------------- */
+    .sql-terminal {
+      background: #0b1120;
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      border-radius: 12px;
+      overflow: hidden;
+      font-family: 'Fira Code', monospace;
+      font-size: 11px;
+      height: 310px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sql-tabbar {
+      background: #060b17;
+      padding: 6px 12px;
+      display: flex;
+      gap: 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .sql-tab {
+      background: #0f172a;
+      color: #38bdf8;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: bold;
+    }
+
+    .sql-editor {
+      padding: 12px;
+      color: #e2e8f0;
+      line-height: 1.6;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .sql-results {
+      padding: 10px 12px;
+      flex: 1;
+      background: #040814;
+      overflow: hidden;
+    }
+
+    .sql-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 10px;
+      text-align: left;
+    }
+
+    .sql-table th {
+      color: #64748b;
+      padding: 4px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .sql-table td {
+      padding: 5px 4px;
+      color: #cbd5e1;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    .sql-table tr.highlight td {
+      color: #38bdf8;
+      background: rgba(56, 189, 248, 0.1);
+    }
+
+    /* -------------------------------------------------------------
+       ANIMATION 4: CRYSTAL REPORTS WMF INTERACTIVE BEFORE/AFTER SLIDER
+       ------------------------------------------------------------- */
+    .wmf-slider-container {
+      position: relative;
+      height: 300px;
+      background: #070d1d;
+      border-radius: 14px;
+      overflow: hidden;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+    }
+
+    .wmf-side {
+      position: absolute;
+      top: 0; bottom: 0;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .wmf-before {
+      left: 0;
+      background: repeating-conic-gradient(#1e293b 0% 25%, #0f172a 0% 50%) 50% / 20px 20px;
+      clip-path: polygon(0 0, 50% 0, 50% 100%, 0 100%);
+    }
+
+    .wmf-after {
+      right: 0;
+      background: #ffffff;
+      color: #0f172a;
+    }
+
+    .wmf-handle {
+      position: absolute;
+      top: 0; bottom: 0;
+      left: 50%;
+      width: 3px;
+      background: #00f2fe;
+      box-shadow: 0 0 15px #00f2fe;
+      z-index: 10;
+      animation: slide-wmf 4s ease-in-out infinite alternate;
+    }
+
+    @keyframes slide-wmf {
+      0% { left: 20%; }
+      100% { left: 80%; }
+    }
+
+    /* -------------------------------------------------------------
+       ANIMATION 5: AI BACKGROUND REMOVER SCANNER
+       ------------------------------------------------------------- */
+    .ai-scanner-box {
+      position: relative;
+      height: 300px;
+      border-radius: 14px;
+      overflow: hidden;
+      background: #0b1326;
+      border: 1px solid rgba(236, 72, 153, 0.3);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .ai-laser {
+      position: absolute;
+      top: 0; bottom: 0;
+      width: 3px;
+      background: #ec4899;
+      box-shadow: 0 0 20px #ec4899;
+      z-index: 10;
+      animation: wipe-laser 3.5s ease-in-out infinite alternate;
+    }
+
+    @keyframes wipe-laser {
+      0% { left: 10%; }
+      100% { left: 90%; }
+    }
+
+    .ai-card-demo {
+      width: 260px;
+      height: 180px;
+      border-radius: 12px;
+      border: 1.5px solid rgba(255, 255, 255, 0.2);
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 16px;
+      background: rgba(15, 23, 42, 0.85);
+      position: relative;
+    }
+
+    .ai-photo-placeholder {
+      width: 70px;
+      height: 85px;
+      border-radius: 6px;
+      background: linear-gradient(135deg, #38bdf8, #818cf8);
+      display: grid;
+      place-items: center;
+      font-size: 28px;
+    }
+
+    /* -------------------------------------------------------------
+       ANIMATION 6: P2P LAN RADAR
+       ------------------------------------------------------------- */
+    .radar-box {
+      position: relative;
+      height: 300px;
+      border-radius: 14px;
+      background: #030712;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+    }
+
+    .radar-circle {
+      position: absolute;
+      border-radius: 50%;
+      border: 1px solid rgba(16, 185, 129, 0.25);
+    }
+
+    .radar-sweep {
+      position: absolute;
+      width: 260px; height: 260px;
+      border-radius: 50%;
+      background: conic-gradient(from 0deg, rgba(16, 185, 129, 0.4) 0deg, transparent 60deg);
+      animation: spin-radar 3s linear infinite;
+    }
+
+    @keyframes spin-radar {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    .peer-blip {
+      position: absolute;
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 12px #10b981;
+      z-index: 5;
+    }
+
+    .peer-blip-label {
+      position: absolute;
+      font-family: 'Fira Code', monospace;
+      font-size: 9px;
+      color: #a7f3d0;
+      white-space: nowrap;
+      transform: translate(-50%, -20px);
     }
 
     /* Responsive */
-    @media (max-width: 900px) {
-      nav { width: 95%; padding: 12px 18px; }
-      .brand-title { display: none; }
+    @media (max-width: 980px) {
+      .showcase-grid { grid-template-columns: 1fr; }
+      nav { width: 95%; padding: 10px 16px; }
       .timeline-bar { display: none; }
-      section { padding: 90px 20px; justify-content: center !important; }
-      .mont-card { width: 100%; padding: 28px; }
     }
   </style>
 </head>
 <body>
 
-  <!-- Custom Cursor -->
-  <div id="cursor-dot"></div>
-  <div id="cursor-ring"></div>
-
-  <!-- WebGL 3D Canvas (Three.js Spatial World) -->
+  <!-- WebGL 3D Background Canvas -->
   <canvas id="webgl-canvas"></canvas>
-
-  <!-- Ambient Overlays -->
   <div class="vignette"></div>
-  <div class="ambient-scanline"></div>
 
-  <!-- Top Navigation (Montfort Luxury Bar) -->
+  <!-- Top Navbar -->
   <nav>
     <a href="https://github.com/Mandar023/Nexus-Enterprise-Studio" class="brand">
       <div class="brand-mark">
-        <svg viewBox="0 0 24 24">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="#02040a">
           <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
         </svg>
       </div>
       <div>
         <span class="brand-title">NEXUS ENTERPRISE STUDIO</span>
-        <span class="brand-version">v5.5.0</span>
+        <span class="version-pill">v5.5.0</span>
       </div>
     </a>
-
-    <div class="nav-actions">
-      <a href="https://github.com/Mandar023" target="_blank" class="nav-link">Architect Profile</a>
-      <a href="https://github.com/Mandar023/Nexus-Enterprise-Studio" target="_blank" class="nav-link">GitHub Repository</a>
-      <a href="https://github.com/Mandar023/Nexus-Enterprise-Studio/releases/latest" class="nav-btn-primary">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-          <polyline points="7 10 12 15 17 10"></polyline>
-          <line x1="12" y1="15" x2="12" y2="3"></line>
-        </svg>
-        Download v5.5.0
-      </a>
-    </div>
+    <a href="https://github.com/Mandar023/Nexus-Enterprise-Studio/releases/latest" class="nav-btn-primary">
+      Download v5.5.0
+    </a>
   </nav>
 
-  <!-- Bottom Interactive Timeline (Montfort SOTD Navigation) -->
+  <!-- Bottom Interactive Timeline Navigation -->
   <div class="timeline-bar">
-    <div class="timeline-chapters">
-      <div class="timeline-step active" onclick="flyToChapter(0)">
-        <span class="dot"></span> 00 // OVERVIEW
-      </div>
-      <div class="timeline-step" onclick="flyToChapter(1)">
-        <span class="dot"></span> 01 // CONSOLIDATOR
-      </div>
-      <div class="timeline-step" onclick="flyToChapter(2)">
-        <span class="dot"></span> 02 // BEYOND COMPARE
-      </div>
-      <div class="timeline-step" onclick="flyToChapter(3)">
-        <span class="dot"></span> 03 // SQL STUDIO
-      </div>
-      <div class="timeline-step" onclick="flyToChapter(4)">
-        <span class="dot"></span> 04 // VECTOR WMF
-      </div>
-      <div class="timeline-step" onclick="flyToChapter(5)">
-        <span class="dot"></span> 05 // AI ENGINE
-      </div>
-      <div class="timeline-step" onclick="flyToChapter(6)">
-        <span class="dot"></span> 06 // DEPLOYMENT
-      </div>
-    </div>
+    <div class="timeline-step active" onclick="scrollToId('sec-hero')">00 // OVERVIEW</div>
+    <div class="timeline-step" onclick="scrollToId('sec-sync')">01 // CONSOLIDATOR</div>
+    <div class="timeline-step" onclick="scrollToId('sec-diff')">02 // DIFF STUDIO</div>
+    <div class="timeline-step" onclick="scrollToId('sec-sql')">03 // SQL STUDIO</div>
+    <div class="timeline-step" onclick="scrollToId('sec-wmf')">04 // VECTOR WMF</div>
+    <div class="timeline-step" onclick="scrollToId('sec-ai')">05 // AI ENGINE</div>
+    <div class="timeline-step" onclick="scrollToId('sec-lan')">06 // P2P MESH</div>
   </div>
 
-  <!-- Continuous Scrollytelling Sections -->
   <div class="scroll-container">
 
-    <!-- HERO CHAPTER: 00 -->
-    <section class="hero-section" id="chapter-0">
-      <div class="hero-tagline">
-        <span>●</span> ZERO-DEPENDENCY ENTERPRISE WORKSPACE
-      </div>
-      <h1 class="hero-title">PRECISION DATA &amp; SYSTEMS ARCHITECTURE</h1>
-      <p class="hero-desc">
-        A unified desktop ecosystem engineered for high-throughput municipal file consolidation, native Beyond Compare diffing, and infinite-timeout SQL management.
-      </p>
-      <div class="cta-row">
-        <a href="https://github.com/Mandar023/Nexus-Enterprise-Studio/releases/latest" class="btn-hero btn-hero-primary">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-            <polyline points="7 10 12 15 17 10"></polyline>
-            <line x1="12" y1="15" x2="12" y2="3"></line>
-          </svg>
-          Download Portable v5.5.0
-        </a>
-        <a href="https://github.com/Mandar023/Nexus-Enterprise-Studio" target="_blank" class="btn-hero btn-hero-secondary">
-          Explore Source on GitHub
-        </a>
+    <!-- HERO SECTION -->
+    <section id="sec-hero">
+      <div style="text-align:center; max-width: 900px;">
+        <div style="font-family:'Fira Code'; font-size:12px; color:#38bdf8; letter-spacing:2px; margin-bottom:16px;">
+          ● LIVE INTERACTIVE SIMULATION SUITE
+        </div>
+        <h1 style="font-family:'Space Grotesk'; font-size: clamp(38px, 6vw, 76px); font-weight:800; line-height:1.05; margin-bottom:20px;">
+          SEE HOW EVERY ENGINE WORKS IN REAL TIME
+        </h1>
+        <p style="font-size: 18px; color: #94a3b8; line-height: 1.6; margin-bottom: 36px;">
+          Scroll down to experience live visual simulations of the multi-server consolidator, Beyond Compare diff engine, infinite-timeout SQL console, and Crystal Reports vector optimizer.
+        </p>
+        <button onclick="scrollToId('sec-sync')" class="nav-btn-primary" style="padding: 16px 36px; font-size: 15px; cursor:pointer;">
+          Explore Live Animations &darr;
+        </button>
       </div>
     </section>
 
-    <!-- CHAPTER 01: MULTI-SERVER CONSOLIDATOR & NETWORK MIGRATION -->
-    <section class="align-left" id="chapter-1">
-      <div class="mont-card" id="card-1">
-        <div class="chapter-num">
-          <span style="color:#10b981;">●</span> CHAPTER 01 // DISTRIBUTED UNC SYNC
-        </div>
-        <h2 class="chapter-title">Multi-Server Consolidator Engine</h2>
-        <p class="chapter-desc">
-          Automated UNC migration architecture that aggregates property photos and survey layout plans from distributed municipal servers (e.g. 192.168.1.11, 192.168.1.22) directly into central repositories (192.168.1.19) with in-memory deduplication.
-        </p>
-
-        <div class="feature-grid">
-          <div class="feature-item">
-            <div class="feature-val">O(1)</div>
-            <div class="feature-lbl">Hash Deduplication</div>
+    <!-- CHAPTER 01: MULTI-SERVER CONSOLIDATOR FLOW ANIMATION -->
+    <section id="sec-sync">
+      <div class="showcase-grid">
+        <div class="narrative-card">
+          <div class="chapter-tag"><span style="color:#10b981;">●</span> CHAPTER 01 // HIGH-SPEED SYNC</div>
+          <h2 class="chapter-heading">Multi-Server Consolidator Engine</h2>
+          <p class="chapter-text">
+            Watches distributed municipal servers (`192.168.1.11` &amp; `192.168.1.22`), filters out common duplicate files in memory via O(1) hash tables, and streams only newly detected photos and plans to `192.168.1.19`.
+          </p>
+          <div class="stat-row">
+            <div class="stat-box">
+              <div class="stat-num" id="cnt-scanned">4,030</div>
+              <div class="stat-label">Files Scanned</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-num" id="cnt-skipped" style="color:#f59e0b;">3,210</div>
+              <div class="stat-label">Duplicates Skipped</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-num" id="cnt-synced" style="color:#10b981;">820</div>
+              <div class="stat-label">Consolidated</div>
+            </div>
           </div>
-          <div class="feature-item">
-            <div class="feature-val">100%</div>
-            <div class="feature-lbl">Common File Ignore</div>
-          </div>
-        </div>
-
-        <div class="badge-wrap">
-          <span class="feature-badge">PropertyImage Routing</span>
-          <span class="feature-badge">PlanPhoto Routing</span>
-          <span class="feature-badge">Ward Directory Crawler</span>
-          <span class="feature-badge">Dual-Column Excel/CSV</span>
-        </div>
-      </div>
-    </section>
-
-    <!-- CHAPTER 02: BEYOND COMPARE 5 STUDIO -->
-    <section class="align-right" id="chapter-2">
-      <div class="mont-card" id="card-2">
-        <div class="chapter-num">
-          <span style="color:#00f2fe;">●</span> CHAPTER 02 // NATIVE DIFF ENGINE
-        </div>
-        <h2 class="chapter-title">Beyond Compare 5 Diff Studio</h2>
-        <p class="chapter-desc">
-          Built-in, zero-dependency offline comparison studio matching commercial standards. Run recursive directory tree comparisons, Myers/Patience code diffs, 3-way merges, and binary hex inspections.
-        </p>
-
-        <div class="feature-grid">
-          <div class="feature-item">
-            <div class="feature-val">Myers</div>
-            <div class="feature-lbl">Patience Algorithm</div>
-          </div>
-          <div class="feature-item">
-            <div class="feature-val">CRC32</div>
-            <div class="feature-lbl">Binary Checksums</div>
+          <div class="tag-row">
+            <span class="pill">PropertyImage Routing</span>
+            <span class="pill">PlanPhoto Routing</span>
+            <span class="pill">Ward Crawler</span>
           </div>
         </div>
 
-        <div class="badge-wrap">
-          <span class="feature-badge">Folder Directory Tree</span>
-          <span class="feature-badge">Bi-directional Sync</span>
-          <span class="feature-badge">Structured CSV Diff</span>
-          <span class="feature-badge">Hex Table Inspection</span>
-        </div>
-      </div>
-    </section>
-
-    <!-- CHAPTER 03: SSMS SQL MANAGEMENT STUDIO -->
-    <section class="align-left" id="chapter-3">
-      <div class="mont-card" id="card-3">
-        <div class="chapter-num">
-          <span style="color:#a855f7;">●</span> CHAPTER 03 // ENTERPRISE DATABASE
-        </div>
-        <h2 class="chapter-title">SSMS-Grade SQL Studio</h2>
-        <p class="chapter-desc">
-          Full-featured multi-tabbed query environment built with infinite execution timeout (CommandTimeout = 0), preventing connection aborts on massive multi-owner property tax calculation procedures.
-        </p>
-
-        <div class="feature-grid">
-          <div class="feature-item">
-            <div class="feature-val">0 sec</div>
-            <div class="feature-lbl">Timeout (Infinite)</div>
+        <!-- LIVE ANIMATION: Packet conduit flow between servers -->
+        <div class="animation-stage">
+          <div class="stage-header">
+            <span class="stage-title"><span>⚡</span> UNC NETWORK STREAM SIMULATOR</span>
+            <span class="stage-badge"><span>●</span> STREAMING 112 MB/S</span>
           </div>
-          <div class="feature-item">
-            <div class="feature-val">Safe</div>
-            <div class="feature-lbl">Rollback Test Mode</div>
-          </div>
-        </div>
+          <div class="consolidator-viz">
+            <canvas id="conduit-canvas" width="600" height="320"></canvas>
+            <!-- Source Servers -->
+            <div class="servers-row">
+              <div class="server-node">
+                <div class="server-icon">📁</div>
+                <div class="server-ip">192.168.1.11</div>
+                <div class="server-role">Ward Photos &amp; Plans</div>
+              </div>
+              <div class="server-node">
+                <div class="server-icon">🗄️</div>
+                <div class="server-ip">192.168.1.22</div>
+                <div class="server-role">PMCPhotoStorage</div>
+              </div>
+            </div>
 
-        <div class="badge-wrap">
-          <span class="feature-badge">Lazy-Loaded Schema Tree</span>
-          <span class="feature-badge">Independent Query Tabs</span>
-          <span class="feature-badge">T-SQL Parse Validator</span>
-          <span class="feature-badge">Fast Excel Export</span>
+            <!-- Deduplication Filter Chamber -->
+            <div class="filter-chamber">
+              <div class="filter-pulse"></div>
+              <span>O(1) DEDUPLICATION CORE &bull; COMMON FILES IGNORED</span>
+            </div>
+
+            <!-- Target Repository Server -->
+            <div class="servers-row" style="justify-content:center;">
+              <div class="server-node target">
+                <div class="server-icon">🏛️</div>
+                <div class="server-ip">192.168.1.19 (CENTRAL TARGET)</div>
+                <div class="server-role">&rarr; PropertyImage &amp; PlanPhoto</div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </section>
 
-    <!-- CHAPTER 04: VECTOR WMF CRYSTAL REPORTS OPTIMIZER -->
-    <section class="align-right" id="chapter-4">
-      <div class="mont-card" id="card-4">
-        <div class="chapter-num">
-          <span style="color:#f59e0b;">●</span> CHAPTER 04 // VECTOR OPTIMIZATION
-        </div>
-        <h2 class="chapter-title">Crystal Reports Vector Optimizer</h2>
-        <p class="chapter-desc">
-          High-precision vector downscaling engine that compresses architectural property survey drawings to under 25KB with solid pure-white canvas projection, eliminating transparent background artifacts.
-        </p>
-
-        <div class="feature-grid">
-          <div class="feature-item">
-            <div class="feature-val">&le; 25 KB</div>
-            <div class="feature-lbl">Target File Size</div>
+    <!-- CHAPTER 02: BEYOND COMPARE 5 DUAL-PANE DIFF ANIMATION -->
+    <section id="sec-diff">
+      <div class="showcase-grid">
+        <div class="narrative-card">
+          <div class="chapter-tag"><span style="color:#00f2fe;">●</span> CHAPTER 02 // NATIVE DIFF ENGINE</div>
+          <h2 class="chapter-heading">Beyond Compare 5 Studio</h2>
+          <p class="chapter-text">
+            100% offline Myers &amp; Patience diff engine scanning side-by-side files and directory trees. Watch the animated laser scanline isolate added, removed, and modified syntax tokens in real time.
+          </p>
+          <div class="stat-row">
+            <div class="stat-box">
+              <div class="stat-num">Myers</div>
+              <div class="stat-label">Algorithm</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-num">CRC32</div>
+              <div class="stat-label">Binary Match</div>
+            </div>
           </div>
-          <div class="feature-item">
-            <div class="feature-val">100%</div>
-            <div class="feature-lbl">Vector Line Sharpness</div>
+          <div class="tag-row">
+            <span class="pill">Folder Tree Sync</span>
+            <span class="pill">3-Way Code Merge</span>
+            <span class="pill">Structured CSV Grid</span>
           </div>
         </div>
 
-        <div class="badge-wrap">
-          <span class="feature-badge">WMF / EMF Vector Engine</span>
-          <span class="feature-badge">Solid White Canvas</span>
-          <span class="feature-badge">DWG / DXF / SVG Support</span>
-          <span class="feature-badge">Crystal Report Safe</span>
+        <!-- LIVE ANIMATION: Dual-Pane Diff with Scanning Laser -->
+        <div class="animation-stage">
+          <div class="stage-header">
+            <span class="stage-title"><span>🔍</span> SIDE-BY-SIDE DIFF STUDIO</span>
+            <span class="stage-badge"><span>●</span> MYERS DUAL-SCAN ACTIVE</span>
+          </div>
+          <div class="diff-panes">
+            <div class="diff-scanline"></div>
+            <!-- Left Pane (Remote Source) -->
+            <div>
+              <div style="color:#64748b; margin-bottom:8px; font-weight:bold;">// SOURCE (192.168.1.11)</div>
+              <div class="diff-line same">01: $conn.Open()</div>
+              <div class="diff-line deleted">02: - $cmd.Timeout = 30</div>
+              <div class="diff-line same">03: $res = $cmd.Execute()</div>
+              <div class="diff-line deleted">04: - $planExt = @('.jpg')</div>
+              <div class="diff-line same">05: foreach ($f in $files)</div>
+              <div class="diff-line deleted">06: - Copy-Item $f $dest</div>
+            </div>
+            <!-- Right Pane (Target / Nexus v5.5) -->
+            <div>
+              <div style="color:#64748b; margin-bottom:8px; font-weight:bold;">// TARGET (NEXUS STUDIO v5.5)</div>
+              <div class="diff-line same">01: $conn.Open()</div>
+              <div class="diff-line added">02: + $cmd.Timeout = 0 // INFINITE</div>
+              <div class="diff-line same">03: $res = $cmd.Execute()</div>
+              <div class="diff-line added">04: + $planExt = @(13 FORMATS)</div>
+              <div class="diff-line same">05: foreach ($f in $files)</div>
+              <div class="diff-line added">06: + Resolve-PanvelTarget()</div>
+            </div>
+          </div>
         </div>
       </div>
     </section>
 
-    <!-- CHAPTER 05: OFFLINE AI & DOCUMENT EXTRACTION -->
-    <section class="align-left" id="chapter-5">
-      <div class="mont-card" id="card-5">
-        <div class="chapter-num">
-          <span style="color:#ec4899;">●</span> CHAPTER 05 // NEURAL RUNTIME
-        </div>
-        <h2 class="chapter-title">AI Background Removal &amp; Exam Resizer</h2>
-        <p class="chapter-desc">
-          100% offline background subtraction powered by an embedded U2Net ONNX machine learning model, alongside strict government exam dimension enforcement (pixels, KB, DPI) and OTP decryptors.
-        </p>
-
-        <div class="feature-grid">
-          <div class="feature-item">
-            <div class="feature-val">ONNX</div>
-            <div class="feature-lbl">Offline AI Engine</div>
+    <!-- CHAPTER 03: SSMS SQL STUDIO LIVE QUERY TERMINAL -->
+    <section id="sec-sql">
+      <div class="showcase-grid">
+        <div class="narrative-card">
+          <div class="chapter-tag"><span style="color:#a855f7;">●</span> CHAPTER 03 // ENTERPRISE DATABASE</div>
+          <h2 class="chapter-heading">SSMS SQL Management Console</h2>
+          <p class="chapter-text">
+            Engineered with `CommandTimeout = 0` (No Timeout / Infinite). Heavy batch stored procedures calculating municipal taxes across hundreds of owner IDs run smoothly without client abortions.
+          </p>
+          <div class="stat-row">
+            <div class="stat-box">
+              <div class="stat-num">0 sec</div>
+              <div class="stat-label">Execution Timeout</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-num" style="color:#10b981;">SAFE</div>
+              <div class="stat-label">Rollback Mode</div>
+            </div>
           </div>
-          <div class="feature-item">
-            <div class="feature-val">Govt</div>
-            <div class="feature-lbl">Exam Dimensional Resizer</div>
+          <div class="tag-row">
+            <span class="pill">Lazy-Loaded Explorer</span>
+            <span class="pill">Multi-Tab Engine</span>
+            <span class="pill">Excel Exporter</span>
           </div>
         </div>
 
-        <div class="badge-wrap">
-          <span class="feature-badge">U2Net Neural Model</span>
-          <span class="feature-badge">Signature Extractor</span>
-          <span class="feature-badge">BLOB Hex Previewer</span>
-          <span class="feature-badge">OTP Decryptor</span>
+        <!-- LIVE ANIMATION: Live SQL Execution & Table Population -->
+        <div class="animation-stage">
+          <div class="stage-header">
+            <span class="stage-title"><span>⚡</span> SSMS QUERY EXECUTOR</span>
+            <span class="stage-badge" id="sql-badge" style="background:rgba(2,132,199,0.2); color:#38bdf8;"><span>●</span> EXECUTING (TIMEOUT: 0)</span>
+          </div>
+          <div class="sql-terminal">
+            <div class="sql-tabbar">
+              <div class="sql-tab">Taxes_Panvel.sql *</div>
+              <div class="sql-tab" style="opacity:0.5;">ObjectExplorer.sql</div>
+            </div>
+            <div class="sql-editor">
+              <span style="color:#a855f7;">EXEC</span> [prcAddTaxesForSingleOwnerID] <span style="color:#38bdf8;">2026</span>, <span style="color:#f59e0b;" id="sql-owner-id">3441047</span>, <span style="color:#38bdf8;">0, 0, 1</span>;
+            </div>
+            <div class="sql-results">
+              <table class="sql-table" id="sql-res-table">
+                <thead>
+                  <tr>
+                    <th>Row</th><th>OwnerID</th><th>PropertyNo</th><th>Assessment</th><th>Tax Amount</th><th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="sql-tbody">
+                  <!-- Populated by Live JavaScript Engine -->
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       </div>
     </section>
 
-    <!-- CHAPTER 06: P2P LAN MESH & DEPLOYMENT -->
-    <section class="align-center" id="chapter-6">
-      <div class="outro-box" id="card-6">
-        <div class="hero-tagline" style="margin-bottom:20px;">
-          <span>●</span> CHAPTER 06 // LAN P2P &amp; INSTANT DEPLOYMENT
+    <!-- CHAPTER 04: CRYSTAL REPORTS VECTOR WMF SLIDER -->
+    <section id="sec-wmf">
+      <div class="showcase-grid">
+        <div class="narrative-card">
+          <div class="chapter-tag"><span style="color:#f59e0b;">●</span> CHAPTER 04 // VECTOR OPTIMIZATION</div>
+          <h2 class="chapter-heading">Crystal Reports Vector Optimizer</h2>
+          <p class="chapter-text">
+            Watch the animated slider compare a bloated 4.8MB CAD layout plan against Nexus's solid pure-white canvas vector output (&le;25 KB), preserving 100% line sharpness and eliminating printing glitches.
+          </p>
+          <div class="stat-row">
+            <div class="stat-box">
+              <div class="stat-num">&le; 25 KB</div>
+              <div class="stat-label">Target Size</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-num" style="color:#10b981;">99.5%</div>
+              <div class="stat-label">Size Reduction</div>
+            </div>
+          </div>
+          <div class="tag-row">
+            <span class="pill">WMF / EMF Vector</span>
+            <span class="pill">Solid White Canvas</span>
+            <span class="pill">Crystal Reports Safe</span>
+          </div>
         </div>
-        <h2 class="chapter-title" style="font-size: clamp(32px, 4.5vw, 52px); margin-bottom: 20px;">
-          Deploy Nexus Enterprise Studio
-        </h2>
-        <p class="chapter-desc" style="max-width: 680px; margin: 0 auto 36px auto;">
-          Features UDP subnet peer auto-discovery, direct high-speed TCP file transfer, and zero-prompt Scheduled Task administrator elevation with full offline capabilities.
-        </p>
 
-        <div class="cta-row">
-          <a href="https://github.com/Mandar023/Nexus-Enterprise-Studio/releases/latest" class="btn-hero btn-hero-primary" style="padding: 18px 44px; font-size: 16px;">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-              <polyline points="7 10 12 15 17 10"></polyline>
-              <line x1="12" y1="15" x2="12" y2="3"></line>
-            </svg>
-            Download v5.5.0 Portable ZIP
-          </a>
-          <a href="https://github.com/Mandar023" target="_blank" class="btn-hero btn-hero-secondary" style="padding: 18px 36px;">
-            Connect with Mandar (GitHub Profile)
-          </a>
+        <!-- LIVE ANIMATION: Interactive WMF Before & After Split Slider -->
+        <div class="animation-stage">
+          <div class="stage-header">
+            <span class="stage-title"><span>📐</span> VECTOR RESOLUTION &amp; WHITE-CANVAS SLIDER</span>
+            <span class="stage-badge" style="background:rgba(245,158,11,0.2); color:#f59e0b;"><span>●</span> 22.4 KB (PASS)</span>
+          </div>
+          <div class="wmf-slider-container">
+            <div class="wmf-handle"></div>
+            <!-- Before Side -->
+            <div class="wmf-side wmf-before">
+              <div style="font-size:36px; margin-bottom:10px;">📉</div>
+              <div style="font-family:'Fira Code'; font-size:14px; font-weight:bold; color:#ef4444;">RAW CAD SURVEY WMF</div>
+              <div style="font-size:12px; color:#cbd5e1; margin-top:4px;">Size: 4.82 MB &bull; Transparent Glitch</div>
+            </div>
+            <!-- After Side -->
+            <div class="wmf-side wmf-after">
+              <div style="font-size:36px; margin-bottom:10px;">📈</div>
+              <div style="font-family:'Fira Code'; font-size:14px; font-weight:bold; color:#0284c7;">NEXUS SOLID-WHITE WMF</div>
+              <div style="font-size:12px; color:#334155; margin-top:4px;">Size: 22.4 KB &bull; Crystal Reports 100% OK</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CHAPTER 05: AI BACKGROUND REMOVAL SCANNER -->
+    <section id="sec-ai">
+      <div class="showcase-grid">
+        <div class="narrative-card">
+          <div class="chapter-tag"><span style="color:#ec4899;">●</span> CHAPTER 05 // NEURAL RUNTIME</div>
+          <h2 class="chapter-heading">Offline AI Background Removal</h2>
+          <p class="chapter-text">
+            Embedded U2Net ONNX neural network runtime running 100% offline. Automatically parses municipal cards, extracts applicant signatures, and enforces strict government exam dimensions.
+          </p>
+          <div class="stat-row">
+            <div class="stat-box">
+              <div class="stat-num">U2Net</div>
+              <div class="stat-label">ONNX Model</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-num" style="color:#10b981;">100%</div>
+              <div class="stat-label">Offline Runtime</div>
+            </div>
+          </div>
+          <div class="tag-row">
+            <span class="pill">AI Signature Extractor</span>
+            <span class="pill">Govt Exam Constraints</span>
+            <span class="pill">OTP Decryptor</span>
+          </div>
+        </div>
+
+        <!-- LIVE ANIMATION: AI Laser Scan Card -->
+        <div class="animation-stage">
+          <div class="stage-header">
+            <span class="stage-title"><span>🤖</span> ONNX NEURAL LAYER INFERENCE</span>
+            <span class="stage-badge" style="background:rgba(236,72,153,0.2); color:#ec4899;"><span>●</span> INFERENCE: 14MS</span>
+          </div>
+          <div class="ai-scanner-box">
+            <div class="ai-laser"></div>
+            <div class="ai-card-demo">
+              <div class="ai-photo-placeholder">👤</div>
+              <div>
+                <div style="font-family:'Fira Code'; font-size:12px; font-weight:bold; color:#fff; margin-bottom:4px;">APPLICANT PHOTO</div>
+                <div style="font-size:10px; color:#10b981;">✓ Background Erased</div>
+                <div style="font-size:10px; color:#38bdf8; margin-top:4px;">3.5cm &times; 4.5cm | 28.4 KB</div>
+                <div style="font-size:10px; color:#94a3b8; margin-top:2px;">DPI: 300 | 100% Compliance</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CHAPTER 06: P2P LAN MESH RADAR -->
+    <section id="sec-lan">
+      <div class="showcase-grid">
+        <div class="narrative-card">
+          <div class="chapter-tag"><span style="color:#10b981;">●</span> CHAPTER 06 // P2P LAN MESH</div>
+          <h2 class="chapter-heading">Peer-to-Peer LAN Mesh Radar</h2>
+          <p class="chapter-text">
+            Automatic UDP subnet peer discovery on port 52822 with high-speed direct TCP transfers on port 52824. Watch the radar locate peers and establish instant mesh synchronization.
+          </p>
+          <div class="stat-row">
+            <div class="stat-box">
+              <div class="stat-num">52822</div>
+              <div class="stat-label">UDP Discovery</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-num">52824</div>
+              <div class="stat-label">TCP Transfer</div>
+            </div>
+          </div>
+          <div class="tag-row">
+            <span class="pill">Web Share (52826)</span>
+            <span class="pill">Scheduled Task Elevation</span>
+            <span class="pill">SmartScreen ADS Bypass</span>
+          </div>
+        </div>
+
+        <!-- LIVE ANIMATION: Rotating LAN Radar with Active Peer Blips -->
+        <div class="animation-stage">
+          <div class="stage-header">
+            <span class="stage-title"><span>📡</span> LAN SUBNET PEER RADAR</span>
+            <span class="stage-badge" style="background:rgba(16,185,129,0.2); color:#10b981;"><span>●</span> 4 PEERS ACTIVE</span>
+          </div>
+          <div class="radar-box">
+            <div class="radar-circle" style="width: 80px; height: 80px;"></div>
+            <div class="radar-circle" style="width: 170px; height: 170px;"></div>
+            <div class="radar-circle" style="width: 250px; height: 250px;"></div>
+            <div class="radar-sweep"></div>
+            <!-- Peer Blips -->
+            <div class="peer-blip" style="top: 35%; left: 30%;">
+              <div class="peer-blip-label">192.168.1.11</div>
+            </div>
+            <div class="peer-blip" style="top: 25%; left: 70%;">
+              <div class="peer-blip-label">192.168.1.22</div>
+            </div>
+            <div class="peer-blip" style="top: 75%; left: 40%;">
+              <div class="peer-blip-label">192.168.1.19</div>
+            </div>
+            <div class="peer-blip" style="top: 65%; left: 75%;">
+              <div class="peer-blip-label">192.168.1.16</div>
+            </div>
+          </div>
         </div>
       </div>
     </section>
 
   </div>
 
-  <!-- Custom Cursor Physics -->
+  <!-- Live Simulation Engines (JavaScript) -->
   <script>
-    const dot = document.getElementById('cursor-dot');
-    const ring = document.getElementById('cursor-ring');
-    let mousePos = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
-    let ringPos = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
-
-    window.addEventListener('mousemove', (e) => {
-      mousePos.x = e.clientX;
-      mousePos.y = e.clientY;
-      dot.style.transform = `translate(${e.clientX}px, ${e.clientY}px) translate(-50%, -50%)`;
-    });
-
-    function renderCursor() {
-      ringPos.x += (mousePos.x - ringPos.x) * 0.18;
-      ringPos.y += (mousePos.y - ringPos.y) * 0.18;
-      ring.style.transform = `translate(${ringPos.x}px, ${ringPos.y}px) translate(-50%, -50%)`;
-      requestAnimationFrame(renderCursor);
+    function scrollToId(id) {
+      const el = document.getElementById(id);
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
     }
-    renderCursor();
 
-    document.querySelectorAll('a, button, .timeline-step, .feature-item, .mont-card').forEach(el => {
-      el.addEventListener('mouseenter', () => {
-        dot.classList.add('hovered');
-        ring.classList.add('hovered');
-      });
-      el.addEventListener('mouseleave', () => {
-        dot.classList.remove('hovered');
-        ring.classList.remove('hovered');
-      });
-    });
-  </script>
+    // -------------------------------------------------------------
+    // ENGINE 1: Live Conduit Particle Canvas for Consolidator
+    // -------------------------------------------------------------
+    const conduitCanvas = document.getElementById('conduit-canvas');
+    const ctx = conduitCanvas.getContext('2d');
+    let particles = [];
 
-  <!-- Interactive Timeline Flight Navigation -->
-  <script>
-    function flyToChapter(chapterIndex) {
-      const el = document.getElementById(`chapter-${chapterIndex}`);
-      if (el) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    for (let i = 0; i < 24; i++) {
+      particles.push({
+        x: Math.random() < 0.5 ? 65 : 535,
+        y: 40,
+        targetY: 160,
+        progress: Math.random(),
+        isCommon: Math.random() < 0.65, // 65% common duplicate
+        speed: 0.008 + Math.random() * 0.008
+      });
+    }
+
+    let scannedCount = 4030;
+    let skippedCount = 3210;
+    let syncedCount = 820;
+
+    function renderConduits() {
+      ctx.clearRect(0, 0, conduitCanvas.width, conduitCanvas.height);
+
+      // Draw Conduits
+      ctx.strokeStyle = 'rgba(56, 189, 248, 0.2)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(65, 40); ctx.lineTo(300, 160);
+      ctx.moveTo(535, 40); ctx.lineTo(300, 160);
+      ctx.moveTo(300, 160); ctx.lineTo(300, 270);
+      ctx.stroke();
+
+      // Animate Particles
+      particles.forEach(p => {
+        p.progress += p.speed;
+        if (p.progress > 1) {
+          p.progress = 0;
+          p.x = Math.random() < 0.5 ? 65 : 535;
+          p.isCommon = Math.random() < 0.65;
+          scannedCount++;
+          if (p.isCommon) skippedCount++; else syncedCount++;
+          document.getElementById('cnt-scanned').innerText = scannedCount.toLocaleString();
+          document.getElementById('cnt-skipped').innerText = skippedCount.toLocaleString();
+          document.getElementById('cnt-synced').innerText = syncedCount.toLocaleString();
+        }
+
+        let currX, currY;
+        if (p.progress <= 0.6) {
+          // Flow from source server to filter chamber
+          const t = p.progress / 0.6;
+          currX = p.x + (300 - p.x) * t;
+          currY = 40 + (160 - 40) * t;
+        } else {
+          // Pass filter chamber: common files vanish, new files beam down to 19
+          const t = (p.progress - 0.6) / 0.4;
+          currX = 300;
+          currY = 160 + (270 - 160) * t;
+          if (p.isCommon) return; // Dropped by filter!
+        }
+
+        ctx.fillStyle = p.isCommon ? '#f59e0b' : '#10b981';
+        ctx.shadowColor = ctx.fillStyle;
+        ctx.shadowBlur = 8;
+        ctx.beginPath();
+        ctx.arc(currX, currY, p.isCommon ? 3.5 : 4.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      });
+
+      requestAnimationFrame(renderConduits);
+    }
+    renderConduits();
+
+    // -------------------------------------------------------------
+    // ENGINE 2: Live SQL Stored Procedure Execution Loop
+    // -------------------------------------------------------------
+    const sampleOwners = [
+      { id: 3441047, prop: 'WARD-KH1-089', tax: '₹14,850.00' },
+      { id: 3441046, prop: 'WARD-KH1-090', tax: '₹18,220.00' },
+      { id: 3441045, prop: 'WARD-KH1-091', tax: '₹9,410.00' },
+      { id: 822234,  prop: 'WARD-TPPG-012', tax: '₹24,600.00' },
+      { id: 3439917, prop: 'WARD-TPPG-015', tax: '₹11,150.00' }
+    ];
+
+    let currentSqlIdx = 0;
+    const sqlTbody = document.getElementById('sql-tbody');
+
+    function executeSqlRow() {
+      const item = sampleOwners[currentSqlIdx % sampleOwners.length];
+      document.getElementById('sql-owner-id').innerText = item.id;
+
+      const tr = document.createElement('tr');
+      tr.className = 'highlight';
+      tr.innerHTML = `
+        <td>${currentSqlIdx + 1}</td>
+        <td>${item.id}</td>
+        <td>${item.prop}</td>
+        <td>2026-27</td>
+        <td style="color:#10b981; font-weight:bold;">${item.tax}</td>
+        <td><span style="color:#10b981;">✓ SUCCESS</span></td>
+      `;
+      sqlTbody.prepend(tr);
+
+      if (sqlTbody.children.length > 5) {
+        sqlTbody.removeChild(sqlTbody.lastChild);
       }
-    }
 
-    function updateTimeline() {
-      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-      const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
-      const progress = scrollHeight > 0 ? Math.min(1, Math.max(0, scrollTop / scrollHeight)) : 0;
-      
-      const chapterIdx = Math.min(6, Math.floor(progress * 6.99));
-      document.querySelectorAll('.timeline-step').forEach((step, idx) => {
-        step.classList.toggle('active', idx === chapterIdx);
-      });
+      currentSqlIdx++;
+      setTimeout(executeSqlRow, 1800);
     }
-    window.addEventListener('scroll', updateTimeline, { passive: true });
-  </script>
+    executeSqlRow();
 
-  <!-- Three.js Spatial 3D Scrollytelling Engine (Montfort-Grade) -->
-  <script>
+    // -------------------------------------------------------------
+    // ENGINE 3: Three.js Spatial Background Loop
+    // -------------------------------------------------------------
     const canvas = document.getElementById('webgl-canvas');
     const scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(0x02040a, 0.035);
+    scene.fog = new THREE.FogExp2(0x02040a, 0.04);
 
     const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
     camera.position.set(0, 0, 16);
 
-    const renderer = new THREE.WebGLRenderer({
-      canvas: canvas,
-      antialias: true,
-      alpha: true,
-      powerPreference: 'high-performance'
-    });
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-    // Volumetric Cinematic Lighting
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
-    scene.add(ambientLight);
+    const ambLight = new THREE.AmbientLight(0xffffff, 0.6);
+    scene.add(ambLight);
 
-    const cyanSpot = new THREE.SpotLight(0x00f2fe, 4.5, 40, Math.PI / 4, 0.5, 1);
-    cyanSpot.position.set(12, 14, 12);
-    scene.add(cyanSpot);
+    const cyanLight = new THREE.DirectionalLight(0x00f2fe, 2.5);
+    cyanLight.position.set(10, 12, 10);
+    scene.add(cyanLight);
 
-    const purpleSpot = new THREE.SpotLight(0xa855f7, 3.5, 40, Math.PI / 4, 0.5, 1);
-    purpleSpot.position.set(-12, -8, 8);
-    scene.add(purpleSpot);
+    // Subtle 3D Gyro Orb in Background
+    const orbGroup = new THREE.Group();
+    const orbGeo = new THREE.IcosahedronGeometry(2.5, 2);
+    const orbMat = new THREE.MeshBasicMaterial({ color: 0x0284c7, wireframe: true, transparent: true, opacity: 0.25 });
+    orbGroup.add(new THREE.Mesh(orbGeo, orbMat));
 
-    const centerPoint = new THREE.PointLight(0x38bdf8, 3, 20);
-    centerPoint.position.set(0, 0, 0);
-    scene.add(centerPoint);
+    const ringTorus = new THREE.Mesh(
+      new THREE.TorusGeometry(3.6, 0.06, 16, 64),
+      new THREE.MeshBasicMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.35 })
+    );
+    orbGroup.add(ringTorus);
+    scene.add(orbGroup);
 
-    // -------------------------------------------------------------
-    // Build Thematic 3D Spatial Structures (1 per Chapter)
-    // -------------------------------------------------------------
-    const masterWorld = new THREE.Group();
-    scene.add(masterWorld);
-
-    // 0. The Nexus Core (Hero)
-    const heroCore = new THREE.Group();
-    const coreGeo = new THREE.IcosahedronGeometry(2.0, 3);
-    const coreMat = new THREE.MeshStandardMaterial({
-      color: 0x00f2fe,
-      emissive: 0x0284c7,
-      emissiveIntensity: 0.85,
-      metalness: 0.9,
-      roughness: 0.15
-    });
-    const coreMesh = new THREE.Mesh(coreGeo, coreMat);
-    heroCore.add(coreMesh);
-
-    const cageGeo = new THREE.IcosahedronGeometry(2.35, 2);
-    const cageMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8, wireframe: true, transparent: true, opacity: 0.4 });
-    heroCore.add(new THREE.Mesh(cageGeo, cageMat));
-
-    const ringGeo1 = new THREE.TorusGeometry(3.2, 0.08, 16, 64);
-    const ringMat1 = new THREE.MeshStandardMaterial({ color: 0x0f172a, emissive: 0x0284c7, emissiveIntensity: 0.4, metalness: 0.95 });
-    const ring1 = new THREE.Mesh(ringGeo1, ringMat1);
-    heroCore.add(ring1);
-
-    const ringGeo2 = new THREE.TorusGeometry(3.9, 0.06, 16, 64);
-    const ringMat2 = new THREE.MeshStandardMaterial({ color: 0x1e293b, emissive: 0x8b5cf6, emissiveIntensity: 0.5, metalness: 0.95 });
-    const ring2 = new THREE.Mesh(ringGeo2, ringMat2);
-    heroCore.add(ring2);
-
-    masterWorld.add(heroCore);
-
-    // 1. Multi-Server Consolidator Monoliths (Chapter 1)
-    const serverGroup = new THREE.Group();
-    const monolithGeo = new THREE.BoxGeometry(0.8, 3.8, 1.4);
-    const monolithMat = new THREE.MeshStandardMaterial({ color: 0x070e1e, metalness: 0.95, roughness: 0.2 });
-    
-    // Server 11, 22, and 19
-    [-2.2, 0, 2.2].forEach((xPos, idx) => {
-      const server = new THREE.Mesh(monolithGeo, monolithMat);
-      server.position.set(xPos, 0, 0);
-      serverGroup.add(server);
-
-      // Server LED lights
-      for (let j = 0; j < 5; j++) {
-        const ledGeo = new THREE.SphereGeometry(0.05, 8, 8);
-        const ledMat = new THREE.MeshBasicMaterial({ color: idx === 1 ? 0x10b981 : 0x00f2fe });
-        const led = new THREE.Mesh(ledGeo, ledMat);
-        led.position.set(xPos + 0.42, -1.2 + j * 0.6, 0.4);
-        serverGroup.add(led);
-      }
-    });
-    serverGroup.position.set(0, -25, 0); // Positioned along 3D spatial path
-    masterWorld.add(serverGroup);
-
-    // 2. Beyond Compare Dual-Prism Chamber (Chapter 2)
-    const diffGroup = new THREE.Group();
-    const prismGeo = new THREE.BoxGeometry(2.4, 3.6, 0.2);
-    const prismMatLeft = new THREE.MeshStandardMaterial({ color: 0x0f172a, emissive: 0xef4444, emissiveIntensity: 0.35, metalness: 0.9 });
-    const prismMatRight = new THREE.MeshStandardMaterial({ color: 0x0f172a, emissive: 0x10b981, emissiveIntensity: 0.35, metalness: 0.9 });
-    const leftPane = new THREE.Mesh(prismGeo, prismMatLeft);
-    leftPane.position.set(-1.6, 0, 0);
-    const rightPane = new THREE.Mesh(prismGeo, prismMatRight);
-    rightPane.position.set(1.6, 0, 0);
-    diffGroup.add(leftPane);
-    diffGroup.add(rightPane);
-
-    // Laser scanning beam
-    const laserBeamGeo = new THREE.CylinderGeometry(0.04, 0.04, 4.4, 8);
-    const laserBeamMat = new THREE.MeshBasicMaterial({ color: 0x00f2fe });
-    const laserBeam = new THREE.Mesh(laserBeamGeo, laserBeamMat);
-    laserBeam.rotation.z = Math.PI / 2;
-    diffGroup.add(laserBeam);
-    diffGroup.position.set(0, -50, 0);
-    masterWorld.add(diffGroup);
-
-    // 3. SSMS Relational Database Matrix (Chapter 3)
-    const sqlGroup = new THREE.Group();
-    const dbCylinderGeo = new THREE.CylinderGeometry(2.2, 2.2, 0.7, 32);
-    const dbCylinderMat = new THREE.MeshStandardMaterial({ color: 0x091428, emissive: 0x10b981, emissiveIntensity: 0.4, metalness: 0.9 });
-    for (let k = 0; k < 3; k++) {
-      const disc = new THREE.Mesh(dbCylinderGeo, dbCylinderMat);
-      disc.position.y = (k - 1) * 1.1;
-      sqlGroup.add(disc);
-    }
-    sqlGroup.position.set(0, -75, 0);
-    masterWorld.add(sqlGroup);
-
-    // 4. Vector WMF Layout Plane (Chapter 4)
-    const wmfGroup = new THREE.Group();
-    const wmfPlaneGeo = new THREE.PlaneGeometry(5.2, 3.6, 16, 12);
-    const wmfPlaneMat = new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0x38bdf8, emissiveIntensity: 0.3, wireframe: true });
-    const wmfPlane = new THREE.Mesh(wmfPlaneGeo, wmfPlaneMat);
-    wmfGroup.add(wmfPlane);
-    wmfGroup.position.set(0, -100, 0);
-    masterWorld.add(wmfGroup);
-
-    // 5. AI Neural Network Core (Chapter 5)
-    const aiGroup = new THREE.Group();
-    const nodeCount = 30;
-    const nodeGeo = new THREE.SphereGeometry(0.16, 16, 16);
-    const nodeMat = new THREE.MeshBasicMaterial({ color: 0xec4899 });
-    for (let n = 0; n < nodeCount; n++) {
-      const node = new THREE.Mesh(nodeGeo, nodeMat);
-      node.position.set((Math.random() - 0.5) * 5, (Math.random() - 0.5) * 5, (Math.random() - 0.5) * 4);
-      aiGroup.add(node);
-    }
-    aiGroup.position.set(0, -125, 0);
-    masterWorld.add(aiGroup);
-
-    // Ambient Stardust Particles
-    const dustCount = 400;
-    const dustGeo = new THREE.BufferGeometry();
-    const dustPos = new Float32Array(dustCount * 3);
-    for (let d = 0; d < dustCount * 3; d += 3) {
-      dustPos[d] = (Math.random() - 0.5) * 50;
-      dustPos[d + 1] = -(Math.random() * 150);
-      dustPos[d + 2] = (Math.random() - 0.5) * 40;
-    }
-    dustGeo.setAttribute('position', new THREE.BufferAttribute(dustPos, 3));
-    const dustMat = new THREE.PointsMaterial({ size: 0.15, color: 0x38bdf8, transparent: true, opacity: 0.45 });
-    scene.add(new THREE.Points(dustGeo, dustMat));
-
-    // -------------------------------------------------------------
-    // Mouse Interactive Camera Tilt
-    // -------------------------------------------------------------
-    let mouseX = 0, mouseY = 0;
-    window.addEventListener('mousemove', (e) => {
-      mouseX = (e.clientX / window.innerWidth) * 2 - 1;
-      mouseY = -(e.clientY / window.innerHeight) * 2 + 1;
-    });
-
-    // -------------------------------------------------------------
-    // Spatial 3D Camera Flight on Scroll (Montfort Scrollytelling)
-    // -------------------------------------------------------------
-    function updateSpatialJourney() {
-      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-      const maxScroll = (document.documentElement.scrollHeight - window.innerHeight) || 1;
-      const progress = Math.min(1, Math.max(0, scrollTop / maxScroll));
-
-      // Continuous flight along Y axis: from 0 down to -125
-      const targetY = -(progress * 130);
-      camera.position.y = targetY;
-
-      // Dynamic side-to-side camera orbit based on active chapter
-      const isWide = window.innerWidth > 900;
-      const xOffset = isWide ? 2.8 : 0;
-
-      if (progress < 0.15) {
-        // Stage 0: Hero Center
-        camera.position.x = 0;
-        camera.position.z = 16;
-      } else if (progress < 0.32) {
-        // Stage 1: Shift right to frame Server Monoliths
-        camera.position.x = -xOffset;
-        camera.position.z = 14;
-        serverGroup.rotation.y = progress * 6;
-      } else if (progress < 0.48) {
-        // Stage 2: Shift left to frame Beyond Compare Diff Chamber
-        camera.position.x = xOffset;
-        camera.position.z = 13.5;
-        laserBeam.position.y = Math.sin(progress * 25) * 1.5;
-      } else if (progress < 0.65) {
-        // Stage 3: Shift right to frame SSMS SQL Cylinders
-        camera.position.x = -xOffset;
-        camera.position.z = 15;
-        sqlGroup.rotation.y = progress * 4;
-      } else if (progress < 0.82) {
-        // Stage 4: Shift left to frame Vector WMF Wireframe
-        camera.position.x = xOffset;
-        camera.position.z = 14;
-        wmfGroup.rotation.x = 0.4;
-        wmfGroup.rotation.y = progress * 5;
-      } else {
-        // Stage 5 & 6: AI Core & Grand Finale Center
-        camera.position.x = 0;
-        camera.position.z = 16.5;
-        aiGroup.rotation.y = progress * 8;
-      }
-    }
-    window.addEventListener('scroll', updateSpatialJourney, { passive: true });
-    updateSpatialJourney();
-
-    // -------------------------------------------------------------
-    // Continuous 60 FPS Animation Loop
-    // -------------------------------------------------------------
-    const clock = new THREE.Clock();
-
-    function render3D() {
-      requestAnimationFrame(render3D);
-      const delta = clock.getDelta();
-      const time = clock.getElapsedTime();
-
-      // Idle Rotation of Hero Core
-      heroCore.rotation.y += delta * 0.4;
-      ring1.rotation.x += delta * 0.5;
-      ring2.rotation.y -= delta * 0.4;
-
-      // Mouse Parallax Damped Lerp
-      camera.rotation.y += (mouseX * 0.08 - camera.rotation.y) * 0.05;
-      camera.rotation.x += (-mouseY * 0.06 - camera.rotation.x) * 0.05;
-
+    function animate3d() {
+      requestAnimationFrame(animate3d);
+      orbGroup.rotation.y += 0.003;
+      ringTorus.rotation.x += 0.004;
       renderer.render(scene, camera);
     }
-    render3D();
+    animate3d();
 
-    // Viewport Resize
     window.addEventListener('resize', () => {
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(window.innerWidth, window.innerHeight);
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-      updateSpatialJourney();
+      conduitCanvas.width = conduitCanvas.parentElement.clientWidth;
+    });
+
+    // Update Timeline Active State on Scroll
+    const sections = ['sec-hero', 'sec-sync', 'sec-diff', 'sec-sql', 'sec-wmf', 'sec-ai', 'sec-lan'];
+    window.addEventListener('scroll', () => {
+      const scrollPos = window.scrollY + 300;
+      sections.forEach((secId, idx) => {
+        const el = document.getElementById(secId);
+        if (el && scrollPos >= el.offsetTop && scrollPos < el.offsetTop + el.offsetHeight) {
+          document.querySelectorAll('.timeline-step').forEach((s, sIdx) => s.classList.toggle('active', sIdx === idx));
+        }
+      });
     });
   </script>
 </body>
