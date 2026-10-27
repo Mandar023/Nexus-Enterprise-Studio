@@ -1,20 +1,20 @@
-# Nexus Photo & Document Optimizer (Enterprise Suite)
+# Nexus Enterprise Studio
 
 [![Platform: Windows](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011-blue.svg?logo=windows)](https://microsoft.com)
 [![Architecture: x64](https://img.shields.io/badge/Architecture-x64-success.svg)]()
 [![Engine: PowerShell 5.1+ / WPF](https://img.shields.io/badge/Framework-PowerShell%205.1%20%2F%20WPF-informational.svg?logo=powershell)]()
-[![Version](https://img.shields.io/badge/Version-5.5.0%20Enterprise-blueviolet.svg)](https://github.com/Mandar023/Nexus-Photo-Optimizer/releases/latest)
+[![Version](https://img.shields.io/badge/Version-5.5.0%20Enterprise-blueviolet.svg)](https://github.com/Mandar023/Nexus-Enterprise-Studio/releases/latest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![GitHub stars](https://img.shields.io/github/stars/Mandar023/Nexus-Photo-Optimizer?style=social)](https://github.com/Mandar023/Nexus-Photo-Optimizer/stargazers)
-[![GitHub forks](https://img.shields.io/github/forks/Mandar023/Nexus-Photo-Optimizer?style=social)](https://github.com/Mandar023/Nexus-Photo-Optimizer/network/members)
-[![GitHub issues](https://img.shields.io/github/issues/Mandar023/Nexus-Photo-Optimizer)](https://github.com/Mandar023/Nexus-Photo-Optimizer/issues)
+[![GitHub stars](https://img.shields.io/github/stars/Mandar023/Nexus-Enterprise-Studio?style=social)](https://github.com/Mandar023/Nexus-Enterprise-Studio/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/Mandar023/Nexus-Enterprise-Studio?style=social)](https://github.com/Mandar023/Nexus-Enterprise-Studio/network/members)
+[![GitHub issues](https://img.shields.io/github/issues/Mandar023/Nexus-Enterprise-Studio)](https://github.com/Mandar023/Nexus-Enterprise-Studio/issues)
 
-An enterprise-grade, zero-dependency desktop productivity suite designed for high-throughput image and document optimization, native code and folder comparison (**Beyond Compare 5 Studio**), and an integrated **SSMS-grade SQL Management Console** with peer-to-peer LAN sharing.
+An enterprise-grade, zero-dependency desktop workspace designed for high-throughput image and document optimization, municipal multi-server network consolidation, native code and folder comparison (**Beyond Compare 5 Studio**), and an integrated **SSMS-grade SQL Management Console** with peer-to-peer LAN sharing.
 
 ---
 
 > [!TIP]
-> **[Download Latest Release (v5.5.0 Portable ZIP)](https://github.com/Mandar023/Nexus-Photo-Optimizer/releases/latest)** — No installation required. Extract and double-click `Launch-App.vbs`.
+> **[Download Latest Release (v5.5.0 Portable ZIP)](https://github.com/Mandar023/Nexus-Enterprise-Studio/releases/latest)** — No installation required. Extract and double-click `Launch-App.vbs`.
 
 ---
 

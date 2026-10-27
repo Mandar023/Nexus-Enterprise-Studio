@@ -1193,7 +1193,7 @@ try {
 [xml]$xaml = @"
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Nexus Photo &amp; Document Optimizer (Enterprise Edition)" 
+        Title="Nexus Enterprise Studio (Enterprise Workspace Edition)" 
         Height="960" Width="1240" 
         MinHeight="850" MinWidth="1050"
         WindowStartupLocation="CenterScreen" 
@@ -1418,15 +1418,15 @@ try {
                     <StackPanel VerticalAlignment="Center">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                             <TextBlock Text="NEXUS" FontSize="23" FontWeight="ExtraBold" Foreground="#38BDF8" Margin="0,0,8,0" FontFamily="Segoe UI"/>
-                            <TextBlock Text="OPTIMIZER" FontSize="23" FontWeight="Light" Foreground="#BAE6FD" Margin="0,0,12,0" FontFamily="Segoe UI"/>
+                            <TextBlock Text="ENTERPRISE STUDIO" FontSize="23" FontWeight="Light" Foreground="#BAE6FD" Margin="0,0,12,0" FontFamily="Segoe UI"/>
                             <Border Background="{StaticResource PurpleBadgeBrush}" CornerRadius="5" Padding="7,2" Margin="0,0,6,0" VerticalAlignment="Center">
                                 <TextBlock Text="PRO ENTERPRISE" FontWeight="Bold" Foreground="White" FontSize="9.5"/>
                             </Border>
                             <Border Background="{StaticResource SuccessBtnBrush}" CornerRadius="5" Padding="7,2" VerticalAlignment="Center">
-                                <TextBlock Text="v2.5" FontWeight="Bold" Foreground="White" FontSize="9.5"/>
+                                <TextBlock Text="v5.5" FontWeight="Bold" Foreground="White" FontSize="9.5"/>
                             </Border>
                         </StackPanel>
-                        <TextBlock Text="Property Photos (&lt;25KB) | PlanPhoto WMF | BLOB Previewer | Govt Exam Resizer | Server Photo Extractor | OTP Decryptor" FontSize="11.5" Foreground="#94A3B8" Margin="0,4,0,0" TextWrapping="Wrap"/>
+                        <TextBlock Text="Municipal Data Infrastructure | Multi-Server Sync | Beyond Compare 5 Diff | SSMS SQL Studio | Media &amp; Vector Engine" FontSize="11.5" Foreground="#94A3B8" Margin="0,4,0,0" TextWrapping="Wrap"/>
                     </StackPanel>
                 </DockPanel>
 

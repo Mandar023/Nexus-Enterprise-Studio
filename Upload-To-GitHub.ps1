@@ -118,8 +118,8 @@ if ($status) {
 
 # 4. Create Repository on GitHub and Push
 Write-Host "`n[STEP 4/4] Creating Repository on GitHub & Pushing..." -ForegroundColor Yellow
-$repoName = "Nexus-Photo-Optimizer"
-$repoDesc = "Enterprise Municipal Photo & Document Optimizer with Multi-Server Sync, PlanPhoto WMF/EMF Vector White-Canvas Processing, Ward Crawling, and SQL Hub Releases"
+$repoName = "Nexus-Enterprise-Studio"
+$repoDesc = "Enterprise Desktop Workspace for Municipal Data Infrastructure, Multi-Server Consolidation, Beyond Compare Diff Studio & SSMS SQL Management"
 
 $repoCheck = & $ghExe repo view "$ghUser/$repoName" 2>&1
 if ($LASTEXITCODE -ne 0) {

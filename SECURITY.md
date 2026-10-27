@@ -10,12 +10,12 @@
 
 ## Reporting a Vulnerability
 
-We take the security and integrity of Nexus Photo & Document Optimizer seriously.
+We take the security and integrity of Nexus Enterprise Studio seriously.
 
 If you believe you have discovered a security vulnerability or sensitive information leakage risk:
 1. **Do not disclose the issue publicly** in an open issue or discussion.
 2. Open a confidential security advisory or reach out directly via GitHub Security Advisories at:
-   https://github.com/Mandar023/Nexus-Photo-Optimizer/security/advisories/new
+   https://github.com/Mandar023/Nexus-Enterprise-Studio/security/advisories/new
 3. Provide details including:
    - Operating system and version.
    - Exact steps or script needed to reproduce the issue.

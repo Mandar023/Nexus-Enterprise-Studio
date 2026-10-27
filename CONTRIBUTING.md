@@ -1,6 +1,6 @@
-# Contributing to Nexus Photo & Document Optimizer
+# Contributing to Nexus Enterprise Studio
 
-Thank you for your interest in contributing to **Nexus Photo & Document Optimizer**! We welcome contributions from developers, sysadmins, and municipal automation engineers worldwide.
+Thank you for your interest in contributing to **Nexus Enterprise Studio**! We welcome contributions from developers, sysadmins, and municipal automation engineers worldwide.
 
 ---
 
@@ -13,7 +13,7 @@ By participating in this project, you agree to abide by our [Code of Conduct](CO
 ## How Can You Help?
 
 There are many ways to contribute:
-1. **Report Bugs**: Submit detailed bug reports using our [Issue Templates](https://github.com/Mandar023/Nexus-Photo-Optimizer/issues/new/choose).
+1. **Report Bugs**: Submit detailed bug reports using our [Issue Templates](https://github.com/Mandar023/Nexus-Enterprise-Studio/issues/new/choose).
 2. **Feature Suggestions**: Propose new ideas, image codecs, or database integrations.
 3. **Documentation & Guides**: Improve setup instructions, add Marathi/Hindi/regional localization, or create tutorials.
 4. **Code Improvements**:
@@ -28,8 +28,8 @@ There are many ways to contribute:
 
 1. **Fork and Clone**:
    ```bash
-   git clone https://github.com/Mandar023/Nexus-Photo-Optimizer.git
-   cd Nexus-Photo-Optimizer
+   git clone https://github.com/Mandar023/Nexus-Enterprise-Studio.git
+   cd Nexus-Enterprise-Studio
    ```
 
 2. **Environment Requirements**:
