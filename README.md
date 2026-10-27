@@ -3,7 +3,7 @@
 [![Platform: Windows](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011-blue.svg?logo=windows)](https://microsoft.com)
 [![Architecture: x64](https://img.shields.io/badge/Architecture-x64-success.svg)]()
 [![Engine: PowerShell 5.1+ / WPF](https://img.shields.io/badge/Framework-PowerShell%205.1%20%2F%20WPF-informational.svg?logo=powershell)]()
-[![Version](https://img.shields.io/badge/Version-5.4.0%20Enterprise-blueviolet.svg)]()
+[![Version](https://img.shields.io/badge/Version-5.5.0%20Enterprise-blueviolet.svg)]()
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 An enterprise-grade, zero-dependency desktop productivity suite designed for high-throughput image and document optimization, native code and folder comparison (**Beyond Compare 5 Studio**), and an integrated **SSMS-grade SQL Management Console** with peer-to-peer LAN sharing.
@@ -42,6 +42,15 @@ An enterprise-grade, zero-dependency desktop productivity suite designed for hig
 - **Zero-Prompt Administrator Elevation**: Leverages Windows Scheduled Tasks (`/rl highest`) for instant administrative launch with zero UAC confirmation boxes.
 - **SmartScreen Elimination**: Strips `Zone.Identifier` alternate data streams (`Unblock-File`) to prevent "Windows protected your PC" warnings.
 - **Non-Admin Fallback**: Intelligently detects user group privileges (`whoami /groups`); if run under a standard user account, it launches directly without showing password prompts or blocking execution.
+
+### 6. Multi-Server Consolidator & Ward Reference Extractor
+- **Multi-Server Unification**: High-speed synchronization engine consolidating photos and plans from distributed municipal server shares (e.g. `192.168.1.11`, `192.168.1.22`) directly into central repository servers (e.g. `192.168.1.19` `PropertyImage` and `PlanPhoto`).
+- **O(1) Deduplication Engine**: Pre-indexes all target files in memory to eliminate redundant network I/O, seamlessly ignoring existing common files and synchronizing only newly identified plans and photos.
+- **Ward Path Extractor**: Automated recursive crawler extracting ward structures and exporting:
+  - **Option A**: `Photos_Paths.txt` and `Plans_Paths.txt` directory listings.
+  - **Option B**: Full recursive file inventories (`Photos_AllFiles.txt`, `Plans_AllFiles.txt`).
+  - **Option C**: Comprehensive Excel/CSV dual-column alignment (`Ward_Photos_And_Plans_Paths.csv`) mapping Ward Name, Photo Path, Plan Path, Photo Count, Plan Count, and Status.
+
 
 ---
 
