@@ -2150,7 +2150,7 @@ try {
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        <TextBox x:Name="txtTargetFolder" Grid.Column="0" Text="\\Enterprise-NAS\Storage\Production\PropertyImages"/>
+                        <TextBox x:Name="txtTargetFolder" Grid.Column="0" Text="\\192.168.1.22\PMC_Photo_22\PropertyImage"/>
                         <Button x:Name="btnBrowseFolder" Grid.Column="1" Style="{StaticResource ActionButton}" Content="Browse Folder..." Margin="10,0,0,0" Width="145" Background="{StaticResource CyanBadgeBrush}"/>
                     </Grid>
 
@@ -2789,8 +2789,8 @@ try {
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <Button x:Name="btnSubModeStandardExtract" Grid.Column="0" Content="1. Standard Property Extractor (Excel / Single Server)" FontWeight="Bold" FontSize="11.5" Height="34" Cursor="Hand" Background="#0284C7" Foreground="White" BorderThickness="0"/>
-                    <Button x:Name="btnSubModeThreeUrlSync" Grid.Column="1" Content="2. Multi-Server Consolidator (Images &amp; Plans to \\Cluster-A-Master)" FontWeight="Bold" FontSize="11.5" Height="34" Cursor="Hand" Background="#0D1527" Foreground="#94A3B8" BorderThickness="0" Margin="4,0,0,0"/>
+                    <Button x:Name="btnSubModeStandardExtract" Grid.Column="0" Content="1. Standard / Multi-Source Property Extractor (Excel / Desktop)" FontWeight="Bold" FontSize="11.5" Height="34" Cursor="Hand" Background="#0284C7" Foreground="White" BorderThickness="0"/>
+                    <Button x:Name="btnSubModeThreeUrlSync" Grid.Column="1" Content="2. Multi-Server Consolidator &amp; Asset Extractor (Panvel 3-Server / LAN)" FontWeight="Bold" FontSize="11.5" Height="34" Cursor="Hand" Background="#0D1527" Foreground="#94A3B8" BorderThickness="0" Margin="4,0,0,0"/>
                 </Grid>
             </Border>
 
@@ -2817,14 +2817,18 @@ try {
                             </Border>
                         </Grid>
 
-                        <TextBlock Text="STEP 2: SELECT SOURCE SERVER FOLDER / NETWORK SHARE" FontWeight="Bold" FontSize="12" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                        <TextBlock Text="STEP 2: SELECT SOURCE SERVER FOLDER(S) / NETWORK SHARE(S)" FontWeight="Bold" FontSize="12" Foreground="#38BDF8" Margin="0,0,0,4"/>
                         <Grid Margin="0,0,0,10">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <TextBox x:Name="txtExtractSource" Grid.Column="0" Text="\\Enterprise-NAS\Storage\Production\PropertyImages"/>
-                            <Button x:Name="btnExtractBrowseSource" Grid.Column="1" Style="{StaticResource ActionButton}" Content="Browse Server..." Margin="10,0,0,0" Width="150" Background="{StaticResource CyanBadgeBrush}"/>
+                            <TextBox x:Name="txtExtractSource" Grid.Column="0" Text="\\192.168.1.22\PMC_Photo_22\PropertyImage" ToolTip="Enter single folder or multiple folders separated by semicolon (;). Example: \\192.168.1.22\PMC_Photo_22\PropertyImage; \\192.168.1.19\Files\PropertyImage"/>
+                            <Button x:Name="btnExtractBrowseSource" Grid.Column="1" Style="{StaticResource ActionButton}" Content="Browse..." Margin="8,0,0,0" Width="100" Background="{StaticResource CyanBadgeBrush}"/>
+                            <Button x:Name="btnExtractPresetPanvel" Grid.Column="2" Style="{StaticResource ActionButton}" Content="Panvel 22" Margin="6,0,0,0" Width="85" Background="#0D9488" ToolTip="Quick fill Panvel MC Server 22 directory"/>
+                            <Button x:Name="btnExtractPreset19" Grid.Column="3" Style="{StaticResource ActionButton}" Content="Panvel 19" Margin="6,0,0,0" Width="85" Background="#0284C7" ToolTip="Quick fill Panvel MC Server 19 directory"/>
                         </Grid>
 
                         <TextBlock Text="STEP 3: SELECT EXCEL FILE WITH PROPERTY NUMBERS / OWNER IDS" FontWeight="Bold" FontSize="12" Foreground="#38BDF8" Margin="0,0,0,4"/>
@@ -2859,7 +2863,7 @@ try {
                 </Border>
             </StackPanel>
 
-            <!-- Sub-Panel 2: Multi-Server Consolidator (Images & Plans to Cluster-A-Master) -->
+            <!-- Sub-Panel 2: Multi-Server Consolidator & Extractor -->
             <StackPanel x:Name="pnlThreeUrlSync" Grid.Row="1" Visibility="Collapsed">
                 <Border Background="{DynamicResource CardBgBrush}" CornerRadius="12" Padding="18,12" Margin="0,0,0,8" BorderBrush="#1E3252" BorderThickness="1">
                     <StackPanel>
@@ -2870,16 +2874,17 @@ try {
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <StackPanel Grid.Column="0">
-                                <TextBlock Text="MULTI-SERVER CONSOLIDATOR &amp; SHARER (TO \\Cluster-A-Master)" FontWeight="Bold" FontSize="12.5" Foreground="#34D399"/>
-                                <TextBlock Text="Consolidate whole images &amp; plans from \\Cluster-B-Node (Wards) and \\Cluster-C-Storage into \\Cluster-A-Master Target. Common files ignored." FontSize="11" Foreground="#94A3B8" Margin="0,2,0,0"/>
+                                <TextBlock Text="MULTI-SERVER CONSOLIDATOR &amp; ASSET EXTRACTOR" FontWeight="Bold" FontSize="12.5" Foreground="#34D399"/>
+                                <TextBlock Text="Synchronize or Extract across multiple network servers (19, 11, 22) or local folders directly to Target Master or Desktop." FontSize="11" Foreground="#94A3B8" Margin="0,2,0,0"/>
                             </StackPanel>
                             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                                <Button x:Name="btnThreeUrlPresetCluster" Style="{StaticResource ActionButton}" Content="Quick Load Panvel 3-Server Preset" Background="#0D9488" FontSize="11.5" FontWeight="Bold" Padding="14,4" Height="32" Margin="0,0,8,0" VerticalContentAlignment="Center" ToolTip="Pre-fill exact paths for Cluster-B-Node (Wards), Cluster-C-Storage, and Cluster-A-Master Target"/>
-                                <Button x:Name="btnThreeUrlTestConn" Style="{StaticResource ActionButton}" Content="Test 3 URLs Connectivity" Background="#0284C7" FontSize="11.5" Padding="14,4" Height="32" VerticalContentAlignment="Center"/>
+                                <Button x:Name="btnThreeUrlPresetPanvel" Style="{StaticResource ActionButton}" Content="Load Panvel MC (19 / 11 / 22)" Background="#0D9488" FontSize="11" FontWeight="Bold" Padding="12,4" Height="32" Margin="0,0,6,0" VerticalContentAlignment="Center" ToolTip="Pre-fill exact live paths for Server 19 (Files Master), Server 11 (Wards), and Server 22 (PMC Photos)"/>
+                                <Button x:Name="btnThreeUrlPresetLocal" Style="{StaticResource ActionButton}" Content="Local / Test Preset" Background="#1E293B" FontSize="11" Padding="10,4" Height="32" Margin="0,0,6,0" VerticalContentAlignment="Center" ToolTip="Pre-fill local desktop test folders for offline testing"/>
+                                <Button x:Name="btnThreeUrlTestConn" Style="{StaticResource ActionButton}" Content="Test Connectivity" Background="#0284C7" FontSize="11" Padding="12,4" Height="32" VerticalContentAlignment="Center"/>
                             </StackPanel>
                         </Grid>
 
-                        <!-- URL 1 Row (Default: Cluster-A-Master Target Master) -->
+                        <!-- URL 1 Row (Default: 192.168.1.19 Target Master) -->
                         <Border x:Name="borderUrl1" Background="{DynamicResource CardBgDarkBrush}" CornerRadius="8" Padding="10,6" Margin="0,0,0,6" BorderBrush="#059669" BorderThickness="1.5">
                             <Grid>
                                 <Grid.ColumnDefinitions>
@@ -2887,13 +2892,13 @@ try {
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
-                                <RadioButton x:Name="rbUrlParent1" Grid.Column="0" GroupName="ParentUrlGroup" Content="URL 1: TARGET (Cluster-A-Master)" IsChecked="True" Foreground="#34D399" FontWeight="Bold" VerticalAlignment="Center" ToolTip="Designated Destination Hub for PropertyImage &amp; PlanPhoto"/>
-                                <TextBox x:Name="txtThreeUrl1" Grid.Column="1" Text="\\Cluster-A-Master\Enterprise\Archive\MasterFiles" VerticalAlignment="Center" Margin="8,0,8,0" ToolTip="Target Server Files root (auto-routes into PropertyImage and PlanPhoto)"/>
-                                <Button x:Name="btnThreeUrlBrowse1" Grid.Column="2" Style="{StaticResource ActionButton}" Content="Browse 1..." Width="110" Background="#1E293B" Height="32" Padding="12,2" FontSize="12" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
+                                <RadioButton x:Name="rbUrlParent1" Grid.Column="0" GroupName="ParentUrlGroup" Content="URL 1: TARGET 19 (MASTER)" IsChecked="True" Foreground="#34D399" FontWeight="Bold" VerticalAlignment="Center" ToolTip="Designated Destination Hub for PropertyImage &amp; PlanPhoto"/>
+                                <TextBox x:Name="txtThreeUrl1" Grid.Column="1" Text="\\192.168.1.19\Files" VerticalAlignment="Center" Margin="8,0,8,0" ToolTip="Target Server Files root (auto-routes into PropertyImage and PlanPhoto)"/>
+                                <Button x:Name="btnThreeUrlBrowse1" Grid.Column="2" Style="{StaticResource ActionButton}" Content="Browse 1..." Width="100" Background="#1E293B" Height="30" Padding="10,2" FontSize="11.5" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
                             </Grid>
                         </Border>
 
-                        <!-- URL 2 Row (Default: Cluster-B-Node Ward Structure) -->
+                        <!-- URL 2 Row (Default: 192.168.1.11 Ward Structure) -->
                         <Border x:Name="borderUrl2" Background="{DynamicResource CardBgDarkBrush}" CornerRadius="8" Padding="10,6" Margin="0,0,0,6" BorderBrush="#1E3252" BorderThickness="1">
                             <Grid>
                                 <Grid.ColumnDefinitions>
@@ -2902,13 +2907,13 @@ try {
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <RadioButton x:Name="rbUrlParent2" Grid.Column="0" GroupName="ParentUrlGroup" Content="URL 2: SOURCE 11 (WARDS)" Foreground="#94A3B8" FontWeight="SemiBold" VerticalAlignment="Center" ToolTip="Source with ward subfolders (e.g. ward no TPPG\Photo and \Plan)"/>
-                                <TextBox x:Name="txtThreeUrl2" Grid.Column="1" Text="\\Cluster-B-Node\Enterprise\Archive\Wards" VerticalAlignment="Center" Margin="8,0,8,0" ToolTip="Ward Root Folder (e.g. ward no TPPG\Photo and ward no TPPG\Plan)"/>
-                                <Button x:Name="btnThreeUrlBrowse2" Grid.Column="2" Style="{StaticResource ActionButton}" Content="Browse 2..." Width="110" Background="#1E293B" Height="32" Padding="12,2" FontSize="12" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
+                                <TextBox x:Name="txtThreeUrl2" Grid.Column="1" Text="\\192.168.1.11\Panvel_PMC_All_Ward_Wise_Photo_Plan" VerticalAlignment="Center" Margin="8,0,8,0" ToolTip="Ward Root Folder (e.g. ward no TPPG\Photo and ward no TPPG\Plan)"/>
+                                <Button x:Name="btnThreeUrlBrowse2" Grid.Column="2" Style="{StaticResource ActionButton}" Content="Browse 2..." Width="100" Background="#1E293B" Height="30" Padding="10,2" FontSize="11.5" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
                             </Grid>
                         </Border>
 
-                        <!-- URL 3 Row (Default: Cluster-C-Storage PMC Storage) -->
-                        <Border x:Name="borderUrl3" Background="{DynamicResource CardBgDarkBrush}" CornerRadius="8" Padding="10,6" Margin="0,0,0,8" BorderBrush="#1E3252" BorderThickness="1">
+                        <!-- URL 3 Row (Default: 192.168.1.22 PMC Storage) -->
+                        <Border x:Name="borderUrl3" Background="{DynamicResource CardBgDarkBrush}" CornerRadius="8" Padding="10,6" Margin="0,0,0,6" BorderBrush="#1E3252" BorderThickness="1">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="190"/>
@@ -2916,8 +2921,22 @@ try {
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <RadioButton x:Name="rbUrlParent3" Grid.Column="0" GroupName="ParentUrlGroup" Content="URL 3: SOURCE 22 (PMC)" Foreground="#94A3B8" FontWeight="SemiBold" VerticalAlignment="Center" ToolTip="Source with PropertyImage and PlanPhoto"/>
-                                <TextBox x:Name="txtThreeUrl3" Grid.Column="1" Text="\\Enterprise-NAS\Storage\Production\Files" VerticalAlignment="Center" Margin="8,0,8,0" ToolTip="PMC Storage Files Root (with PropertyImage and PlanPhoto)"/>
-                                <Button x:Name="btnThreeUrlBrowse3" Grid.Column="2" Style="{StaticResource ActionButton}" Content="Browse 3..." Width="110" Background="#1E293B" Height="32" Padding="12,2" FontSize="12" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
+                                <TextBox x:Name="txtThreeUrl3" Grid.Column="1" Text="\\192.168.1.22\PMC_Photo_22" VerticalAlignment="Center" Margin="8,0,8,0" ToolTip="PMC Storage Files Root (with PropertyImage and PlanPhoto)"/>
+                                <Button x:Name="btnThreeUrlBrowse3" Grid.Column="2" Style="{StaticResource ActionButton}" Content="Browse 3..." Width="100" Background="#1E293B" Height="30" Padding="10,2" FontSize="11.5" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
+                            </Grid>
+                        </Border>
+
+                        <!-- Optional Excel Filter Row in Mode 2 -->
+                        <Border Background="{DynamicResource CardBgDarkBrush}" CornerRadius="8" Padding="10,6" Margin="0,0,0,8" BorderBrush="#1C2D4A" BorderThickness="1">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <CheckBox x:Name="chkThreeUrlFilterExcel" Content="Filter by Excel Properties (Optional):" FontWeight="SemiBold" Foreground="#38BDF8" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <TextBox x:Name="txtThreeUrlExcel" Grid.Column="1" Text="" VerticalAlignment="Center" Margin="0,0,8,0" ToolTip="Select Excel/CSV file to extract ONLY matching property files across all 3 servers"/>
+                                <Button x:Name="btnThreeUrlBrowseExcel" Grid.Column="2" Style="{StaticResource ActionButton}" Content="Browse Excel..." Width="110" Background="#0D9488" Height="28" Padding="8,2" FontSize="11" VerticalContentAlignment="Center"/>
                             </Grid>
                         </Border>
 
@@ -2942,9 +2961,9 @@ try {
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0" Text="TARGET ACTION:" FontWeight="Bold" FontSize="11" Foreground="#38BDF8" VerticalAlignment="Center" Margin="0,0,12,0"/>
                             <WrapPanel Grid.Column="1" VerticalAlignment="Center">
-                                <RadioButton x:Name="rbSyncActionToParent" GroupName="SyncActionGroup" Content="Migrate to Target \\Cluster-A-Master (Skip Common Files)" IsChecked="True" Foreground="#34D399" FontWeight="SemiBold" Margin="0,0,18,4"/>
+                                <RadioButton x:Name="rbSyncActionToParent" GroupName="SyncActionGroup" Content="Migrate to Target Server (Skip Common Files)" IsChecked="True" Foreground="#34D399" FontWeight="SemiBold" Margin="0,0,18,4"/>
                                 <RadioButton x:Name="rbSyncActionBiDirectional" GroupName="SyncActionGroup" Content="Share Between All URLs (Full 2-Way Sync)" Foreground="#38BDF8" FontWeight="SemiBold" Margin="0,0,18,4"/>
-                                <RadioButton x:Name="rbSyncActionExtractDesktop" GroupName="SyncActionGroup" Content="Extract All to Desktop Folder" Foreground="#FBBF24" FontWeight="SemiBold" Margin="0,0,18,4"/>
+                                <RadioButton x:Name="rbSyncActionExtractDesktop" GroupName="SyncActionGroup" Content="Extract All to Desktop Folder (Direct Copy)" Foreground="#FBBF24" FontWeight="SemiBold" Margin="0,0,18,4"/>
                             </WrapPanel>
                         </Grid>
 
@@ -3079,11 +3098,11 @@ try {
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <Button x:Name="btnThreeUrlOpenParent" Grid.Column="0" Content="Open Target 19 Folder" Background="#1E293B" Style="{StaticResource ActionButton}" Margin="0,0,8,0" Padding="14,8" FontSize="12"/>
+                <Button x:Name="btnThreeUrlOpenParent" Grid.Column="0" Content="Open Target Master Folder" Background="#1E293B" Style="{StaticResource ActionButton}" Margin="0,0,8,0" Padding="14,8" FontSize="12"/>
                 <Button x:Name="btnThreeUrlOpenDesktop" Grid.Column="1" Content="Open Desktop Extracted Folder" Background="#1E293B" Style="{StaticResource ActionButton}" Margin="0,0,8,0" Padding="14,8" FontSize="12"/>
                 <Button x:Name="btnThreeUrlExportWard" Grid.Column="2" Content="Export Ward Paths (Excel/CSV)" Background="#0D9488" Style="{StaticResource ActionButton}" Margin="0,0,8,0" Padding="14,8" FontSize="12" ToolTip="Scan All Ward folders and export Photos &amp; Plans paths to Excel (Options A, B, C)"/>
                 <Button x:Name="btnThreeUrlAnalyze" Grid.Column="3" Content="1. SCAN &amp; COMPARE (AUDIT)" Background="#0284C7" FontSize="12" FontWeight="Bold" Padding="14,10" Style="{StaticResource ActionButton}" HorizontalAlignment="Right" Margin="0,0,8,0"/>
-                <Button x:Name="btnThreeUrlStart" Grid.Column="4" Content="2. START MIGRATING TO Cluster-A-Master" Background="{StaticResource SuccessBtnBrush}" FontSize="12.5" FontWeight="Bold" Padding="20,10" Style="{StaticResource ActionButton}"/>
+                <Button x:Name="btnThreeUrlStart" Grid.Column="4" Content="2. START MIGRATING TO TARGET MASTER" Background="{StaticResource SuccessBtnBrush}" FontSize="12.5" FontWeight="Bold" Padding="20,10" Style="{StaticResource ActionButton}"/>
             </Grid>
         </Grid>
 
@@ -4036,6 +4055,8 @@ $lblExtractStatus          = $window.FindName("lblExtractStatus")
 $btnExtractOpenDesktop     = $window.FindName("btnExtractOpenDesktop")
 $btnExtractOpenReport      = $window.FindName("btnExtractOpenReport")
 $btnExtractStart           = $window.FindName("btnExtractStart")
+$btnExtractPresetPanvel    = $window.FindName("btnExtractPresetPanvel")
+$btnExtractPreset19        = $window.FindName("btnExtractPreset19")
 
 # Tab 5 Sub-Mode & 3-URL Controls
 $btnSubModeStandardExtract = $window.FindName("btnSubModeStandardExtract")
@@ -4060,6 +4081,12 @@ $btnThreeUrlBrowse1        = $window.FindName("btnThreeUrlBrowse1")
 $btnThreeUrlBrowse2        = $window.FindName("btnThreeUrlBrowse2")
 $btnThreeUrlBrowse3        = $window.FindName("btnThreeUrlBrowse3")
 $btnThreeUrlTestConn       = $window.FindName("btnThreeUrlTestConn")
+$btnThreeUrlPresetPanvel   = $window.FindName("btnThreeUrlPresetPanvel")
+$btnThreeUrlPresetLocal    = $window.FindName("btnThreeUrlPresetLocal")
+$btnThreeUrlPresetCluster  = $window.FindName("btnThreeUrlPresetCluster")
+$chkThreeUrlFilterExcel    = $window.FindName("chkThreeUrlFilterExcel")
+$txtThreeUrlExcel          = $window.FindName("txtThreeUrlExcel")
+$btnThreeUrlBrowseExcel    = $window.FindName("btnThreeUrlBrowseExcel")
 
 $rbSyncActionToParent      = $window.FindName("rbSyncActionToParent")
 $rbSyncActionBiDirectional = $window.FindName("rbSyncActionBiDirectional")
@@ -4076,7 +4103,6 @@ $lblThreeUrlNewPlans       = $window.FindName("lblThreeUrlNewPlans")
 $lblThreeUrlNewToShare     = $lblThreeUrlNewPhotos
 $lblThreeUrlParentTotal    = $lblThreeUrlNewPlans
 
-$btnThreeUrlPresetCluster   = $window.FindName("btnThreeUrlPresetCluster")
 $rbSyncCategoryBoth        = $window.FindName("rbSyncCategoryBoth")
 $rbSyncCategoryPhotosOnly  = $window.FindName("rbSyncCategoryPhotosOnly")
 $rbSyncCategoryPlansOnly   = $window.FindName("rbSyncCategoryPlansOnly")
@@ -12545,14 +12571,22 @@ $rbPropertyPhotos.Add_Checked({
     $txtMaxKB.Text = "25"
     $txtMaxDim.Text = "700"
     $txtDPI.Text = "96"
-    $txtTargetFolder.Text = "\\Enterprise-NAS\Storage\Production\PropertyImages"
+    if ($txtTargetFolder.Text -match '(?i)PlanPhoto') {
+        $txtTargetFolder.Text = $txtTargetFolder.Text -replace '(?i)PlanPhoto', 'PropertyImage'
+    } elseif (-not $txtTargetFolder.Text -or $txtTargetFolder.Text.Contains("Enterprise-NAS")) {
+        $txtTargetFolder.Text = "\\192.168.1.22\PMC_Photo_22\PropertyImage"
+    }
 })
 
 $rbPlanPhotoWmf.Add_Checked({
     $txtMaxKB.Text = "25"
     $txtMaxDim.Text = "700"
     $txtDPI.Text = "96"
-    $txtTargetFolder.Text = "\\Enterprise-NAS\Storage\Production\PlanPhotos"
+    if ($txtTargetFolder.Text -match '(?i)PropertyImage') {
+        $txtTargetFolder.Text = $txtTargetFolder.Text -replace '(?i)PropertyImage', 'PlanPhoto'
+    } elseif (-not $txtTargetFolder.Text -or $txtTargetFolder.Text.Contains("Enterprise-NAS")) {
+        $txtTargetFolder.Text = "\\192.168.1.22\PMC_Photo_22\PlanPhoto"
+    }
 })
 
 $rbFilterExcel.Add_Checked({
@@ -12856,6 +12890,7 @@ $btnStart.Add_Click({
 # =====================================================================
 
 $global:extractLastReportPath = ""
+$global:threeUrlLastDesktopFolder = $null
 
 function Append-ExtractLog($msg) {
     $ts = (Get-Date).ToString("HH:mm:ss")
@@ -12865,18 +12900,18 @@ function Append-ExtractLog($msg) {
     })
 }
 
-# Default server paths
-$serverPhotoFolder = "\\Enterprise-NAS\Storage\Production\PropertyImages"
-$serverWmfFolder   = "\\Enterprise-NAS\Storage\Production\PlanPhotos"
+# Default server paths (Panvel MC Network)
+$serverPhotoFolder = "\\192.168.1.22\PMC_Photo_22\PropertyImage"
+$serverWmfFolder   = "\\192.168.1.22\PMC_Photo_22\PlanPhoto"
 $desktopDir        = [Environment]::GetFolderPath("Desktop")
 
 $defaultDestFolder = Join-Path $desktopDir "Collected_Property_Photos"
 $txtExtractDest.Text = $defaultDestFolder
 
 $rbExtractModePhotos.Add_Checked({
-    if ($txtExtractSource.Text -match 'PlanPhoto') {
-        $txtExtractSource.Text = $txtExtractSource.Text -replace 'PlanPhoto', 'PropertyImage'
-    } elseif ($txtExtractSource.Text -eq $serverWmfFolder -or -not $txtExtractSource.Text) {
+    if ($txtExtractSource.Text -match '(?i)PlanPhoto') {
+        $txtExtractSource.Text = $txtExtractSource.Text -replace '(?i)PlanPhoto', 'PropertyImage'
+    } elseif ($txtExtractSource.Text -eq $serverWmfFolder -or -not $txtExtractSource.Text -or $txtExtractSource.Text.Contains("Enterprise-NAS")) {
         $txtExtractSource.Text = $serverPhotoFolder
     }
     $dateStamp = (Get-Date).ToString("yyyyMMdd_HHmmss")
@@ -12884,9 +12919,9 @@ $rbExtractModePhotos.Add_Checked({
 })
 
 $rbExtractModeWmf.Add_Checked({
-    if ($txtExtractSource.Text -match 'PropertyImage') {
-        $txtExtractSource.Text = $txtExtractSource.Text -replace 'PropertyImage', 'PlanPhoto'
-    } elseif ($txtExtractSource.Text -eq $serverPhotoFolder -or -not $txtExtractSource.Text) {
+    if ($txtExtractSource.Text -match '(?i)PropertyImage') {
+        $txtExtractSource.Text = $txtExtractSource.Text -replace '(?i)PropertyImage', 'PlanPhoto'
+    } elseif ($txtExtractSource.Text -eq $serverPhotoFolder -or -not $txtExtractSource.Text -or $txtExtractSource.Text.Contains("Enterprise-NAS")) {
         $txtExtractSource.Text = $serverWmfFolder
     }
     $dateStamp = (Get-Date).ToString("yyyyMMdd_HHmmss")
@@ -12898,19 +12933,39 @@ $rbExtractModeBoth.Add_Checked({
     $txtExtractDest.Text = Join-Path $desktopDir "Collected_Photos_And_WMF_$dateStamp"
 })
 
+if ($btnExtractPresetPanvel) {
+    $btnExtractPresetPanvel.Add_Click({
+        $folder = if ($rbExtractModeWmf.IsChecked -eq $true) { "\\192.168.1.22\PMC_Photo_22\PlanPhoto" } else { "\\192.168.1.22\PMC_Photo_22\PropertyImage" }
+        $txtExtractSource.Text = $folder
+        Append-ExtractLog "Loaded Panvel MC Server 22 source directory: $folder"
+    })
+}
+
+if ($btnExtractPreset19) {
+    $btnExtractPreset19.Add_Click({
+        $folder = if ($rbExtractModeWmf.IsChecked -eq $true) { "\\192.168.1.19\Files\PlanPhoto" } else { "\\192.168.1.19\Files\PropertyImage" }
+        $txtExtractSource.Text = $folder
+        Append-ExtractLog "Loaded Panvel MC Server 19 source directory: $folder"
+    })
+}
+
 $btnExtractBrowseSource.Add_Click({
     $dlg = New-Object System.Windows.Forms.FolderBrowserDialog
     $dlg.Description = "Select Source Server / Network Image Folder"
     $dlg.SelectedPath = $txtExtractSource.Text
     if ($dlg.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
-        $txtExtractSource.Text = $dlg.SelectedPath
+        if ($txtExtractSource.Text -and $txtExtractSource.Text -ne $dlg.SelectedPath -and (Test-Path -LiteralPath $txtExtractSource.Text)) {
+            $txtExtractSource.Text = "$($txtExtractSource.Text); $($dlg.SelectedPath)"
+        } else {
+            $txtExtractSource.Text = $dlg.SelectedPath
+        }
     }
 })
 
 $btnExtractBrowseExcel.Add_Click({
     $dlg = New-Object System.Windows.Forms.OpenFileDialog
-    $dlg.Title = "Select Excel File (.xlsx / .xls / .csv) with Property Numbers / Owner IDs"
-    $dlg.Filter = "Excel & CSV Files (*.xlsx;*.xls;*.csv)|*.xlsx;*.xls;*.csv|All Files (*.*)|*.*"
+    $dlg.Title = "Select Excel / CSV File with Property Numbers / Owner IDs"
+    $dlg.Filter = "Excel & CSV Files (*.xlsx;*.xls;*.csv;*.tsv;*.txt)|*.xlsx;*.xls;*.csv;*.tsv;*.txt|All Files (*.*)|*.*"
     $dlg.InitialDirectory = [Environment]::GetFolderPath("Desktop")
     if ($dlg.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
         $txtExtractExcel.Text = $dlg.FileName
@@ -12949,94 +13004,30 @@ $btnExtractOpenReport.Add_Click({
     }
 })
 
-$btnExtractStart.Add_Click({
-    $srcFolder = $txtExtractSource.Text.Trim()
-    $excelPath = $txtExtractExcel.Text.Trim()
-    $destFolder = $txtExtractDest.Text.Trim()
-    $isSubfolders = $chkExtractSubfolders.IsChecked -eq $true
-    $isRecursive = $chkExtractRecursive.IsChecked -eq $true
-    $isAutoResize = $chkExtractAutoResize.IsChecked -eq $true
-    $isWhiteCanvas = $chkExtractWhiteCanvas.IsChecked -eq $true
-    $mode = if ($rbExtractModeWmf.IsChecked -eq $true) { "WMF" } elseif ($rbExtractModeBoth.IsChecked -eq $true) { "Both" } else { "Photos" }
-
-    # Auto-switch path if WMF mode is chosen but source folder points to PropertyImage
-    if ($mode -eq "WMF" -and $srcFolder -match 'PropertyImage') {
-        $candidatePlan = $srcFolder -replace 'PropertyImage', 'PlanPhoto'
-        if (Test-Path -LiteralPath $candidatePlan) {
-            $srcFolder = $candidatePlan
-            $txtExtractSource.Text = $srcFolder
-        }
-    } elseif ($mode -eq "Photos" -and $srcFolder -match 'PlanPhoto') {
-        $candidateProp = $srcFolder -replace 'PlanPhoto', 'PropertyImage'
-        if (Test-Path -LiteralPath $candidateProp) {
-            $srcFolder = $candidateProp
-            $txtExtractSource.Text = $srcFolder
-        }
-    }
-
-    if (-not (Test-Path -LiteralPath $srcFolder)) {
-        [System.Windows.MessageBox]::Show("Cannot access source server image folder:`n$srcFolder", "Invalid Source Folder", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Error)
-        return
-    }
-
-    if (-not (Test-Path -LiteralPath $excelPath)) {
-        [System.Windows.MessageBox]::Show("Excel file not found at:`n$excelPath", "Invalid Excel File", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Error)
-        return
-    }
-
-    if (-not $destFolder) {
-        $dateStamp = (Get-Date).ToString("yyyyMMdd_HHmmss")
-        $prefix = if ($mode -eq "WMF") { "Collected_WMF_Plans" } elseif ($mode -eq "Both") { "Collected_Photos_And_WMF" } else { "Collected_Property_Photos" }
-        $destFolder = Join-Path $desktopDir "${prefix}_$dateStamp"
-        $txtExtractDest.Text = $destFolder
-    }
-
-    if (-not (Test-Path -LiteralPath $destFolder)) {
-        New-Item -ItemType Directory -Path $destFolder -Force | Out-Null
-    }
-
-    $btnExtractStart.IsEnabled = $false
-    $txtExtractLogs.Clear()
-    $lblExtractTotalProp.Text = "0"
-    $lblExtractFoundProp.Text = "0"
-    $lblExtractMissingProp.Text = "0"
-    $lblExtractCollectedPhotos.Text = "0"
-    $extractProgressBar.Value = 5
-    $lblExtractStatus.Text = "Status: Reading property numbers from Excel..."
-
-    Append-ExtractLog "======================================================="
-    Append-ExtractLog "STARTING SERVER COLLECTION ($mode Mode)"
-    Append-ExtractLog "Source Folder      : $srcFolder"
-    Append-ExtractLog "Excel File         : $excelPath"
-    Append-ExtractLog "Desktop Dest       : $destFolder"
-    if ($mode -eq "WMF" -or $mode -eq "Both") {
-        Append-ExtractLog "Solid White Canvas : $(if ($isWhiteCanvas) {'ENABLED (Crystal Reports Safe)'} else {'Disabled'})"
-    }
-    Append-ExtractLog "======================================================="
-
-    [System.Windows.Forms.Application]::DoEvents()
-
-    # Step 1: Parse Excel Properties
+# =====================================================================
+# SPREADSHEET PARSER (XLSX OpenXML, CSV, TSV, TXT, and XLS COM Fallback)
+# =====================================================================
+function Get-SpreadsheetProperties($excelPath) {
     $propList = [System.Collections.Generic.List[string]]::new()
     $tokenToPrimary = [System.Collections.Generic.Dictionary[string, string]]::new([System.StringComparer]::OrdinalIgnoreCase)
 
-    function Add-PropAlias($primary, $alias) {
-        if (-not $alias -or $alias.Trim() -eq "" -or $alias -eq "#N/A") { return }
+    function Add-TokenAlias($primary, $alias) {
+        if ([string]::IsNullOrWhiteSpace($alias) -or $alias -eq "#N/A") { return }
         $a = $alias.Trim()
         if (-not $tokenToPrimary.ContainsKey($a)) { $tokenToPrimary[$a] = $primary }
     }
 
-    function Process-RowData($rowVals) {
+    function Process-ItemRow($rowVals) {
         $building = ""; $node = ""; $ward = ""; $prop = ""; $part = ""; $ownerId = ""; $generic = ""
         foreach ($k in $rowVals.Keys) {
             $v = [string]$rowVals[$k]
-            if (-not $v -or $v.Trim() -eq "" -or $v -eq "#N/A") { continue }
+            if ([string]::IsNullOrWhiteSpace($v) -or $v -eq "#N/A") { continue }
             $v = $v.Trim()
             $kL = $k.ToLower()
             if ($kL -match '^building') { $building = $v }
             elseif ($kL -match '^node') { $node = $v }
             elseif ($kL -match '(newward|ward)') { $ward = $v }
-            elseif ($kL -match '(newprop|propertyno|property_no|property|propno)') { $prop = $v }
+            elseif ($kL -match '(newprop|propertyno|property_no|property|propno|prop_no)') { $prop = $v }
             elseif ($kL -match '(partition|partno|part_no|part)') { $part = $v }
             elseif ($kL -match '(ownerid|owner_id|owner)') { $ownerId = $v }
             elseif ($kL -match '^(prop|id|flat|assessment|consumer)') { $generic = $v }
@@ -13048,24 +13039,27 @@ $btnExtractStart.Add_Click({
             }
         }
 
+        # Property Number is PRIMARY (not building name!)
         $primary = ""
-        if ($building) { $primary = $building }
-        elseif ($ownerId) { $primary = $ownerId }
-        elseif ($prop -and $ward) { $primary = "$ward-$prop" }
+        if ($prop -and $ward) { $primary = "$ward-$prop" }
         elseif ($prop) { $primary = $prop }
+        elseif ($ownerId) { $primary = $ownerId }
+        elseif ($building) { $primary = $building }
         elseif ($generic) { $primary = $generic }
         else {
             foreach ($v in $rowVals.Values) {
-                if ($v -and $v.Trim() -ne "" -and $v -ne "#N/A") { $primary = $v.Trim(); break }
+                if (-not [string]::IsNullOrWhiteSpace($v) -and $v -ne "#N/A") { $primary = $v.Trim(); break }
             }
         }
 
         if (-not $primary) { return }
         if (-not $propList.Contains($primary)) { $propList.Add($primary) }
-        Add-PropAlias $primary $primary
+        Add-TokenAlias $primary $primary
 
-        if ($building) { Add-PropAlias $primary $building }
-        if ($ownerId) { Add-PropAlias $primary $ownerId }
+        if ($prop) { Add-TokenAlias $primary $prop }
+        if ($building) { Add-TokenAlias $primary $building }
+        if ($ownerId) { Add-TokenAlias $primary $ownerId }
+        if ($generic) { Add-TokenAlias $primary $generic }
 
         # Numeric variations for Property Number
         $wList = [System.Collections.Generic.List[string]]::new()
@@ -13120,80 +13114,23 @@ $btnExtractStart.Add_Click({
 
         foreach ($wItem in $wList) {
             foreach ($pItem in $pList) {
-                Add-PropAlias $primary "$wItem-$pItem"
-                Add-PropAlias $primary "$wItem`_$pItem"
-                Add-PropAlias $primary "$wItem$pItem"
-                Add-PropAlias $primary "$wItem-A-$pItem"
-                Add-PropAlias $primary "$wItem-B-$pItem"
-                Add-PropAlias $primary "$wItem-C-$pItem"
-                Add-PropAlias $primary "$wItem-P-$pItem"
-                Add-PropAlias $primary "$wItem-PL-$pItem"
-                Add-PropAlias $primary "$wItem`_A`_$pItem"
-                Add-PropAlias $primary "$wItem`_B`_$pItem"
-                Add-PropAlias $primary "$wItem`_P`_$pItem"
+                Add-TokenAlias $primary "$wItem-$pItem"
+                Add-TokenAlias $primary "$wItem`_$pItem"
+                Add-TokenAlias $primary "$wItem$pItem"
+                Add-TokenAlias $primary "$wItem-A-$pItem"
+                Add-TokenAlias $primary "$wItem-B-$pItem"
+                Add-TokenAlias $primary "$wItem-C-$pItem"
+                Add-TokenAlias $primary "$wItem-P-$pItem"
+                Add-TokenAlias $primary "$wItem-PL-$pItem"
+                Add-TokenAlias $primary "$wItem`_A`_$pItem"
+                Add-TokenAlias $primary "$wItem`_B`_$pItem"
+                Add-TokenAlias $primary "$wItem`_P`_$pItem"
                 if ($part) {
-                    Add-PropAlias $primary "$wItem-$pItem-$part"
-                    Add-PropAlias $primary "$wItem-$pItem`_$part"
+                    Add-TokenAlias $primary "$wItem-$pItem-$part"
+                    Add-TokenAlias $primary "$wItem-$pItem`_$part"
                 }
             }
         }
-    }
-
-    function Get-MatchedPropKey($fileName) {
-        $nameNoExt = [System.IO.Path]::GetFileNameWithoutExtension($fileName)
-        if ($tokenToPrimary.ContainsKey($nameNoExt)) { return $tokenToPrimary[$nameNoExt] }
-
-        # 1. Strip known server prefixes
-        $clean = $nameNoExt -replace '^(D_|DIMAJOR_|MAJOR_|MINOR_|WARD_|PRABHAG_|ZONE_|PHOTO_|PROP_|PLAN_|WMF_|PMC[-_]OP\d*[-_]|PMC[-_]|IMG[-_]|PIC[-_]|SCAN[-_]|FILE[-_]|--+)', ''
-        if ($tokenToPrimary.ContainsKey($clean)) { return $tokenToPrimary[$clean] }
-
-        # 2. Strip trailing photo sequence / orientation / revision / archive suffixes
-        $noSuffix = $clean -replace '([_\-\.]+(?:BK|R\d+|C\d+|REV\d*|part\d*|front|rear|side|inside|outside|road|meter|top|back|latlong|plan|wmf|photo|img|pic|\d+|[A-Za-z]))*$', ''
-        if ($noSuffix -and $tokenToPrimary.ContainsKey($noSuffix)) { return $tokenToPrimary[$noSuffix] }
-
-        # 3. Delimiter normalization (_ to -)
-        $dashClean = $clean -replace '[_\s]+', '-'
-        if ($tokenToPrimary.ContainsKey($dashClean)) { return $tokenToPrimary[$dashClean] }
-
-        $dashNoSuffix = $noSuffix -replace '[_\s]+', '-'
-        if ($dashNoSuffix -and $tokenToPrimary.ContainsKey($dashNoSuffix)) { return $tokenToPrimary[$dashNoSuffix] }
-
-        # 4. Infix pattern: Node + Ward + Infix + Prop (e.g. KH10-A-1-R1 -> KH10-1)
-        if ($dashClean -match '^([A-Za-z0-9]+)[-_](?:[A-Za-z]+)[-_](\d+)') {
-            $wCand = $Matches[1]; $pCand = $Matches[2]
-            if ($tokenToPrimary.ContainsKey("$wCand-$pCand")) { return $tokenToPrimary["$wCand-$pCand"] }
-            if ($pCand -match '^\d+$') {
-                $pInt = [int]$pCand
-                if ($tokenToPrimary.ContainsKey("$wCand-$($pInt)")) { return $tokenToPrimary["$wCand-$($pInt)"] }
-            }
-        }
-
-        # 5. Ward + Prop pattern with numeric normalization
-        if ($dashClean -match '^([A-Za-z0-9]+)[-_](\d+)') {
-            $wCand = $Matches[1]; $pCand = $Matches[2]
-            if ($tokenToPrimary.ContainsKey("$wCand-$pCand")) { return $tokenToPrimary["$wCand-$pCand"] }
-            if ($pCand -match '^\d+$') {
-                $pInt = [int]$pCand
-                if ($tokenToPrimary.ContainsKey("$wCand-$($pInt)")) { return $tokenToPrimary["$wCand-$($pInt)"] }
-            }
-        }
-
-        # 6. Progressive right-to-left segment trimming
-        $curr = $dashClean.Trim('-')
-        $safety = 0
-        while ($safety -lt 10 -and $curr.Contains("-")) {
-            $safety++
-            $lastIdx = $curr.LastIndexOf('-')
-            if ($lastIdx -le 0) { break }
-            $curr = $curr.Substring(0, $lastIdx).TrimEnd('-')
-            if ($curr -and $tokenToPrimary.ContainsKey($curr)) { return $tokenToPrimary[$curr] }
-            if ($curr -match '^(.+)-(\d+)$') {
-                $wPart = $Matches[1]; $pPart = [int]$Matches[2]
-                if ($tokenToPrimary.ContainsKey("$wPart-$pPart")) { return $tokenToPrimary["$wPart-$pPart"] }
-            }
-        }
-
-        return $null
     }
 
     $ext = [System.IO.Path]::GetExtension($excelPath).ToLower()
@@ -13259,7 +13196,7 @@ $btnExtractStart.Add_Click({
                         }
                     }
                     if ($isHeader) { $isHeader = $false }
-                    else { if ($rowVals.Count -gt 0) { Process-RowData -rowVals $rowVals } }
+                    else { if ($rowVals.Count -gt 0) { Process-ItemRow -rowVals $rowVals } }
                 }
             }
             $zip.Dispose()
@@ -13268,8 +13205,56 @@ $btnExtractStart.Add_Click({
         }
     }
 
+    # Native CSV / TSV / TXT parsing
+    if ($propList.Count -eq 0 -and ($ext -eq ".csv" -or $ext -eq ".txt" -or $ext -eq ".tsv")) {
+        try {
+            $lines = [System.IO.File]::ReadAllLines($excelPath)
+            if ($lines.Length -gt 0) {
+                $firstLine = $lines[0]
+                $delim = ","
+                if ($firstLine.Contains("`t")) { $delim = "`t" }
+                elseif ($firstLine.Contains(";")) { $delim = ";" }
+                elseif ($firstLine.Contains("|")) { $delim = "|" }
+
+                $hasHeader = ($firstLine -match '(?i)(prop|ward|node|owner|build|id|flat|name|sr|no)')
+                $headerCols = @()
+                $startIdx = 0
+                if ($hasHeader) {
+                    $headerCols = $firstLine.Split($delim) | ForEach-Object { $_.Trim('"', ' ') }
+                    $startIdx = 1
+                }
+
+                for ($r = $startIdx; $r -lt $lines.Length; $r++) {
+                    $line = $lines[$r].Trim()
+                    if (-not $line) { continue }
+                    $cols = $line.Split($delim) | ForEach-Object { $_.Trim('"', ' ') }
+                    $rowVals = @{}
+                    for ($c = 0; $c -lt $cols.Length; $c++) {
+                        $colName = if ($hasHeader -and $c -lt $headerCols.Length -and $headerCols[$c]) { $headerCols[$c] } else { "Col_$c" }
+                        $rowVals[$colName] = $cols[$c]
+                        $rowVals["Col_$c"] = $cols[$c]
+                    }
+                    if ($rowVals.Count -gt 0) { Process-ItemRow -rowVals $rowVals }
+                }
+
+                # Plain lines fallback
+                if ($propList.Count -eq 0) {
+                    foreach ($line in $lines) {
+                        $it = $line.Trim('"', ' ', "`t", "`r", "`n")
+                        if ($it -and $it.Length -ge 1 -and $it -notmatch '^(Property|SrNo|Owner|ID)$') {
+                            if (-not $propList.Contains($it)) { $propList.Add($it) }
+                            Add-TokenAlias $it $it
+                        }
+                    }
+                }
+            }
+        } catch {
+            Append-ExtractLog "Text parser notice: $($_.Exception.Message)"
+        }
+    }
+
+    # COM Excel Fallback for .xls
     if ($propList.Count -eq 0) {
-        # Fallback to COM Excel
         $excel = $null; $wb = $null
         try {
             $excel = New-Object -ComObject Excel.Application
@@ -13290,7 +13275,7 @@ $btnExtractStart.Add_Click({
                         $hName = if ($headers.ContainsKey($c)) { $headers[$c] } else { "Col_$c" }
                         $v = [string]($vals[$r, $c]); if ($v) { $rowVals[$hName] = $v.Trim() }
                     }
-                    if ($rowVals.Count -gt 0) { Process-RowData -rowVals $rowVals }
+                    if ($rowVals.Count -gt 0) { Process-ItemRow -rowVals $rowVals }
                 }
             }
         } catch {} finally {
@@ -13298,6 +13283,160 @@ $btnExtractStart.Add_Click({
             if ($excel) { $excel.Quit(); [System.Runtime.InteropServices.Marshal]::ReleaseComObject($excel) | Out-Null }
         }
     }
+
+    return [PSCustomObject]@{
+        PropList = $propList
+        TokenMap = $tokenToPrimary
+    }
+}
+
+# =====================================================================
+# INTELLIGENT ASSET MATCHING ENGINE
+# =====================================================================
+function Find-MatchedPropertyKey($fileName, $tokenMap) {
+    if (-not $tokenMap -or $tokenMap.Count -eq 0) { return $null }
+    $nameNoExt = [System.IO.Path]::GetFileNameWithoutExtension($fileName)
+    if ($tokenMap.ContainsKey($nameNoExt)) { return $tokenMap[$nameNoExt] }
+
+    # 1. Direct Prefix Check (Fastest & most common for files like 1001_1.jpg, 1001-A.jpg)
+    $clean = $nameNoExt -replace '^(D_|DIMAJOR_|MAJOR_|MINOR_|WARD_|PRABHAG_|ZONE_|PHOTO_|PROP_|PLAN_|WMF_|PMC[-_]OP\d*[-_]|PMC[-_]|IMG[-_]|PIC[-_]|SCAN[-_]|FILE[-_]|--+)', ''
+    if ($tokenMap.ContainsKey($clean)) { return $tokenMap[$clean] }
+
+    foreach ($tok in $tokenMap.Keys) {
+        if ($tok.Length -ge 2) {
+            if ($nameNoExt.StartsWith("$tok`_", [System.StringComparison]::OrdinalIgnoreCase) -or
+                $nameNoExt.StartsWith("$tok-", [System.StringComparison]::OrdinalIgnoreCase) -or
+                $nameNoExt.StartsWith("$tok ", [System.StringComparison]::OrdinalIgnoreCase) -or
+                $clean.StartsWith("$tok`_", [System.StringComparison]::OrdinalIgnoreCase) -or
+                $clean.StartsWith("$tok-", [System.StringComparison]::OrdinalIgnoreCase)) {
+                return $tokenMap[$tok]
+            }
+        }
+    }
+
+    # 2. Strip trailing photo sequence / orientation / revision / archive suffixes
+    $noSuffix = $clean -replace '([_\-\.]+(?:BK|R\d+|C\d+|REV\d*|part\d*|front|rear|side|inside|outside|road|meter|top|back|latlong|plan|wmf|photo|img|pic|\d+|[A-Za-z]))*$', ''
+    if ($noSuffix -and $tokenMap.ContainsKey($noSuffix)) { return $tokenMap[$noSuffix] }
+
+    # 3. Delimiter normalization (_ to -)
+    $dashClean = $clean -replace '[_\s]+', '-'
+    if ($tokenMap.ContainsKey($dashClean)) { return $tokenMap[$dashClean] }
+
+    $dashNoSuffix = $noSuffix -replace '[_\s]+', '-'
+    if ($dashNoSuffix -and $tokenMap.ContainsKey($dashNoSuffix)) { return $tokenMap[$dashNoSuffix] }
+
+    # 4. Infix pattern: Node + Ward + Infix + Prop (e.g. KH10-A-1-R1 -> KH10-1)
+    if ($dashClean -match '^([A-Za-z0-9]+)[-_](?:[A-Za-z]+)[-_](\d+)') {
+        $wCand = $Matches[1]; $pCand = $Matches[2]
+        if ($tokenMap.ContainsKey("$wCand-$pCand")) { return $tokenMap["$wCand-$pCand"] }
+        if ($pCand -match '^\d+$') {
+            $pInt = [int]$pCand
+            if ($tokenMap.ContainsKey("$wCand-$($pInt)")) { return $tokenMap["$wCand-$($pInt)"] }
+        }
+    }
+
+    # 5. Ward + Prop pattern with numeric normalization
+    if ($dashClean -match '^([A-Za-z0-9]+)[-_](\d+)') {
+        $wCand = $Matches[1]; $pCand = $Matches[2]
+        if ($tokenMap.ContainsKey("$wCand-$pCand")) { return $tokenMap["$wCand-$pCand"] }
+        if ($pCand -match '^\d+$') {
+            $pInt = [int]$pCand
+            if ($tokenMap.ContainsKey("$wCand-$($pInt)")) { return $tokenMap["$wCand-$($pInt)"] }
+        }
+    }
+
+    # 6. Progressive right-to-left segment trimming
+    $curr = $dashClean.Trim('-')
+    $safety = 0
+    while ($safety -lt 10 -and $curr.Contains("-")) {
+        $safety++
+        $lastIdx = $curr.LastIndexOf('-')
+        if ($lastIdx -le 0) { break }
+        $curr = $curr.Substring(0, $lastIdx).TrimEnd('-')
+        if ($curr -and $tokenMap.ContainsKey($curr)) { return $tokenMap[$curr] }
+        if ($curr -match '^(.+)-(\d+)$') {
+            $wPart = $Matches[1]; $pPart = [int]$Matches[2]
+            if ($tokenMap.ContainsKey("$wPart-$pPart")) { return $tokenMap["$wPart-$pPart"] }
+        }
+    }
+
+    return $null
+}
+
+# =====================================================================
+# SUB-MODE 1: MULTI-SOURCE PROPERTY EXTRACTOR TO DESKTOP
+# =====================================================================
+$btnExtractStart.Add_Click({
+    $srcInput = $txtExtractSource.Text.Trim()
+    $excelPath = $txtExtractExcel.Text.Trim()
+    $destFolder = $txtExtractDest.Text.Trim()
+    $isSubfolders = $chkExtractSubfolders.IsChecked -eq $true
+    $isRecursive = $chkExtractRecursive.IsChecked -eq $true
+    $isAutoResize = $chkExtractAutoResize.IsChecked -eq $true
+    $isWhiteCanvas = $chkExtractWhiteCanvas.IsChecked -eq $true
+    $mode = if ($rbExtractModeWmf.IsChecked -eq $true) { "WMF" } elseif ($rbExtractModeBoth.IsChecked -eq $true) { "Both" } else { "Photos" }
+
+    # Parse multiple source paths (split by semicolon, comma, or newline)
+    $rawSrcs = $srcInput.Split(@(';', ',', '|', "`n", "`r"), [System.StringSplitOptions]::RemoveEmptyEntries) | ForEach-Object { $_.Trim('"', ' ') } | Where-Object { $_ }
+    if ($rawSrcs.Count -eq 0) {
+        [System.Windows.MessageBox]::Show("Please specify at least one source image folder.", "Source Folder Required", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Warning)
+        return
+    }
+
+    $validSources = [System.Collections.Generic.List[string]]::new()
+    $invalidSources = [System.Collections.Generic.List[string]]::new()
+    foreach ($s in $rawSrcs) {
+        if (Test-Path -LiteralPath $s) { $validSources.Add($s) }
+        else { $invalidSources.Add($s) }
+    }
+
+    if ($validSources.Count -eq 0) {
+        [System.Windows.MessageBox]::Show("None of the specified source server folders could be reached:`n$($invalidSources -join "`n")`n`nPlease verify network connectivity and folder paths.", "Source Folders Inaccessible", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Error)
+        return
+    }
+
+    if (-not (Test-Path -LiteralPath $excelPath)) {
+        [System.Windows.MessageBox]::Show("Excel file not found at:`n$excelPath", "Invalid Excel File", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Error)
+        return
+    }
+
+    if (-not $destFolder) {
+        $dateStamp = (Get-Date).ToString("yyyyMMdd_HHmmss")
+        $prefix = if ($mode -eq "WMF") { "Collected_WMF_Plans" } elseif ($mode -eq "Both") { "Collected_Photos_And_WMF" } else { "Collected_Property_Photos" }
+        $destFolder = Join-Path $desktopDir "${prefix}_$dateStamp"
+        $txtExtractDest.Text = $destFolder
+    }
+
+    if (-not (Test-Path -LiteralPath $destFolder)) {
+        New-Item -ItemType Directory -Path $destFolder -Force | Out-Null
+    }
+
+    $btnExtractStart.IsEnabled = $false
+    $txtExtractLogs.Clear()
+    $lblExtractTotalProp.Text = "0"
+    $lblExtractFoundProp.Text = "0"
+    $lblExtractMissingProp.Text = "0"
+    $lblExtractCollectedPhotos.Text = "0"
+    $extractProgressBar.Value = 5
+    $lblExtractStatus.Text = "Status: Reading property numbers from Excel..."
+
+    Append-ExtractLog "======================================================="
+    Append-ExtractLog "STARTING SERVER COLLECTION ($mode Mode)"
+    foreach ($vs in $validSources) { Append-ExtractLog "Source Folder      : $vs" }
+    if ($invalidSources.Count -gt 0) {
+        foreach ($ivs in $invalidSources) { Append-ExtractLog "[WARNING] Unreachable: $ivs" }
+    }
+    Append-ExtractLog "Excel File         : $excelPath"
+    Append-ExtractLog "Desktop Dest       : $destFolder"
+    Append-ExtractLog "Solid White Canvas : $(if ($isWhiteCanvas) {'ENABLED (Crystal Reports Safe)'} else {'Disabled'})"
+    Append-ExtractLog "Auto-Resize <25KB  : $(if ($isAutoResize) {'ENABLED'} else {'Disabled'})"
+    Append-ExtractLog "======================================================="
+    [System.Windows.Forms.Application]::DoEvents()
+
+    # Step 1: Parse Excel/CSV Properties
+    $parsedData = Get-SpreadsheetProperties $excelPath
+    $propList = $parsedData.PropList
+    $tokenToPrimary = $parsedData.TokenMap
 
     $lblExtractTotalProp.Text = $propList.Count.ToString()
     Append-ExtractLog "Loaded $($propList.Count) unique properties from Excel ($($tokenToPrimary.Count) search variations)."
@@ -13308,9 +13447,9 @@ $btnExtractStart.Add_Click({
         return
     }
 
-    # Step 2: Intelligent Multi-Server Directory Discovery & Crawling
+    # Step 2: Intelligent Multi-Location Directory Discovery & Crawling
     $extractProgressBar.Value = 20
-    $lblExtractStatus.Text = "Status: Scanning server files..."
+    $lblExtractStatus.Text = "Status: Scanning server files across $($validSources.Count) location(s)..."
     [System.Windows.Forms.Application]::DoEvents()
 
     $imgExts = if ($mode -eq "WMF") {
@@ -13322,55 +13461,53 @@ $btnExtractStart.Add_Click({
     }
 
     $rootFolders = [System.Collections.Generic.List[string]]::new()
-    $rootFolders.Add($srcFolder)
+    foreach ($vs in $validSources) {
+        $rootFolders.Add($vs)
 
-    # Automatic Multi-Location Discovery (Photos + WMFs)
-    if ($mode -eq "Both") {
-        if ($srcFolder -match '(?i)PropertyImage') {
-            $planSibling = $srcFolder -replace '(?i)PropertyImage', 'PlanPhoto'
-            if ((Test-Path -LiteralPath $planSibling) -and -not $rootFolders.Contains($planSibling)) {
-                $rootFolders.Add($planSibling)
-                Append-ExtractLog "[AI AUTO-DISCOVERY] Detected sibling PlanPhoto directory: $planSibling"
+        # Automatic sibling discovery
+        if ($mode -eq "Both") {
+            if ($vs -match '(?i)PropertyImage') {
+                $sib = $vs -replace '(?i)PropertyImage', 'PlanPhoto'
+                if ((Test-Path -LiteralPath $sib) -and -not $rootFolders.Contains($sib)) {
+                    $rootFolders.Add($sib)
+                    Append-ExtractLog "[AI AUTO-DISCOVERY] Detected sibling PlanPhoto directory: $sib"
+                }
+            } elseif ($vs -match '(?i)PlanPhoto') {
+                $sib = $vs -replace '(?i)PlanPhoto', 'PropertyImage'
+                if ((Test-Path -LiteralPath $sib) -and -not $rootFolders.Contains($sib)) {
+                    $rootFolders.Add($sib)
+                    Append-ExtractLog "[AI AUTO-DISCOVERY] Detected sibling PropertyImage directory: $sib"
+                }
             }
-        } elseif ($srcFolder -match '(?i)PlanPhoto') {
-            $propSibling = $srcFolder -replace '(?i)PlanPhoto', 'PropertyImage'
-            if ((Test-Path -LiteralPath $propSibling) -and -not $rootFolders.Contains($propSibling)) {
-                $rootFolders.Add($propSibling)
-                Append-ExtractLog "[AI AUTO-DISCOVERY] Detected sibling PropertyImage directory: $propSibling"
+            foreach ($subName in @("PropertyImage", "PlanPhoto", "Photos", "WMF", "Plans", "Images")) {
+                $subP = Join-Path $vs $subName
+                if ((Test-Path -LiteralPath $subP) -and -not $rootFolders.Contains($subP)) {
+                    $rootFolders.Add($subP)
+                    Append-ExtractLog "[AI AUTO-DISCOVERY] Found subfolder '$subName': $subP"
+                }
             }
-        }
-        foreach ($subName in @("PropertyImage", "PlanPhoto", "Photos", "WMF", "Plans", "Images")) {
-            $subPath = Join-Path $srcFolder $subName
-            if ((Test-Path -LiteralPath $subPath) -and -not $rootFolders.Contains($subPath)) {
-                $rootFolders.Add($subPath)
-                Append-ExtractLog "[AI AUTO-DISCOVERY] Found subfolder '$subName': $subPath"
+        } elseif ($mode -eq "WMF") {
+            if ($vs -match '(?i)PropertyImage') {
+                $sib = $vs -replace '(?i)PropertyImage', 'PlanPhoto'
+                if (Test-Path -LiteralPath $sib) {
+                    $rootFolders.Remove($vs) | Out-Null
+                    $rootFolders.Add($sib)
+                    Append-ExtractLog "[AI AUTO-REDIRECT] Switched to PlanPhoto directory: $sib"
+                }
             }
-        }
-    } elseif ($mode -eq "WMF") {
-        if ($srcFolder -match '(?i)PropertyImage') {
-            $planSibling = $srcFolder -replace '(?i)PropertyImage', 'PlanPhoto'
-            if (Test-Path -LiteralPath $planSibling) {
-                $rootFolders.Clear()
-                $rootFolders.Add($planSibling)
-                Append-ExtractLog "[AI AUTO-REDIRECT] Switched to PlanPhoto directory: $planSibling"
+            $subP = Join-Path $vs "PlanPhoto"
+            if ((Test-Path -LiteralPath $subP) -and -not $rootFolders.Contains($subP)) { $rootFolders.Add($subP) }
+        } elseif ($mode -eq "Photos") {
+            if ($vs -match '(?i)PlanPhoto') {
+                $sib = $vs -replace '(?i)PlanPhoto', 'PropertyImage'
+                if (Test-Path -LiteralPath $sib) {
+                    $rootFolders.Remove($vs) | Out-Null
+                    $rootFolders.Add($sib)
+                    Append-ExtractLog "[AI AUTO-REDIRECT] Switched to PropertyImage directory: $sib"
+                }
             }
-        }
-        $subPlan = Join-Path $srcFolder "PlanPhoto"
-        if ((Test-Path -LiteralPath $subPlan) -and -not $rootFolders.Contains($subPlan)) {
-            $rootFolders.Add($subPlan)
-        }
-    } elseif ($mode -eq "Photos") {
-        if ($srcFolder -match '(?i)PlanPhoto') {
-            $propSibling = $srcFolder -replace '(?i)PlanPhoto', 'PropertyImage'
-            if (Test-Path -LiteralPath $propSibling) {
-                $rootFolders.Clear()
-                $rootFolders.Add($propSibling)
-                Append-ExtractLog "[AI AUTO-REDIRECT] Switched to PropertyImage directory: $propSibling"
-            }
-        }
-        $subProp = Join-Path $srcFolder "PropertyImage"
-        if ((Test-Path -LiteralPath $subProp) -and -not $rootFolders.Contains($subProp)) {
-            $rootFolders.Add($subProp)
+            $subP = Join-Path $vs "PropertyImage"
+            if ((Test-Path -LiteralPath $subP) -and -not $rootFolders.Contains($subP)) { $rootFolders.Add($subP) }
         }
     }
 
@@ -13406,7 +13543,7 @@ $btnExtractStart.Add_Click({
 
             $scanCount++
             $fName = [System.IO.Path]::GetFileName($fPath)
-            $matchedProp = Get-MatchedPropKey $fName
+            $matchedProp = Find-MatchedPropertyKey -fileName $fName -tokenMap $tokenToPrimary
 
             if ($matchedProp) {
                 $matchedPhotos.Add([PSCustomObject]@{
@@ -13446,13 +13583,13 @@ $btnExtractStart.Add_Click({
     if ($matchedPhotos.Count -eq 0) {
         $lblExtractStatus.Text = "Status: 0 matching files found on server."
         $extractProgressBar.Value = 100
-        Append-ExtractLog "WARNING: 0 files matched the properties from Excel in source folder: $srcFolder"
-        [System.Windows.MessageBox]::Show("No matching files found on the server for the properties listed in Excel!`n`nSource Folder: $srcFolder`nMode: $mode`nProperties in Excel: $($propList.Count)`n`nPlease check:`n1. Source folder contains files for this property list.`n2. If files are stored in ward subfolders, ensure 'Scan Subdirectories Recursively' is checked.`n3. Ensure WMF mode is pointing to PlanPhoto folder.", "No Matching Files Found", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Warning)
+        Append-ExtractLog "WARNING: 0 files matched the properties from Excel in source folder(s)."
+        [System.Windows.MessageBox]::Show("No matching files found on the server for the properties listed in Excel!`n`nSource Folders: $($validSources -join "; ")`nMode: $mode`nProperties in Excel: $($propList.Count)`n`nPlease check:`n1. Source folder contains files for this property list.`n2. If files are stored in ward subfolders, ensure 'Scan Subdirectories Recursively' is checked.`n3. Ensure WMF mode is pointing to PlanPhoto folder.", "No Matching Files Found", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Warning)
         $btnExtractStart.IsEnabled = $true
         return
     }
 
-    # Step 3: Collision-Free Extraction to One Destination Folder on Desktop
+    # Step 3: Fast Collision-Free Extraction to Destination Folder on Desktop
     $lblExtractStatus.Text = "Status: Copying files to Desktop..."
     $copied = 0
     $totalToCopy = $matchedPhotos.Count
@@ -13464,8 +13601,7 @@ $btnExtractStart.Add_Click({
             $targetDir = Join-Path $destFolder $item.PropertyKey
         }
         if (-not (Test-Path -LiteralPath $targetDir)) { New-Item -ItemType Directory -Path $targetDir -Force | Out-Null }
-        
-        # Prevent collisions in flat output folder
+
         $destFile = Join-Path $targetDir $item.FileName
         if (Test-Path -LiteralPath $destFile) {
             $baseName = [System.IO.Path]::GetFileNameWithoutExtension($item.FileName)
@@ -13476,29 +13612,21 @@ $btnExtractStart.Add_Click({
                 $colIdx++
             }
         }
-        
+
         try {
             if ($item.IsWmf) {
-                # Enhancement: ONLY resize WMF files that have MORE THAN 25 KB
                 $srcLen = (Get-Item -LiteralPath $item.SourcePath).Length
                 if ($srcLen -gt (25 * 1024) -and $isWhiteCanvas) {
                     $wmfSuccess = $false
                     try {
                         $wmfRes = [AppWmfOptimizer]::ProcessWmf($item.SourcePath, $destFile, 700, 96, 25, $true)
-                        if ($wmfRes -and -not $wmfRes.StartsWith("ERROR")) {
-                            $wmfSuccess = $true
-                        }
+                        if ($wmfRes -and -not $wmfRes.StartsWith("ERROR")) { $wmfSuccess = $true }
                     } catch {}
-
-                    if (-not $wmfSuccess) {
-                        [System.IO.File]::Copy($item.SourcePath, $destFile, $true)
-                    }
+                    if (-not $wmfSuccess) { [System.IO.File]::Copy($item.SourcePath, $destFile, $true) }
                 } else {
-                    # Already <= 25 KB: keep original WMF without re-compression
                     [System.IO.File]::Copy($item.SourcePath, $destFile, $true)
                 }
             } elseif (-not $item.IsWmf -and $isAutoResize) {
-                # Resize photo on the fly under 25KB
                 $photoSuccess = $false
                 try {
                     $bytes = [System.IO.File]::ReadAllBytes($item.SourcePath)
@@ -13508,16 +13636,13 @@ $btnExtractStart.Add_Click({
                         $photoSuccess = $true
                     }
                 } catch {}
-
-                if (-not $photoSuccess) {
-                    [System.IO.File]::Copy($item.SourcePath, $destFile, $true)
-                }
+                if (-not $photoSuccess) { [System.IO.File]::Copy($item.SourcePath, $destFile, $true) }
             } else {
                 [System.IO.File]::Copy($item.SourcePath, $destFile, $true)
             }
             $copied++
         } catch {
-            Append-ExtractLog "Warning processing $($item.FileName): $($_.Exception.Message)"
+            Append-ExtractLog "Warning copying $($item.FileName): $($_.Exception.Message)"
         }
 
         if (($i + 1) % 25 -eq 0 -or ($i + 1) -eq $totalToCopy) {
@@ -13573,7 +13698,6 @@ $btnExtractStart.Add_Click({
     Append-ExtractLog "Summary Report CSV    : $reportPath"
     Append-ExtractLog "======================================================="
 
-    # Automatically open Desktop folder in Explorer
     try { Start-Process "explorer.exe" -ArgumentList "`"$destFolder`"" } catch {}
 
     [System.Windows.MessageBox]::Show("Extraction complete!`n`nMode: $mode`nProperties in Excel: $($propList.Count)`nProperties Found on Server: $foundCount`nMissing Properties: $missingCount`nTotal Files Saved to Desktop: $copied`n`nSummary CSV Report saved to folder.", "Extraction Complete", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Information)
@@ -13582,14 +13706,12 @@ $btnExtractStart.Add_Click({
 })
 
 # =====================================================================
-# --- 3-URL PLAN PHOTO SYNCHRONIZER & SHARER (PARENT MASTER ENGINE) ---
+# SUB-MODE 2: MULTI-SERVER CONSOLIDATOR & ASSET EXTRACTOR
 # =====================================================================
-
-$global:threeUrlLastDesktopFolder = $null
 
 function Update-ThreeUrlParentStyles {
     if ($rbUrlParent1 -and $rbUrlParent1.IsChecked -eq $true) {
-        $rbUrlParent1.Content = "URL 1: TARGET (Cluster-A-Master)"
+        $rbUrlParent1.Content = "URL 1: TARGET 19 (MASTER)"
         $rbUrlParent1.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#34D399")
         $rbUrlParent2.Content = "URL 2: SOURCE 11 (WARDS)"
         $rbUrlParent2.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#94A3B8")
@@ -13621,37 +13743,79 @@ function Update-ThreeUrlParentStyles {
     }
 }
 
+function Update-ThreeUrlActionState {
+    if ($rbSyncActionExtractDesktop -and $rbSyncActionExtractDesktop.IsChecked -eq $true) {
+        if ($btnThreeUrlStart) {
+            $btnThreeUrlStart.Content = "2. START EXTRACTING ALL TO DESKTOP"
+            $btnThreeUrlStart.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#10B981")
+        }
+    } elseif ($rbSyncActionBiDirectional -and $rbSyncActionBiDirectional.IsChecked -eq $true) {
+        if ($btnThreeUrlStart) {
+            $btnThreeUrlStart.Content = "2. START 2-WAY SYNC BETWEEN ALL SERVERS"
+            $btnThreeUrlStart.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#0284C7")
+        }
+    } else {
+        if ($btnThreeUrlStart) {
+            $btnThreeUrlStart.Content = "2. START MIGRATING TO TARGET MASTER"
+            $btnThreeUrlStart.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#059669")
+        }
+    }
+}
+
 if ($rbUrlParent1) { $rbUrlParent1.Add_Checked({ Update-ThreeUrlParentStyles }) }
 if ($rbUrlParent2) { $rbUrlParent2.Add_Checked({ Update-ThreeUrlParentStyles }) }
 if ($rbUrlParent3) { $rbUrlParent3.Add_Checked({ Update-ThreeUrlParentStyles }) }
 
-if ($btnThreeUrlPresetCluster) {
-    $btnThreeUrlPresetCluster.Add_Click({
+if ($rbSyncActionToParent) { $rbSyncActionToParent.Add_Checked({ Update-ThreeUrlActionState }) }
+if ($rbSyncActionBiDirectional) { $rbSyncActionBiDirectional.Add_Checked({ Update-ThreeUrlActionState }) }
+if ($rbSyncActionExtractDesktop) { $rbSyncActionExtractDesktop.Add_Checked({ Update-ThreeUrlActionState }) }
+
+if ($btnThreeUrlPresetPanvel) {
+    $btnThreeUrlPresetPanvel.Add_Click({
         $rbUrlParent1.IsChecked = $true
-        $txtThreeUrl1.Text = "\\Cluster-A-Master\Enterprise\Archive\MasterFiles"
-        $txtThreeUrl2.Text = "\\Cluster-B-Node\Enterprise\Archive\Wards"
-        $txtThreeUrl3.Text = "\\Enterprise-NAS\Storage\Production\Files"
+        $txtThreeUrl1.Text = "\\192.168.1.19\Files"
+        $txtThreeUrl2.Text = "\\192.168.1.11\Panvel_PMC_All_Ward_Wise_Photo_Plan"
+        $txtThreeUrl3.Text = "\\192.168.1.22\PMC_Photo_22"
         if ($rbSyncCategoryBoth) { $rbSyncCategoryBoth.IsChecked = $true }
         if ($rbSyncActionToParent) { $rbSyncActionToParent.IsChecked = $true }
         if ($chkSyncRecursive) { $chkSyncRecursive.IsChecked = $true }
         if ($chkSyncIgnoreCommon) { $chkSyncIgnoreCommon.IsChecked = $true }
         Update-ThreeUrlParentStyles
+        Update-ThreeUrlActionState
         
         $txtExtractLogs.Clear()
         Append-ExtractLog "======================================================="
-        Append-ExtractLog "LOADED ENTERPRISE 3-NODE CLUSTER PRESET"
-        Append-ExtractLog "Target Hub (Master)  : \\Cluster-A-Master\Enterprise\Archive\MasterFiles"
-        Append-ExtractLog "  -> Target Images   : ...\Files\PropertyImage"
-        Append-ExtractLog "  -> Target Plans    : ...\Files\PlanPhoto"
-        Append-ExtractLog "Source 1 (Wards)     : \\Cluster-B-Node\Enterprise\Archive\Wards"
+        Append-ExtractLog "LOADED PANVEL MC 3-SERVER NETWORK PRESET"
+        Append-ExtractLog "URL 1 (Target Master) : \\192.168.1.19\Files"
+        Append-ExtractLog "  -> Auto-routes into PropertyImage & PlanPhoto"
+        Append-ExtractLog "URL 2 (Ward Folders)  : \\192.168.1.11\Panvel_PMC_All_Ward_Wise_Photo_Plan"
         Append-ExtractLog "  -> Auto-detects ward no ...\Photo & ward no ...\Plan"
-        Append-ExtractLog "Source 2 (PMC Host)  : \\Enterprise-NAS\Storage\Production\Files"
+        Append-ExtractLog "URL 3 (PMC 22 Host)   : \\192.168.1.22\PMC_Photo_22"
         Append-ExtractLog "  -> Auto-detects PropertyImage & PlanPhoto"
-        Append-ExtractLog "Common Deduplication : ENABLED (Identical files in 19 are ignored)"
+        Append-ExtractLog "Common Deduplication  : ENABLED (Identical files in 19 are ignored)"
         Append-ExtractLog "======================================================="
-        Append-ExtractLog "Ready. Click '1. SCAN & COMPARE (AUDIT)' or '2. START MIGRATING TO Cluster-A-Master'."
+        Append-ExtractLog "Ready. Click '1. SCAN & COMPARE (AUDIT)' or '2. START'."
     })
 }
+
+$localPresetHandler = {
+    $dt = [Environment]::GetFolderPath("Desktop")
+    $p1 = Join-Path $dt "Nexus_Master_Target"
+    $p2 = Join-Path $dt "Nexus_Ward_Source"
+    $p3 = Join-Path $dt "Nexus_Storage_Source"
+    foreach ($p in @($p1, $p2, $p3)) {
+        if (-not (Test-Path -LiteralPath $p)) { New-Item -ItemType Directory -Path $p -Force | Out-Null }
+    }
+    $rbUrlParent1.IsChecked = $true
+    $txtThreeUrl1.Text = $p1
+    $txtThreeUrl2.Text = $p2
+    $txtThreeUrl3.Text = $p3
+    Update-ThreeUrlParentStyles
+    Update-ThreeUrlActionState
+    Append-ExtractLog "Loaded Local Test Folders on Desktop ($p1, $p2, $p3)."
+}
+if ($btnThreeUrlPresetLocal) { $btnThreeUrlPresetLocal.Add_Click($localPresetHandler) }
+if ($btnThreeUrlPresetCluster) { $btnThreeUrlPresetCluster.Add_Click($localPresetHandler) }
 
 if ($btnSubModeStandardExtract) {
     $btnSubModeStandardExtract.Add_Click({
@@ -13714,6 +13878,20 @@ if ($btnThreeUrlBrowse3) {
     })
 }
 
+if ($btnThreeUrlBrowseExcel) {
+    $btnThreeUrlBrowseExcel.Add_Click({
+        $dlg = New-Object System.Windows.Forms.OpenFileDialog
+        $dlg.Title = "Select Excel / CSV File with Property Numbers to Filter Multi-Server Consolidation"
+        $dlg.Filter = "Excel & CSV Files (*.xlsx;*.xls;*.csv;*.tsv;*.txt)|*.xlsx;*.xls;*.csv;*.tsv;*.txt|All Files (*.*)|*.*"
+        $dlg.InitialDirectory = [Environment]::GetFolderPath("Desktop")
+        if ($dlg.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
+            $txtThreeUrlExcel.Text = $dlg.FileName
+            if ($chkThreeUrlFilterExcel) { $chkThreeUrlFilterExcel.IsChecked = $true }
+            Append-ExtractLog "Multi-Server Excel filter set: $($dlg.FileName)"
+        }
+    })
+}
+
 if ($btnThreeUrlOpenParent) {
     $btnThreeUrlOpenParent.Add_Click({
         $targetUrl = ""
@@ -13762,7 +13940,7 @@ if ($btnThreeUrlTestConn) {
             if (Test-Path -LiteralPath $u.Path) {
                 $fCount = 0
                 try { $fCount = [System.IO.Directory]::GetFiles($u.Path, "*.*").Count } catch {}
-                Append-ExtractLog "[$($u.Label)]: CONNECTED SUCCESS -> '$($u.Path)' ($fCount files detected)"
+                Append-ExtractLog "[$($u.Label)]: CONNECTED SUCCESS -> '$($u.Path)' ($fCount root files detected)"
                 $okCount++
             } else {
                 Append-ExtractLog "[$($u.Label)]: UNREACHABLE / ACCESS DENIED -> '$($u.Path)'"
@@ -13774,35 +13952,47 @@ if ($btnThreeUrlTestConn) {
     })
 }
 
-function Resolve-ClusterTargetFolders($targetInput) {
+function Resolve-TargetFolders($targetInput) {
     $t = if ($targetInput) { $targetInput.TrimEnd('\', '/') } else { "" }
-    $tImg = ""
-    $tPlan = ""
+    if (-not $t) { return [PSCustomObject]@{ TargetImages = ""; TargetPlans = "" } }
     
     if ($t -match '(?i)PropertyImage$') {
-        $tImg = $t
         $base = [System.IO.Path]::GetDirectoryName($t)
-        $tPlan = Join-Path $base "PlanPhoto"
-    } elseif ($t -match '(?i)PlanPhoto$') {
-        $tPlan = $t
-        $base = [System.IO.Path]::GetDirectoryName($t)
-        $tImg = Join-Path $base "PropertyImage"
-    } else {
-        if ($t -match '(?i)Files$') {
-            $tImg = Join-Path $t "PropertyImage"
-            $tPlan = Join-Path $t "PlanPhoto"
-        } else {
-            $tImg = Join-Path $t "Files\PropertyImage"
-            $tPlan = Join-Path $t "Files\PlanPhoto"
-        }
+        return [PSCustomObject]@{ TargetImages = $t; TargetPlans = (Join-Path $base "PlanPhoto") }
     }
-    return [PSCustomObject]@{ TargetImages = $tImg; TargetPlans = $tPlan }
+    if ($t -match '(?i)PlanPhoto$') {
+        $base = [System.IO.Path]::GetDirectoryName($t)
+        return [PSCustomObject]@{ TargetImages = (Join-Path $base "PropertyImage"); TargetPlans = $t }
+    }
+    
+    # Check if subfolders exist
+    $checkImg = Join-Path $t "PropertyImage"
+    $checkPlan = Join-Path $t "PlanPhoto"
+    if ((Test-Path -LiteralPath $checkImg) -or (Test-Path -LiteralPath $checkPlan)) {
+        return [PSCustomObject]@{ TargetImages = $checkImg; TargetPlans = $checkPlan }
+    }
+    
+    $checkFilesImg = Join-Path $t "Files\PropertyImage"
+    $checkFilesPlan = Join-Path $t "Files\PlanPhoto"
+    if ((Test-Path -LiteralPath $checkFilesImg) -or (Test-Path -LiteralPath $checkFilesPlan)) {
+        return [PSCustomObject]@{ TargetImages = $checkFilesImg; TargetPlans = $checkFilesPlan }
+    }
+    
+    if ($t -match '(?i)Files$') {
+        return [PSCustomObject]@{ TargetImages = (Join-Path $t "PropertyImage"); TargetPlans = (Join-Path $t "PlanPhoto") }
+    }
+    
+    return [PSCustomObject]@{ TargetImages = (Join-Path $t "PropertyImage"); TargetPlans = (Join-Path $t "PlanPhoto") }
 }
 
 function Invoke-ThreeUrlPlanSharingCore([bool]$isDryRunOnly) {
     $u1 = $txtThreeUrl1.Text.Trim()
     $u2 = $txtThreeUrl2.Text.Trim()
     $u3 = $txtThreeUrl3.Text.Trim()
+
+    $isExtractDesktop = ($rbSyncActionExtractDesktop -and $rbSyncActionExtractDesktop.IsChecked -eq $true)
+    $isBiDirectional  = ($rbSyncActionBiDirectional -and $rbSyncActionBiDirectional.IsChecked -eq $true)
+    $isToParent       = ($rbSyncActionToParent -and $rbSyncActionToParent.IsChecked -eq $true) -or (-not $isExtractDesktop -and -not $isBiDirectional)
 
     $parentInfo = $null
     $childList = [System.Collections.Generic.List[PSCustomObject]]::new()
@@ -13821,14 +14011,22 @@ function Invoke-ThreeUrlPlanSharingCore([bool]$isDryRunOnly) {
         if ($u2) { $childList.Add([PSCustomObject]@{ Label = "URL 2"; Path = $u2 }) }
     }
 
-    if (-not $parentInfo.Path -or -not (Test-Path -LiteralPath $parentInfo.Path)) {
-        [System.Windows.MessageBox]::Show("Cannot access the designated Target URL Master folder:`n$($parentInfo.Path)", "Target URL Inaccessible", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Error)
-        return
+    # If extracting to desktop, we do NOT require target master to exist!
+    if (-not $isExtractDesktop) {
+        if (-not $parentInfo.Path -or -not (Test-Path -LiteralPath $parentInfo.Path)) {
+            [System.Windows.MessageBox]::Show("Cannot access the designated Target Master folder:`n$($parentInfo.Path)`n`nPlease select a valid target server or choose 'Extract All to Desktop Folder'.", "Target Master Inaccessible", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Error)
+            return
+        }
     }
 
-    $validChildren = @($childList | Where-Object { $_.Path -and (Test-Path -LiteralPath $_.Path) })
-    if ($validChildren.Count -eq 0) {
-        [System.Windows.MessageBox]::Show("At least one secondary source URL must be valid and accessible.`n`nPlease verify source paths and network connectivity.", "No Valid Source URLs", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Warning)
+    $allRawUrls = @(
+        @{ Label = "URL 1"; Path = $u1 },
+        @{ Label = "URL 2"; Path = $u2 },
+        @{ Label = "URL 3"; Path = $u3 }
+    )
+    $reachableUrls = @($allRawUrls | Where-Object { $_.Path -and (Test-Path -LiteralPath $_.Path) })
+    if ($reachableUrls.Count -eq 0) {
+        [System.Windows.MessageBox]::Show("None of the specified 3 URLs are accessible.`n`nPlease verify network connectivity and folder paths.", "No Reachable URLs", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Warning)
         return
     }
 
@@ -13840,36 +14038,213 @@ function Invoke-ThreeUrlPlanSharingCore([bool]$isDryRunOnly) {
     $migratePhotos = ($rbSyncCategoryBoth -and $rbSyncCategoryBoth.IsChecked -eq $true) -or ($rbSyncCategoryPhotosOnly -and $rbSyncCategoryPhotosOnly.IsChecked -eq $true) -or (-not $rbSyncCategoryBoth -and -not $rbSyncCategoryPhotosOnly)
     $migratePlans  = ($rbSyncCategoryBoth -and $rbSyncCategoryBoth.IsChecked -eq $true) -or ($rbSyncCategoryPlansOnly -and $rbSyncCategoryPlansOnly.IsChecked -eq $true) -or (-not $rbSyncCategoryBoth -and -not $rbSyncCategoryPlansOnly)
 
-    $lblExtractStatus.Text = if ($isDryRunOnly) { "Status: Analyzing sources for common and new images & plans..." } else { "Status: Consolidating images & plans to Target..." }
+    $lblExtractStatus.Text = if ($isDryRunOnly) { "Status: Analyzing sources for common and new images & plans..." } elseif ($isExtractDesktop) { "Status: Extracting all matching assets to Desktop..." } else { "Status: Consolidating images & plans to Target Master..." }
 
     $isRecursive = $chkSyncRecursive.IsChecked -eq $true
     $isWhiteCanvas = $chkSyncWhiteCanvas.IsChecked -eq $true
-    $isExtractDesktop = $rbSyncActionExtractDesktop.IsChecked -eq $true
     $skipCommon = if ($chkSyncIgnoreCommon) { $chkSyncIgnoreCommon.IsChecked -eq $true } else { $true }
 
     $imgExts  = @('.jpg', '.jpeg', '.png', '.bmp', '.webp', '.tif', '.tiff')
     $planExts = @('.wmf', '.emf', '.jpg', '.jpeg', '.png', '.bmp', '.tif', '.tiff', '.webp', '.pdf', '.dwg', '.dxf', '.svg')
 
-    # Resolve Target Folders
-    $tgtFolders = Resolve-ClusterTargetFolders $parentInfo.Path
-    $targetImgDir  = $tgtFolders.TargetImages
-    $targetPlanDir = $tgtFolders.TargetPlans
+    # Optional Excel filtering in Mode 2
+    $hasExcelFilter = ($chkThreeUrlFilterExcel -and $chkThreeUrlFilterExcel.IsChecked -eq $true -and $txtThreeUrlExcel.Text -and (Test-Path -LiteralPath $txtThreeUrlExcel.Text.Trim()))
+    $filterTokenMap = $null
+    if ($hasExcelFilter) {
+        Append-ExtractLog "Parsing Excel filter file: $($txtThreeUrlExcel.Text.Trim())..."
+        $filterData = Get-SpreadsheetProperties $txtThreeUrlExcel.Text.Trim()
+        $filterTokenMap = $filterData.TokenMap
+        Append-ExtractLog "Loaded $($filterData.PropList.Count) properties from Excel to filter Multi-Server extraction."
+    }
 
     Append-ExtractLog "======================================================="
-    Append-ExtractLog if ($isDryRunOnly) { "STARTING MULTI-SERVER AUDIT & COMPARISON" } else { "STARTING MULTI-SERVER MIGRATION ENGINE" }
-    Append-ExtractLog "Target Host (Master)   : $($parentInfo.Path)"
-    Append-ExtractLog "  -> Target Images Dest : $targetImgDir"
-    Append-ExtractLog "  -> Target Plans Dest  : $targetPlanDir"
-    foreach ($c in $validChildren) {
-        Append-ExtractLog "Source Location        : $($c.Label) -> $($c.Path)"
+    Append-ExtractLog if ($isDryRunOnly) { "STARTING MULTI-SERVER AUDIT & COMPARISON" } elseif ($isExtractDesktop) { "STARTING MULTI-SERVER EXTRACTION TO DESKTOP" } else { "STARTING MULTI-SERVER MIGRATION ENGINE" }
+    if ($isExtractDesktop) {
+        Append-ExtractLog "Operation Mode         : EXTRACT ALL TO DESKTOP"
+        foreach ($ru in $reachableUrls) { Append-ExtractLog "Source Location        : $($ru.Label) -> $($ru.Path)" }
+    } else {
+        Append-ExtractLog "Target Master Hub      : $($parentInfo.Path)"
+        foreach ($c in $childList) {
+            if (Test-Path -LiteralPath $c.Path) { Append-ExtractLog "Source Location        : $($c.Label) -> $($c.Path)" }
+        }
     }
     Append-ExtractLog "Content Scope          : $(if ($migratePhotos -and $migratePlans) {'BOTH WHOLE IMAGES & PLANS'} elseif ($migratePhotos) {'WHOLE IMAGES ONLY'} else {'PLANS ONLY'})"
+    Append-ExtractLog "Excel Filter Active    : $(if ($hasExcelFilter) {'YES (Selective Property Extraction)'} else {'NO (All Files)'})"
     Append-ExtractLog "Recursive Scan         : $(if ($isRecursive) {'ENABLED'} else {'Disabled'})"
     Append-ExtractLog "Skip Common Files      : $(if ($skipCommon) {'ENABLED (Ignore Identical Files)'} else {'Overwrite'})"
+    Append-ExtractLog "Solid White Canvas     : $(if ($isWhiteCanvas) {'ENABLED (Crystal Reports Safe)'} else {'Disabled'})"
     Append-ExtractLog "======================================================="
     [System.Windows.Forms.Application]::DoEvents()
 
-    # Step 1: Index Existing Target Master Files (O(1) duplicate lookup)
+    # -------------------------------------------------------------
+    # EXECUTION BRANCH 1: EXTRACT ALL TO DESKTOP DIRECTLY
+    # -------------------------------------------------------------
+    if ($isExtractDesktop) {
+        $dtStamp = (Get-Date).ToString("yyyyMMdd_HHmmss")
+        $desktopExportDir = Join-Path $desktopDir "Nexus_Consolidated_Assets_$dtStamp"
+        if (-not (Test-Path -LiteralPath $desktopExportDir)) { New-Item -ItemType Directory -Path $desktopExportDir -Force | Out-Null }
+        $global:threeUrlLastDesktopFolder = $desktopExportDir
+
+        $exportImgDir  = Join-Path $desktopExportDir "PropertyImage"
+        $exportPlanDir = Join-Path $desktopExportDir "PlanPhoto"
+        if (-not (Test-Path -LiteralPath $exportImgDir))  { New-Item -ItemType Directory -Path $exportImgDir -Force | Out-Null }
+        if (-not (Test-Path -LiteralPath $exportPlanDir)) { New-Item -ItemType Directory -Path $exportPlanDir -Force | Out-Null }
+
+        $filesToExtract = [System.Collections.Generic.List[PSCustomObject]]::new()
+        $seenFiles = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+        $totalScanned = 0
+
+        foreach ($ru in $reachableUrls) {
+            Append-ExtractLog "Scanning $($ru.Label) ($($ru.Path))..."
+            $q = [System.Collections.Generic.Queue[string]]::new()
+            $q.Enqueue($ru.Path)
+
+            while ($q.Count -gt 0) {
+                $curr = $q.Dequeue()
+                $subFiles = @()
+                try { $subFiles = [System.IO.Directory]::GetFiles($curr, "*.*") } catch { continue }
+
+                $dirName = [System.IO.Path]::GetFileName($curr)
+                $isPlanFolder = ($dirName -match '(?i)(plan|plans|planphoto|drawings?)')
+
+                foreach ($fl in $subFiles) {
+                    $totalScanned++
+                    $ext = [System.IO.Path]::GetExtension($fl).ToLower()
+                    $fn = [System.IO.Path]::GetFileName($fl)
+
+                    $isPlan = ($isPlanFolder -or $ext -eq ".wmf" -or $ext -eq ".emf" -or $ext -eq ".dwg" -or $ext -eq ".dxf")
+                    $category = if ($isPlan) { "Plan" } else { "Image" }
+
+                    if ($category -eq "Image" -and -not $migratePhotos) { continue }
+                    if ($category -eq "Plan" -and -not $migratePlans) { continue }
+                    if (-not ($imgExts -contains $ext) -and -not ($planExts -contains $ext)) { continue }
+
+                    # Deduplication across URLs
+                    if ($seenFiles.Contains($fn)) { continue }
+
+                    # Excel filter check
+                    if ($hasExcelFilter) {
+                        $matchedProp = Find-MatchedPropertyKey -fileName $fn -tokenMap $filterTokenMap
+                        if (-not $matchedProp) { continue }
+                    }
+
+                    $seenFiles.Add($fn) | Out-Null
+                    $filesToExtract.Add([PSCustomObject]@{
+                        Source   = $fl
+                        FileName = $fn
+                        Category = $category
+                        IsWmf    = ($ext -eq ".wmf" -or $ext -eq ".emf")
+                        Origin   = $ru.Label
+                    })
+                }
+
+                if ($isRecursive) {
+                    try {
+                        foreach ($sd in [System.IO.Directory]::GetDirectories($curr)) {
+                            $sdName = [System.IO.Path]::GetFileName($sd)
+                            if ($sdName -notmatch '(?i)backup' -and -not $sdName.StartsWith('.')) {
+                                $q.Enqueue($sd)
+                            }
+                        }
+                    } catch {}
+                }
+            }
+        }
+
+        $lblThreeUrlScanned.Text = $totalScanned.ToString()
+        $lblThreeUrlCommon.Text  = "0"
+        $imgCount = @($filesToExtract | Where-Object { $_.Category -eq "Image" }).Count
+        $planCount = @($filesToExtract | Where-Object { $_.Category -eq "Plan" }).Count
+        if ($lblThreeUrlNewPhotos)  { $lblThreeUrlNewPhotos.Text = $imgCount.ToString() }
+        if ($lblThreeUrlNewPlans)   { $lblThreeUrlNewPlans.Text  = $planCount.ToString() }
+
+        Append-ExtractLog "-------------------------------------------------------"
+        Append-ExtractLog "EXTRACTION SCAN COMPLETE:"
+        Append-ExtractLog "  Total Files Scanned      : $totalScanned"
+        Append-ExtractLog "  Unique Images to Extract : $imgCount"
+        Append-ExtractLog "  Unique Plans to Extract  : $planCount"
+        Append-ExtractLog "  Output Folder            : $desktopExportDir"
+        Append-ExtractLog "-------------------------------------------------------"
+
+        if ($isDryRunOnly -or ($chkSyncDryRun -and $chkSyncDryRun.IsChecked -eq $true)) {
+            $extractProgressBar.Value = 100
+            $lblExtractStatus.Text = "Status: Audit Complete. $($filesToExtract.Count) unique files ready to extract to Desktop."
+            [System.Windows.MessageBox]::Show("Multi-Server Scan Complete!`n`nTotal Files Scanned: $totalScanned`nImages to Extract: $imgCount`nPlans to Extract: $planCount`n`nOutput Destination: $desktopExportDir`n`nClick '2. START EXTRACTING ALL TO DESKTOP' to copy files.", "Multi-Server Audit", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Information)
+            $btnThreeUrlStart.IsEnabled = $true
+            $btnThreeUrlAnalyze.IsEnabled = $true
+            return
+        }
+
+        if ($filesToExtract.Count -eq 0) {
+            $extractProgressBar.Value = 100
+            $lblExtractStatus.Text = "Status: Zero files matched extraction criteria."
+            [System.Windows.MessageBox]::Show("No matching files found across the 3 URLs for extraction.", "No Files Found", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Warning)
+            $btnThreeUrlStart.IsEnabled = $true
+            $btnThreeUrlAnalyze.IsEnabled = $true
+            return
+        }
+
+        # Execute Direct Extraction to Desktop
+        $copiedCount = 0
+        $totalItems = $filesToExtract.Count
+
+        for ($idx = 0; $idx -lt $totalItems; $idx++) {
+            $it = $filesToExtract[$idx]
+            $targetDir = if ($it.Category -eq "Plan") { $exportPlanDir } else { $exportImgDir }
+            $destFile = Join-Path $targetDir $it.FileName
+
+            try {
+                if ($it.IsWmf -and $isWhiteCanvas) {
+                    $srcLen = (Get-Item -LiteralPath $it.Source).Length
+                    $copiedOk = $false
+                    if ($srcLen -gt (25 * 1024)) {
+                        $wmfRes = [AppWmfOptimizer]::ProcessWmf($it.Source, $destFile, 700, 96, 25, $true)
+                        if ($wmfRes -and -not $wmfRes.StartsWith("ERROR")) { $copiedOk = $true }
+                    }
+                    if (-not $copiedOk) { [System.IO.File]::Copy($it.Source, $destFile, $true) }
+                } else {
+                    [System.IO.File]::Copy($it.Source, $destFile, $true)
+                }
+                $copiedCount++
+            } catch {
+                Append-ExtractLog "[ERROR] Copying '$($it.FileName)': $($_.Exception.Message)"
+            }
+
+            if (($idx + 1) % 20 -eq 0 -or ($idx + 1) -eq $totalItems) {
+                $pct = [int](($idx + 1) / $totalItems * 100)
+                $extractProgressBar.Value = [Math]::Min(100, $pct)
+                $lblExtractStatus.Text = "Status: Extracted $($idx+1)/$totalItems files ($pct%)..."
+                [System.Windows.Forms.Application]::DoEvents()
+            }
+        }
+
+        $extractProgressBar.Value = 100
+        $lblExtractStatus.Text = "Status: Successfully extracted $copiedCount files to Desktop!"
+        Append-ExtractLog "======================================================="
+        Append-ExtractLog "EXTRACTION TO DESKTOP COMPLETED SUCCESSFULLY!"
+        Append-ExtractLog "Total Files Saved    : $copiedCount"
+        Append-ExtractLog "Desktop Folder       : $desktopExportDir"
+        Append-ExtractLog "======================================================="
+
+        try { Start-Process "explorer.exe" -ArgumentList "`"$desktopExportDir`"" } catch {}
+        [System.Windows.MessageBox]::Show("Extraction to Desktop Complete!`n`nTotal Files Saved: $copiedCount`nDestination: $desktopExportDir", "Extraction Complete", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Information)
+
+        $btnThreeUrlStart.IsEnabled = $true
+        $btnThreeUrlAnalyze.IsEnabled = $true
+        return
+    }
+
+    # -------------------------------------------------------------
+    # EXECUTION BRANCH 2: MIGRATE TO TARGET MASTER (OR 2-WAY SYNC)
+    # -------------------------------------------------------------
+    $tgtFolders = Resolve-TargetFolders $parentInfo.Path
+    $targetImgDir  = $tgtFolders.TargetImages
+    $targetPlanDir = $tgtFolders.TargetPlans
+
+    Append-ExtractLog "Target Images Dest     : $targetImgDir"
+    Append-ExtractLog "Target Plans Dest      : $targetPlanDir"
+
+    # Index Existing Target Master Files
     $existingImages = [System.Collections.Generic.Dictionary[string, long]]::new([System.StringComparer]::OrdinalIgnoreCase)
     $existingPlans  = [System.Collections.Generic.Dictionary[string, long]]::new([System.StringComparer]::OrdinalIgnoreCase)
 
@@ -13892,7 +14267,14 @@ function Invoke-ThreeUrlPlanSharingCore([bool]$isDryRunOnly) {
 
     Append-ExtractLog "Target currently holds $($existingImages.Count) images and $($existingPlans.Count) plans."
 
-    # Step 2: Scan and Classify Source Folders
+    $validChildren = @($childList | Where-Object { $_.Path -and (Test-Path -LiteralPath $_.Path) })
+    if ($validChildren.Count -eq 0) {
+        [System.Windows.MessageBox]::Show("At least one secondary source URL must be valid and accessible.`n`nPlease verify source paths and network connectivity.", "No Valid Source URLs", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Warning)
+        $btnThreeUrlStart.IsEnabled = $true
+        $btnThreeUrlAnalyze.IsEnabled = $true
+        return
+    }
+
     $commonImagesIgnored = [System.Collections.Generic.List[string]]::new()
     $commonPlansIgnored  = [System.Collections.Generic.List[string]]::new()
     $newImagesToTransfer = [System.Collections.Generic.List[PSCustomObject]]::new()
@@ -13906,72 +14288,58 @@ function Invoke-ThreeUrlPlanSharingCore([bool]$isDryRunOnly) {
 
         while ($q.Count -gt 0) {
             $curr = $q.Dequeue()
-            try {
-                $dirName = [System.IO.Path]::GetFileName($curr)
-                $isPhotoFolder = ($dirName -match '(?i)^(photo|photos|propertyimage|propimage)$')
-                $isPlanFolder  = ($dirName -match '(?i)^(plan|plans|planphoto)$')
+            $dirFiles = @()
+            try { $dirFiles = [System.IO.Directory]::GetFiles($curr, "*.*") } catch { continue }
 
-                if ($isPhotoFolder) {
-                    if ($migratePhotos) {
-                        foreach ($fl in [System.IO.Directory]::GetFiles($curr, "*.*")) {
-                            $totalScanned++
-                            $ext = [System.IO.Path]::GetExtension($fl).ToLower()
-                            if ($imgExts -contains $ext) {
-                                $fn = [System.IO.Path]::GetFileName($fl)
-                                if ($skipCommon -and $existingImages.ContainsKey($fn)) {
-                                    $commonImagesIgnored.Add($fn)
-                                } else {
-                                    $newImagesToTransfer.Add([PSCustomObject]@{ Source = $fl; FileName = $fn; Category = "Image"; Origin = $child.Label; IsWmf = $false })
-                                    $existingImages[$fn] = 1 # Mark so duplicate in other source isn't re-queued
-                                }
-                            }
+            $dirName = [System.IO.Path]::GetFileName($curr)
+            $isPlanFolder = ($dirName -match '(?i)(plan|plans|planphoto|drawings?)')
+
+            foreach ($fl in $dirFiles) {
+                $totalScanned++
+                $ext = [System.IO.Path]::GetExtension($fl).ToLower()
+                $fn = [System.IO.Path]::GetFileName($fl)
+
+                $isPlan = ($isPlanFolder -or $ext -eq ".wmf" -or $ext -eq ".emf" -or $ext -eq ".dwg" -or $ext -eq ".dxf")
+
+                if ($isPlan) {
+                    if ($migratePlans -and ($planExts -contains $ext)) {
+                        if ($hasExcelFilter) {
+                            $mProp = Find-MatchedPropertyKey -fileName $fn -tokenMap $filterTokenMap
+                            if (-not $mProp) { continue }
                         }
-                    }
-                } elseif ($isPlanFolder) {
-                    if ($migratePlans) {
-                        foreach ($fl in [System.IO.Directory]::GetFiles($curr, "*.*")) {
-                            $totalScanned++
-                            $ext = [System.IO.Path]::GetExtension($fl).ToLower()
-                            if ($planExts -contains $ext) {
-                                $fn = [System.IO.Path]::GetFileName($fl)
-                                if ($skipCommon -and $existingPlans.ContainsKey($fn)) {
-                                    $commonPlansIgnored.Add($fn)
-                                } else {
-                                    $newPlansToTransfer.Add([PSCustomObject]@{ Source = $fl; FileName = $fn; Category = "Plan"; Origin = $child.Label; IsWmf = ($ext -eq ".wmf" -or $ext -eq ".emf") })
-                                    $existingPlans[$fn] = 1
-                                }
-                            }
+                        if ($skipCommon -and $existingPlans.ContainsKey($fn)) {
+                            $commonPlansIgnored.Add($fn)
+                        } else {
+                            $newPlansToTransfer.Add([PSCustomObject]@{ Source = $fl; FileName = $fn; Category = "Plan"; Origin = $child.Label; IsWmf = ($ext -eq ".wmf" -or $ext -eq ".emf") })
+                            $existingPlans[$fn] = 1
                         }
                     }
                 } else {
-                    # Generic / Root / Ward folder
-                    if ($curr -ieq $child.Path -or -not $isRecursive) {
-                        # Root files
-                        foreach ($fl in [System.IO.Directory]::GetFiles($curr, "*.*")) {
-                            $totalScanned++
-                            $ext = [System.IO.Path]::GetExtension($fl).ToLower()
-                            $fn = [System.IO.Path]::GetFileName($fl)
-                            if ($migratePlans -and ($planExts -contains $ext) -and ($ext -eq ".wmf" -or $ext -eq ".emf" -or $ext -eq ".dwg" -or $ext -eq ".dxf")) {
-                                if ($skipCommon -and $existingPlans.ContainsKey($fn)) { $commonPlansIgnored.Add($fn) }
-                                else { $newPlansToTransfer.Add([PSCustomObject]@{ Source = $fl; FileName = $fn; Category = "Plan"; Origin = $child.Label; IsWmf = ($ext -eq ".wmf" -or $ext -eq ".emf") }); $existingPlans[$fn] = 1 }
-                            } elseif ($migratePhotos -and ($imgExts -contains $ext)) {
-                                if ($skipCommon -and $existingImages.ContainsKey($fn)) { $commonImagesIgnored.Add($fn) }
-                                else { $newImagesToTransfer.Add([PSCustomObject]@{ Source = $fl; FileName = $fn; Category = "Image"; Origin = $child.Label; IsWmf = $false }); $existingImages[$fn] = 1 }
-                            }
+                    if ($migratePhotos -and ($imgExts -contains $ext)) {
+                        if ($hasExcelFilter) {
+                            $mProp = Find-MatchedPropertyKey -fileName $fn -tokenMap $filterTokenMap
+                            if (-not $mProp) { continue }
                         }
-                    }
-
-                    # Enqueue subdirectories
-                    if ($isRecursive) {
-                        foreach ($sd in [System.IO.Directory]::GetDirectories($curr)) {
-                            $sName = [System.IO.Path]::GetFileName($sd)
-                            if ($sName -notmatch '(?i)backup' -and -not $sName.StartsWith('.')) {
-                                $q.Enqueue($sd)
-                            }
+                        if ($skipCommon -and $existingImages.ContainsKey($fn)) {
+                            $commonImagesIgnored.Add($fn)
+                        } else {
+                            $newImagesToTransfer.Add([PSCustomObject]@{ Source = $fl; FileName = $fn; Category = "Image"; Origin = $child.Label; IsWmf = $false })
+                            $existingImages[$fn] = 1
                         }
                     }
                 }
-            } catch {}
+            }
+
+            if ($isRecursive) {
+                try {
+                    foreach ($sd in [System.IO.Directory]::GetDirectories($curr)) {
+                        $sdName = [System.IO.Path]::GetFileName($sd)
+                        if ($sdName -notmatch '(?i)backup' -and -not $sdName.StartsWith('.')) {
+                            $q.Enqueue($sd)
+                        }
+                    }
+                } catch {}
+            }
         }
     }
 
@@ -13979,8 +14347,6 @@ function Invoke-ThreeUrlPlanSharingCore([bool]$isDryRunOnly) {
     $lblThreeUrlCommon.Text     = ($commonImagesIgnored.Count + $commonPlansIgnored.Count).ToString()
     if ($lblThreeUrlNewPhotos)  { $lblThreeUrlNewPhotos.Text = $newImagesToTransfer.Count.ToString() }
     if ($lblThreeUrlNewPlans)   { $lblThreeUrlNewPlans.Text  = $newPlansToTransfer.Count.ToString() }
-    if ($lblThreeUrlNewToShare) { $lblThreeUrlNewToShare.Text = ($newImagesToTransfer.Count + $newPlansToTransfer.Count).ToString() }
-    if ($lblThreeUrlParentTotal){ $lblThreeUrlParentTotal.Text= ($existingImages.Count + $existingPlans.Count).ToString() }
 
     Append-ExtractLog "-------------------------------------------------------"
     Append-ExtractLog "AUDIT & SCAN SUMMARY:"
@@ -13993,7 +14359,7 @@ function Invoke-ThreeUrlPlanSharingCore([bool]$isDryRunOnly) {
     if ($isDryRunOnly -or ($chkSyncDryRun -and $chkSyncDryRun.IsChecked -eq $true)) {
         $extractProgressBar.Value = 100
         $lblExtractStatus.Text = "Status: Audit Complete. $($newImagesToTransfer.Count) new images and $($newPlansToTransfer.Count) new plans found."
-        [System.Windows.MessageBox]::Show("Multi-Server Audit Complete!`n`nExisting on Target 19: $($existingImages.Count) images, $($existingPlans.Count) plans`nCommon Files (Ignored): $($commonImagesIgnored.Count + $commonPlansIgnored.Count)`n`nNew to Transfer:`n- New Images: $($newImagesToTransfer.Count)`n- New Plans : $($newPlansToTransfer.Count)`n`nClick '2. START MIGRATING TO Cluster-A-Master' to begin copying.", "Multi-Server Comparison Audit", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Information)
+        [System.Windows.MessageBox]::Show("Multi-Server Audit Complete!`n`nExisting on Target Master: $($existingImages.Count) images, $($existingPlans.Count) plans`nCommon Files (Ignored): $($commonImagesIgnored.Count + $commonPlansIgnored.Count)`n`nNew to Transfer:`n- New Images: $($newImagesToTransfer.Count)`n- New Plans : $($newPlansToTransfer.Count)`n`nClick '2. START MIGRATING TO TARGET MASTER' to begin copying.", "Multi-Server Comparison Audit", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Information)
         $btnThreeUrlStart.IsEnabled = $true
         $btnThreeUrlAnalyze.IsEnabled = $true
         return
@@ -14002,25 +14368,17 @@ function Invoke-ThreeUrlPlanSharingCore([bool]$isDryRunOnly) {
     $totalToTransfer = $newImagesToTransfer.Count + $newPlansToTransfer.Count
     if ($totalToTransfer -eq 0) {
         $extractProgressBar.Value = 100
-        $lblExtractStatus.Text = "Status: Target 19 is already 100% up to date. Zero new files needed."
-        Append-ExtractLog "SUCCESS: Target \\Cluster-A-Master is already 100% complete! All $($commonImagesIgnored.Count + $commonPlansIgnored.Count) files already exist in Target."
-        [System.Windows.MessageBox]::Show("Target Server \\Cluster-A-Master is already 100% complete!`n`nAll files from Cluster-B-Node and Cluster-C-Storage already exist in Target PropertyImage and PlanPhoto.", "Already Complete", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Information)
+        $lblExtractStatus.Text = "Status: Target Master is already 100% up to date. Zero new files needed."
+        Append-ExtractLog "SUCCESS: Target Master is already 100% complete! All $($commonImagesIgnored.Count + $commonPlansIgnored.Count) files already exist in Target."
+        [System.Windows.MessageBox]::Show("Target Master is already 100% complete!`n`nAll files from secondary sources already exist in Target PropertyImage and PlanPhoto.", "Already Complete", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Information)
         $btnThreeUrlStart.IsEnabled = $true
         $btnThreeUrlAnalyze.IsEnabled = $true
         return
     }
 
-    # Step 3: Execute Migration Copy
+    # Execute Migration Copy
     if (-not (Test-Path -LiteralPath $targetImgDir))  { New-Item -ItemType Directory -Path $targetImgDir -Force | Out-Null }
     if (-not (Test-Path -LiteralPath $targetPlanDir)) { New-Item -ItemType Directory -Path $targetPlanDir -Force | Out-Null }
-
-    $desktopExportDir = $null
-    if ($isExtractDesktop) {
-        $dtStamp = (Get-Date).ToString("yyyyMMdd_HHmmss")
-        $desktopExportDir = Join-Path $desktopDir "Nexus_Consolidated_Assets_$dtStamp"
-        if (-not (Test-Path -LiteralPath $desktopExportDir)) { New-Item -ItemType Directory -Path $desktopExportDir -Force | Out-Null }
-        $global:threeUrlLastDesktopFolder = $desktopExportDir
-    }
 
     $copiedImgs = 0
     $copiedPlans = 0
@@ -14033,15 +14391,12 @@ function Invoke-ThreeUrlPlanSharingCore([bool]$isDryRunOnly) {
         try {
             [System.IO.File]::Copy($im.Source, $destFile, $true)
             $copiedImgs++
-            Append-ExtractLog "[IMAGE -> 19] ($currentIdx/$totalToTransfer) '$($im.FileName)' from $($im.Origin) -> OK"
-            if ($isExtractDesktop -and $desktopExportDir) {
-                [System.IO.File]::Copy($destFile, (Join-Path $desktopExportDir $im.FileName), $true)
-            }
+            Append-ExtractLog "[IMAGE -> MASTER] ($currentIdx/$totalToTransfer) '$($im.FileName)' from $($im.Origin) -> OK"
         } catch {
             Append-ExtractLog "[ERROR COPYING IMAGE] '$($im.FileName)': $($_.Exception.Message)"
         }
 
-        if ($currentIdx % 10 -eq 0 -or $currentIdx -eq $totalToTransfer) {
+        if ($currentIdx % 15 -eq 0 -or $currentIdx -eq $totalToTransfer) {
             $pct = [int]($currentIdx / $totalToTransfer * 100)
             $extractProgressBar.Value = [Math]::Min(100, $pct)
             $lblExtractStatus.Text = "Status: Transferring file $currentIdx of $totalToTransfer ($pct%)..."
@@ -14066,15 +14421,12 @@ function Invoke-ThreeUrlPlanSharingCore([bool]$isDryRunOnly) {
                 [System.IO.File]::Copy($pl.Source, $destFile, $true)
             }
             $copiedPlans++
-            Append-ExtractLog "[PLAN -> 19] ($currentIdx/$totalToTransfer) '$($pl.FileName)' from $($pl.Origin) -> OK"
-            if ($isExtractDesktop -and $desktopExportDir) {
-                [System.IO.File]::Copy($destFile, (Join-Path $desktopExportDir $pl.FileName), $true)
-            }
+            Append-ExtractLog "[PLAN -> MASTER] ($currentIdx/$totalToTransfer) '$($pl.FileName)' from $($pl.Origin) -> OK"
         } catch {
             Append-ExtractLog "[ERROR COPYING PLAN] '$($pl.FileName)': $($_.Exception.Message)"
         }
 
-        if ($currentIdx % 10 -eq 0 -or $currentIdx -eq $totalToTransfer) {
+        if ($currentIdx % 15 -eq 0 -or $currentIdx -eq $totalToTransfer) {
             $pct = [int]($currentIdx / $totalToTransfer * 100)
             $extractProgressBar.Value = [Math]::Min(100, $pct)
             $lblExtractStatus.Text = "Status: Transferring file $currentIdx of $totalToTransfer ($pct%)..."
@@ -14087,36 +14439,31 @@ function Invoke-ThreeUrlPlanSharingCore([bool]$isDryRunOnly) {
     try { $finalTargetImgs  = [System.IO.Directory]::GetFiles($targetImgDir, "*.*").Count } catch {}
     try { $finalTargetPlans = [System.IO.Directory]::GetFiles($targetPlanDir, "*.*").Count } catch {}
 
-    if ($lblThreeUrlNewPhotos)  { $lblThreeUrlNewPhotos.Text = $copiedImgs.ToString() }
-    if ($lblThreeUrlNewPlans)   { $lblThreeUrlNewPlans.Text  = $copiedPlans.ToString() }
-    if ($lblThreeUrlNewToShare) { $lblThreeUrlNewToShare.Text = ($copiedImgs + $copiedPlans).ToString() }
-    if ($lblThreeUrlParentTotal){ $lblThreeUrlParentTotal.Text= ($finalTargetImgs + $finalTargetPlans).ToString() }
-
     $extractProgressBar.Value = 100
-    $lblExtractStatus.Text = "Status: Migration to \\Cluster-A-Master Complete! ($copiedImgs images, $copiedPlans plans transferred)."
+    $lblExtractStatus.Text = "Status: Migration to Target Master Complete! ($copiedImgs images, $copiedPlans plans transferred)."
     Append-ExtractLog "======================================================="
-    Append-ExtractLog "MIGRATION TO \\Cluster-A-Master COMPLETED SUCCESSFULLY!"
+    Append-ExtractLog "MIGRATION TO TARGET MASTER COMPLETED SUCCESSFULLY!"
     Append-ExtractLog "Target Images Folder : $targetImgDir ($finalTargetImgs total)"
     Append-ExtractLog "Target Plans Folder  : $targetPlanDir ($finalTargetPlans total)"
     Append-ExtractLog "New Images Migrated  : $copiedImgs"
     Append-ExtractLog "New Plans Migrated   : $copiedPlans"
     Append-ExtractLog "Common Files Skipped : $($commonImagesIgnored.Count + $commonPlansIgnored.Count)"
-    if ($isExtractDesktop -and $desktopExportDir) {
-        Append-ExtractLog "Desktop Export Folder: $desktopExportDir"
-    }
     Append-ExtractLog "======================================================="
 
-    try { Set-MascotState "success" "Migrated $($copiedImgs + $copiedPlans) Files to 19!" } catch {}
+    try { Set-MascotState "success" "Migrated $($copiedImgs + $copiedPlans) Files to Target Master!" } catch {}
 
-    [System.Windows.MessageBox]::Show("Migration to \\Cluster-A-Master Complete!`n`nTarget Location: $($parentInfo.Path)`n`nTransferred to Target:`n- New Images Copied: $copiedImgs`n- New Plans Copied : $copiedPlans`n- Common Files Skipped: $($commonImagesIgnored.Count + $commonPlansIgnored.Count)`n`nCurrent Target Totals:`n- Total Images on 19: $finalTargetImgs`n- Total Plans on 19 : $finalTargetPlans", "Migration Complete", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Information)
+    [System.Windows.MessageBox]::Show("Migration to Target Master Complete!`n`nTarget Location: $($parentInfo.Path)`n`nTransferred to Target:`n- New Images Copied: $copiedImgs`n- New Plans Copied : $copiedPlans`n- Common Files Skipped: $($commonImagesIgnored.Count + $commonPlansIgnored.Count)`n`nCurrent Target Totals:`n- Total Images: $finalTargetImgs`n- Total Plans : $finalTargetPlans", "Migration Complete", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Information)
 
     $btnThreeUrlStart.IsEnabled = $true
     $btnThreeUrlAnalyze.IsEnabled = $true
 }
 
 if ($btnThreeUrlAnalyze) { $btnThreeUrlAnalyze.Add_Click({ Invoke-ThreeUrlPlanSharingCore $true }) }
-if ($btnThreeUrlStart) { $btnThreeUrlStart.Add_Click({ Invoke-ThreeUrlPlanSharingCore $false }) }
+if ($btnThreeUrlStart)   { $btnThreeUrlStart.Add_Click({ Invoke-ThreeUrlPlanSharingCore $false }) }
 
+# =====================================================================
+# WARD PHOTOS & PLANS PATH EXPORTER (OPTIONS A, B, C)
+# =====================================================================
 function Export-WardPhotosAndPlansPaths($targetRoot) {
     if ([string]::IsNullOrWhiteSpace($targetRoot) -or -not (Test-Path -LiteralPath $targetRoot)) {
         [System.Windows.MessageBox]::Show("Please select a valid Server root folder first.`n`nFolder path: '$targetRoot'", "Invalid Server Folder", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Warning)
@@ -14148,10 +14495,11 @@ function Export-WardPhotosAndPlansPaths($targetRoot) {
         } catch {}
     }
 
-    $photosDirs = @($allDirs | Where-Object { [System.IO.Path]::GetFileName($_) -ieq "photos" })
-    $plansDirs  = @($allDirs | Where-Object { [System.IO.Path]::GetFileName($_) -ieq "plans" })
+    # Match both singular and plural forms (Photo/Photos/PropertyImage and Plan/Plans/PlanPhoto)
+    $photosDirs = @($allDirs | Where-Object { [System.IO.Path]::GetFileName($_) -match '^(photos?|propertyimage|propimage|images?)$' })
+    $plansDirs  = @($allDirs | Where-Object { [System.IO.Path]::GetFileName($_) -match '^(plans?|planphoto|drawings?)$' })
 
-    Append-ExtractLog "Found $($photosDirs.Count) 'photos' folders and $($plansDirs.Count) 'plans' folders across server hierarchy."
+    Append-ExtractLog "Found $($photosDirs.Count) 'photo' folders and $($plansDirs.Count) 'plan' folders across server hierarchy."
 
     $dtDir = [System.Environment]::GetFolderPath('Desktop')
     $pathPhotosTxt = Join-Path $dtDir "Photos_Paths.txt"
