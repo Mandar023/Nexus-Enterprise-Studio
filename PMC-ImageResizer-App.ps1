@@ -9846,8 +9846,13 @@ function Show-JarvisAssistantWindow {
         $win.Title = "JARVIS - WORLD-CLASS AUTONOMOUS SQL AI AGENT & SELF-HEALING TESTER v5.5"
         $win.Width = 1140
         $win.Height = 760
-        $win.WindowStartupLocation = [System.Windows.WindowStartupLocation]::CenterOwner
-        if ($window -and $window.IsVisible) { try { $win.Owner = $window } catch {} }
+        $win.WindowStartupLocation = [System.Windows.WindowStartupLocation]::CenterScreen
+        if ($window -and $window.IsVisible -and $window.WindowState -ne [System.Windows.WindowState]::Minimized) {
+            try {
+                $win.Owner = $window
+                $win.WindowStartupLocation = [System.Windows.WindowStartupLocation]::CenterOwner
+            } catch {}
+        }
         $win.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#060A13")
         $win.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#F8FAFC")
         $win.FontFamily = New-Object System.Windows.Media.FontFamily("Segoe UI, Nirmala UI, Consolas")
@@ -9902,8 +9907,8 @@ function Show-JarvisAssistantWindow {
         $hdrTitle.FontWeight = [System.Windows.FontWeights]::Bold
         $hTitleStack.Children.Add($hdrTitle) | Out-Null
 
-        $dbSourceStr = if ($isLiveSql) { "$($script:SqlConnection.DataSource) [$($script:SqlConnection.Database)]" } else { "In-Memory Municipal Knowledge Base (Offline Simulator)" }
-        $tableCount = $script:JarvisSchema.AllTables.Count
+        $dbSourceStr = if ($isLiveSql -and $script:SqlConnection) { "$($script:SqlConnection.DataSource) [$($script:SqlConnection.Database)]" } else { "In-Memory Municipal Knowledge Base (Offline Simulator)" }
+        $tableCount = if ($script:JarvisSchema -and $script:JarvisSchema.AllTables) { $script:JarvisSchema.AllTables.Count } else { 0 }
 
         $hdrSub = New-Object System.Windows.Controls.TextBlock
         $hdrSub.Text = if ($isLiveSql) { "Connected: $dbSourceStr | $tableCount Live Tables Indexed | Multilingual Marathi / English Ready" }
@@ -9966,40 +9971,10 @@ function Show-JarvisAssistantWindow {
         $cmdGrid.Children.Add($btnRun) | Out-Null
         $rootGrid.Children.Add($cmdGrid) | Out-Null
 
-        # 3. Quick Action Chips Bar
+        # 3. Quick Action Chips Bar (Container created here, populated below after execAction is defined)
         $chipsPanel = New-Object System.Windows.Controls.WrapPanel
         $chipsPanel.Margin = New-Object System.Windows.Thickness(0,0,0,10)
         [System.Windows.Controls.Grid]::SetRow($chipsPanel, 2)
-
-        $chipConfigs = @(
-            @{ Label = "[ Top 50 Properties (PropertyMast) ]"; Prompt = "PropertyMast madhun top 50 malak ani mobile dakhva" },
-            @{ Label = "[ Pending Tax (TaxPendingDetails) ]"; Prompt = "top 50 thakbaki ani kar tapshil dakhva" },
-            @{ Label = "[ Bill Receipts (BillTransactionDetails) ]"; Prompt = "BillTransactionDetails madhun top 50 pavti dakhva" },
-            @{ Label = "[ Search Owner Name (Patil) ]"; Prompt = "PropertyMast madhun nav Patil aslele malak dakhva" },
-            @{ Label = "[ Ward-wise Property Count ]"; Prompt = "wardnihay malmatta count dakhva" },
-            @{ Label = "[ Broken Query Mistake Healer ]"; Prompt = "SELECT TOP 5 OwnerID, Phonexxx, Warrrd FROM PropertyMast" },
-            @{ Label = "[ Join Properties + Receipts ]"; Prompt = "PropertyMast join BillTransactionDetails on OwnerID" },
-            @{ Label = "[ Unregistered Mobile Search ]"; Prompt = "PropertyMast madhun mobile naslelya milkati dakhva" }
-        )
-
-        foreach ($chip in $chipConfigs) {
-            $btnChip = New-Object System.Windows.Controls.Button
-            $btnChip.Content = $chip.Label
-            $btnChip.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#131E33")
-            $btnChip.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#7DD3FC")
-            $btnChip.BorderBrush = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#1E3A8A")
-            $btnChip.BorderThickness = New-Object System.Windows.Thickness(1)
-            $btnChip.Padding = New-Object System.Windows.Thickness(8,4,8,4)
-            $btnChip.Margin = New-Object System.Windows.Thickness(0,0,6,6)
-            $btnChip.FontSize = 11.5
-            $btnChip.Cursor = [System.Windows.Input.Cursors]::Hand
-            $pVal = $chip.Prompt
-            $btnChip.Add_Click({
-                $txtPrompt.Text = $pVal
-                & $execAction
-            }.GetNewClosure())
-            $chipsPanel.Children.Add($btnChip) | Out-Null
-        }
         $rootGrid.Children.Add($chipsPanel) | Out-Null
 
         # 4. TabControl Workstation
@@ -10243,6 +10218,37 @@ function Show-JarvisAssistantWindow {
             }
         })
 
+        # Populate Quick Action Chips now that execAction and all UI controls are in scope
+        $chipConfigs = @(
+            @{ Label = "[ Top 50 Properties (PropertyMast) ]"; Prompt = "PropertyMast madhun top 50 malak ani mobile dakhva" },
+            @{ Label = "[ Pending Tax (TaxPendingDetails) ]"; Prompt = "top 50 thakbaki ani kar tapshil dakhva" },
+            @{ Label = "[ Bill Receipts (BillTransactionDetails) ]"; Prompt = "BillTransactionDetails madhun top 50 pavti dakhva" },
+            @{ Label = "[ Search Owner Name (Patil) ]"; Prompt = "PropertyMast madhun nav Patil aslele malak dakhva" },
+            @{ Label = "[ Ward-wise Property Count ]"; Prompt = "wardnihay malmatta count dakhva" },
+            @{ Label = "[ Broken Query Mistake Healer ]"; Prompt = "SELECT TOP 5 OwnerID, Phonexxx, Warrrd FROM PropertyMast" },
+            @{ Label = "[ Join Properties + Receipts ]"; Prompt = "PropertyMast join BillTransactionDetails on OwnerID" },
+            @{ Label = "[ Unregistered Mobile Search ]"; Prompt = "PropertyMast madhun mobile naslelya milkati dakhva" }
+        )
+
+        foreach ($chip in $chipConfigs) {
+            $btnChip = New-Object System.Windows.Controls.Button
+            $btnChip.Content = $chip.Label
+            $btnChip.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#131E33")
+            $btnChip.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#7DD3FC")
+            $btnChip.BorderBrush = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#1E3A8A")
+            $btnChip.BorderThickness = New-Object System.Windows.Thickness(1)
+            $btnChip.Padding = New-Object System.Windows.Thickness(8,4,8,4)
+            $btnChip.Margin = New-Object System.Windows.Thickness(0,0,6,6)
+            $btnChip.FontSize = 11.5
+            $btnChip.Cursor = [System.Windows.Input.Cursors]::Hand
+            $pVal = $chip.Prompt
+            $btnChip.Add_Click({
+                if ($txtPrompt) { $txtPrompt.Text = $pVal }
+                if ($execAction) { & $execAction }
+            }.GetNewClosure())
+            $chipsPanel.Children.Add($btnChip) | Out-Null
+        }
+
         $btnCopyQuery.Add_Click({
             if (-not [string]::IsNullOrWhiteSpace($txtGeneratedSql.Text)) {
                 try {
@@ -10340,9 +10346,10 @@ function Show-JarvisAssistantWindow {
         })
 
         $win.Content = $rootGrid
-        $win.ShowDialog() | Out-Null
+        [void]$win.ShowDialog()
     } catch {
-        [System.Windows.MessageBox]::Show("JARVIS AI Agent startup error: $($_.Exception.Message)", "JARVIS AI Agent Notice", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Warning)
+        try { Set-MascotState "error" "JARVIS Notice" } catch {}
+        Write-Warning "JARVIS AI Agent startup notice: $($_.Exception.Message)"
     }
 }
 
@@ -13531,13 +13538,30 @@ if ($btnExtractPreset19) {
 
 $btnExtractBrowseSource.Add_Click({
     $dlg = New-Object System.Windows.Forms.FolderBrowserDialog
-    $dlg.Description = "Select Source Server / Network Image Folder"
-    $dlg.SelectedPath = $txtExtractSource.Text
+    $dlg.Description = "Select Source Server / Network Image Folder to Add or Set"
+    $existingRaw = if ($txtExtractSource.Text) { $txtExtractSource.Text.Trim() } else { "" }
+    $existingList = [System.Collections.Generic.List[string]]::new()
+    if ($existingRaw) {
+        $parts = $existingRaw.Split(@(';', ',', '|', "`n", "`r"), [System.StringSplitOptions]::RemoveEmptyEntries)
+        foreach ($p in $parts) {
+            $cleanP = $p.Trim().Trim('"').Trim()
+            if ($cleanP -and -not $existingList.Contains($cleanP)) {
+                $existingList.Add($cleanP)
+            }
+        }
+    }
+    if ($existingList.Count -gt 0 -and (Test-Path -LiteralPath $existingList[0])) {
+        $dlg.SelectedPath = $existingList[0]
+    }
     if ($dlg.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
-        if ($txtExtractSource.Text -and $txtExtractSource.Text -ne $dlg.SelectedPath -and (Test-Path -LiteralPath $txtExtractSource.Text)) {
-            $txtExtractSource.Text = "$($txtExtractSource.Text); $($dlg.SelectedPath)"
+        $selected = $dlg.SelectedPath.Trim()
+        if ($existingList.Count -gt 0) {
+            if (-not $existingList.Contains($selected)) {
+                $existingList.Add($selected)
+            }
+            $txtExtractSource.Text = ($existingList -join "; ")
         } else {
-            $txtExtractSource.Text = $dlg.SelectedPath
+            $txtExtractSource.Text = $selected
         }
     }
 })
@@ -15699,7 +15723,11 @@ try {
                 })
                 $resetTimer.Start()
             } catch {}
-            Show-JarvisAssistantWindow
+            if ($window -and $window.Dispatcher) {
+                $window.Dispatcher.BeginInvoke([Action]{ Show-JarvisAssistantWindow })
+            } else {
+                Show-JarvisAssistantWindow
+            }
         })
     }
 
