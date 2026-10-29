@@ -7804,393 +7804,279 @@ function Convert-JarvisNLToSql([string]$prompt) {
     $log = [System.Collections.Generic.List[string]]::new()
     $log.Add("[STAGE 1: INTENT & SEMANTIC PARSING] User Instruction: '$p'")
 
-    # 0. Check for Direct SQL Query Input (with optional common SQL typos)
-    $isDirectSql = ($p -match '(?i)^\s*(?:SELECT|SELEST|SEELCT|EXEC|INSERT|UPDATE|DELETE)\b') -or
-                   ($p -match '(?i)^\s*WITH\s+[a-zA-Z0-9_]+\s+AS\s*\(')
-
-    if ($isDirectSql) {
-        $cleanSql = $p
-        if ($cleanSql -match '(?i)\bSELEST\b') { $cleanSql = $cleanSql -replace '(?i)\bSELEST\b', 'SELECT' }
-        if ($cleanSql -match '(?i)\bSEELCT\b') { $cleanSql = $cleanSql -replace '(?i)\bSEELCT\b', 'SELECT' }
-        if ($cleanSql -match '(?i)\bFORM\b')   { $cleanSql = $cleanSql -replace '(?i)\bFORM\b', 'FROM' }
-        if ($cleanSql -match '(?i)\bWHRE\b')   { $cleanSql = $cleanSql -replace '(?i)\bWHRE\b', 'WHERE' }
-        if ($cleanSql -match '(?i)\bODER\s+BY\b') { $cleanSql = $cleanSql -replace '(?i)\bODER\s+BY\b', 'ORDER BY' }
-
+    # 0. Raw Direct SQL with Typo Auto-Correction
+    if ($p -match '(?i)^\s*(?:SELECT|SELEST|SEELCT|EXEC|INSERT|UPDATE|DELETE|WITH)\b') {
+        $cleanSql = $p -replace '(?i)\bSELEST\b', 'SELECT' -replace '(?i)\bSEELCT\b', 'SELECT' -replace '(?i)\bFORM\b', 'FROM' -replace '(?i)\bWHRE\b', 'WHERE' -replace '(?i)\bODER\s+BY\b', 'ORDER BY'
         $tGuess = "PropertyMast"
         if ($cleanSql -match '(?i)\bFROM\s+\[?(?:dbo\.)?\[?([a-zA-Z0-9_]+)\]?') {
-            $rawTbl = $matches[1]
-            $tGuess = Get-BestMatchingTable $rawTbl
+            $tGuess = Get-BestMatchingTable $matches[1]
         }
-        $log.Add("[STAGE 1: INTENT & SEMANTIC PARSING] Direct SQL Statement detected. Target Table: '$tGuess'")
+        $log.Add("[STAGE 1: DIRECT SQL] Raw SQL Statement recognized. Target Table: '$tGuess'")
         return [PSCustomObject]@{ Sql = $cleanSql; Table = $tGuess; Logs = $log; IsDirectSql = $true }
     }
 
-    # 1. Multi-Table JOIN Intent
-    $isJoinPropertiesBills = ($p -match '(?i)PropertyMast' -and $p -match '(?i)BillTransaction') -or
-                             ($p -match '(?i)\bjoin\b' -and ($p -match '(?i)pavti|\u092A\u093E\u0935\u0924\u0940|bill|receipt|bharna|collection'))
-    $isJoinPropertiesTaxes = ($p -match '(?i)PropertyMast' -and $p -match '(?i)TaxPending') -or
-                             ($p -match '(?i)\bjoin\b' -and ($p -match '(?i)thakbaki|\u0925\u0915\u092C\u093E\u0915\u0940|tax|pending|baki|arrears'))
-
-    if ($isJoinPropertiesBills) {
-        $log.Add("[STAGE 1: INTENT & SEMANTIC PARSING] Multi-Table Relational JOIN detected -> PropertyMast + BillTransactionDetails ON OwnerID")
-        $topCount = 50
-        if ($p -match '(?i)(?:top|pahile|first|limit)\s*(\d+)') { $topCount = [int]$matches[1] }
-        $sql = "SELECT TOP $topCount p.OwnerID, p.NewWardNo, p.OwnerFirstName, p.OwnerLastName, p.MarathiOwnerPrathamNav, p.MobileNo, b.InvoiceNo, b.BillBookNo, b.TransactionDate, b.Amount FROM [dbo].[PropertyMast] p WITH (NOLOCK) INNER JOIN [dbo].[BillTransactionDetails] b WITH (NOLOCK) ON p.OwnerID = b.OwnerID ORDER BY b.TransactionDate DESC;"
-        $log.Add("[STAGE 2: SCHEMA GROUNDING] Primary keys and foreign relations verified on OwnerID.")
-        $log.Add("[STAGE 3: T-SQL SYNTAX & COMPLIANCE] High-performance query generated with WITH (NOLOCK).")
-        return [PSCustomObject]@{ Sql = $sql; Table = "PropertyMast"; Logs = $log }
+    # 1. Google Gemini Neural Cloud Engine Bridge
+    $geminiKey = if ($script:JarvisGeminiApiKey) { $script:JarvisGeminiApiKey } else {
+        try { (Get-ItemProperty -Path "HKCU:\Software\NexusEnterprise\JarvisAI" -Name "GeminiApiKey" -ErrorAction SilentlyContinue).GeminiApiKey } catch { "" }
     }
 
-    if ($isJoinPropertiesTaxes) {
-        $log.Add("[STAGE 1: INTENT & SEMANTIC PARSING] Multi-Table Relational JOIN detected -> PropertyMast + TaxPendingDetails ON OwnerID")
-        $topCount = 50
-        if ($p -match '(?i)(?:top|pahile|first|limit)\s*(\d+)') { $topCount = [int]$matches[1] }
-        $sql = "SELECT TOP $topCount p.OwnerID, p.NewWardNo, p.OwnerFirstName, p.OwnerLastName, p.MarathiOwnerPrathamNav, p.MobileNo, t.PendingYear, t.PropertyTax, t.TaxTotal, t.Interest FROM [dbo].[PropertyMast] p WITH (NOLOCK) INNER JOIN [dbo].[TaxPendingDetails] t WITH (NOLOCK) ON p.OwnerID = t.OwnerID ORDER BY t.TaxTotal DESC;"
-        $log.Add("[STAGE 2: SCHEMA GROUNDING] Primary keys and foreign relations verified on OwnerID.")
-        $log.Add("[STAGE 3: T-SQL SYNTAX & COMPLIANCE] High-performance query generated with WITH (NOLOCK).")
-        return [PSCustomObject]@{ Sql = $sql; Table = "PropertyMast"; Logs = $log }
-    }
+    if (-not [string]::IsNullOrWhiteSpace($geminiKey)) {
+        try {
+            $log.Add("[STAGE 1: GENIUS LLM] Engaging Google Gemini Neural Intelligence Engine...")
+            $schemaContext = "Database Schema: PropertyMast(OwnerID, NewWardNo, OldWardNo, NewZoneNo, NewPropertyNo, OldPropertyNo, OwnerFirstName, OwnerLastName, MarathiOwnerPrathamNav, MarathiOwnerAadnav, UnicodeOwnerName, MobileNo, PhoneNo, Address, MarathiOwnerPatta, ColonyName, PropertyTax, CreatedDate, IsActive); BillTransactionDetails(BillID, InvoiceNo, BillBookNo, OwnerID, PropertyNo, Amount, TransactionDate, PaymentMode, ChequeNo, BankName, ReceiptNo, CreatedBy); TaxPendingDetails(TaxPendingID, OwnerID, PropertyNo, PendingYear, PropertyTax, EducationTax, TaxTotal, Interest, NetTotal, DueDate, Penalty); AssessmentDetails(AssessmentID, OwnerID, PropertyNo, AssessmentYear, AnnualRateableValue, UsageType, BuiltUpArea, TaxRate, AssessedDate); WardMaster(WardID, WardNo, WardName, MarathiWardName, ZoneID, ZoneName, OfficerInCharge, ContactNo)."
+            $systemInstruction = "You are the world's most advanced Autonomous SQL AI Agent for a Municipal Corporation Property Tax system. Convert the natural language question (which may be in Marathi, Hinglish, or English) into an exact, high-performance T-SQL query with WITH (NOLOCK). Return raw SQL only without backticks or explanations."
 
-    # 2. Aggregations & Analytics
-    $isWardWise = $p -match '(?i)ward-wise|ward wise|wardnihay|\u0935\u0949\u0930\u094D\u0921\u0928\u093F\u0939\u093E\u092F|prabhag nusar|ward nusar|pratyek ward'
-    $isWardWiseCollection = $isWardWise -and ($p -match '(?i)collection|vasuli|\u0935\u0938\u0941\u0932\u0940|bharna|\u092D\u0930\u0923\u093E|amount|rakkam')
-    $isWardWisePending = $isWardWise -and ($p -match '(?i)pending|thakbaki|\u0925\u0915\u092C\u093E\u0915\u0940|baki|tax|kar|\u0915\u0930')
-    $isWardWiseProperties = $isWardWise -and -not $isWardWiseCollection -and -not $isWardWisePending
+            $payload = @{
+                contents = @(
+                    @{
+                        parts = @(
+                            @{ text = "$systemInstruction`n`n$schemaContext`n`nUser Question: $p" }
+                        )
+                    }
+                )
+            } | ConvertTo-Json -Depth 5
 
-    $isCountOnly = ($p -match '(?i)\b(?:total\s+count|count|milkat\s*sankhya|sankhya|\u0938\u0902\u0916\u094D\u092F\u093E|ekun\s+malmatta|ekun\s+milkat|\u090F\u0915\u0942\u0923\s+\u092E\u093E\u0932\u092E\u0924\u094D\u0924\u093E|total\s+properties)\b') -and ($p -notmatch '(?i)(?:top\s+\d+|select|\bcolumns?\b)')
-    $isSumCollection = $p -match '(?i)(?:total\s+collection|ekun\s+vasuli|ekun\s+bharna|\u090F\u0915\u0942\u0923\s+\u0935\u0938\u0941\u0932\u0940|sum\s+of\s+bills|total\s+receipts|collection\s+sum)'
-    $isSumPending = $p -match '(?i)(?:total\s+pending|ekun\s+thakbaki|\u090F\u0915\u0942\u0923\s+\u0925\u0915\u092C\u093E\u0915\u0940|sum\s+of\s+taxes|total\s+arrears|thakbaki\s+sum)'
-
-    if ($isWardWiseProperties) {
-        $log.Add("[STAGE 1: INTENT & SEMANTIC PARSING] Aggregation Intent -> Ward-wise Property Distribution")
-        $sql = "SELECT NewWardNo, COUNT(*) AS TotalProperties FROM [dbo].[PropertyMast] WITH (NOLOCK) WHERE NewWardNo IS NOT NULL AND NewWardNo <> '' GROUP BY NewWardNo ORDER BY TRY_CAST(NewWardNo AS INT) ASC;"
-        $log.Add("[STAGE 2: SCHEMA GROUNDING] Grouped by NewWardNo with TRY_CAST integer ordinal sort.")
-        return [PSCustomObject]@{ Sql = $sql; Table = "PropertyMast"; Logs = $log }
-    }
-    if ($isWardWiseCollection) {
-        $log.Add("[STAGE 1: INTENT & SEMANTIC PARSING] Aggregation Intent -> Ward-wise Revenue Collection Sum")
-        $sql = "SELECT p.NewWardNo, COUNT(b.BillID) AS TotalBills, SUM(b.Amount) AS TotalCollectedAmount FROM [dbo].[PropertyMast] p WITH (NOLOCK) INNER JOIN [dbo].[BillTransactionDetails] b WITH (NOLOCK) ON p.OwnerID = b.OwnerID WHERE p.NewWardNo IS NOT NULL AND p.NewWardNo <> '' GROUP BY p.NewWardNo ORDER BY TRY_CAST(p.NewWardNo AS INT) ASC;"
-        $log.Add("[STAGE 2: SCHEMA GROUNDING] Aggregated over relational join with SUM(Amount).")
-        return [PSCustomObject]@{ Sql = $sql; Table = "BillTransactionDetails"; Logs = $log }
-    }
-    if ($isWardWisePending) {
-        $log.Add("[STAGE 1: INTENT & SEMANTIC PARSING] Aggregation Intent -> Ward-wise Tax Arrears Summary")
-        $sql = "SELECT p.NewWardNo, COUNT(t.TaxPendingID) AS TotalPendingRecords, SUM(t.TaxTotal) AS TotalPendingTax FROM [dbo].[PropertyMast] p WITH (NOLOCK) INNER JOIN [dbo].[TaxPendingDetails] t WITH (NOLOCK) ON p.OwnerID = t.OwnerID WHERE p.NewWardNo IS NOT NULL AND p.NewWardNo <> '' GROUP BY p.NewWardNo ORDER BY TRY_CAST(p.NewWardNo AS INT) ASC;"
-        $log.Add("[STAGE 2: SCHEMA GROUNDING] Aggregated over relational join with SUM(TaxTotal).")
-        return [PSCustomObject]@{ Sql = $sql; Table = "TaxPendingDetails"; Logs = $log }
-    }
-    if ($isCountOnly) {
-        $log.Add("[STAGE 1: INTENT & SEMANTIC PARSING] Summary Query Intent -> Total System Properties Count")
-        $sql = "SELECT COUNT(*) AS TotalProperties FROM [dbo].[PropertyMast] WITH (NOLOCK);"
-        return [PSCustomObject]@{ Sql = $sql; Table = "PropertyMast"; Logs = $log }
-    }
-    if ($isSumCollection) {
-        $log.Add("[STAGE 1: INTENT & SEMANTIC PARSING] Summary Query Intent -> Total Revenue Collection Sum")
-        $sql = "SELECT COUNT(*) AS TotalReceipts, SUM(Amount) AS TotalCollectedAmount FROM [dbo].[BillTransactionDetails] WITH (NOLOCK);"
-        return [PSCustomObject]@{ Sql = $sql; Table = "BillTransactionDetails"; Logs = $log }
-    }
-    if ($isSumPending) {
-        $log.Add("[STAGE 1: INTENT & SEMANTIC PARSING] Summary Query Intent -> Total Municipal Pending Tax & Interest")
-        $sql = "SELECT COUNT(*) AS TotalPendingRecords, SUM(TaxTotal) AS TotalPendingTax, SUM(Interest) AS TotalInterest FROM [dbo].[TaxPendingDetails] WITH (NOLOCK);"
-        return [PSCustomObject]@{ Sql = $sql; Table = "TaxPendingDetails"; Logs = $log }
-    }
-
-    # 3. Identify Target Table
-    $targetTable = $null
-
-    # 3a. Check explicit preposition: "from Table" or "Table madhun"
-    if ($p -match '(?i)\b(?:from|in|table)\s+\[?([a-zA-Z_][a-zA-Z0-9_]*)\]?') {
-        $candTbl = $matches[1]
-        $matched = Get-BestMatchingTable $candTbl
-        if ($matched) {
-            $targetTable = $matched
-            $log.Add("[STAGE 2: SCHEMA GROUNDING] Explicit table from preposition 'from $candTbl' -> '$targetTable'")
-        }
-    }
-
-    if (-not $targetTable -and $p -match '(?i)\b([a-zA-Z_][a-zA-Z0-9_]*)\s+(?:madhun|\u092E\u0927\u0942\u0928|madhil|\u092E\u0927\u0940\u0932|che|\u091A\u0947|chya|\u091A\u094D\u092F\u093E|table)\b') {
-        $candTbl = $matches[1]
-        if ($script:JarvisSchema.AllTables -contains $candTbl -or $candTbl -match '(?i)Mast|Details|Master|Table') {
-            $matched = Get-BestMatchingTable $candTbl
-            if ($matched) {
-                $targetTable = $matched
-                $log.Add("[STAGE 2: SCHEMA GROUNDING] Explicit table from Marathi preposition '$candTbl madhun' -> '$targetTable'")
+            $url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=$geminiKey"
+            $geminiRes = Invoke-RestMethod -Uri $url -Method Post -Body $payload -ContentType "application/json" -TimeoutSec 10
+            $geminiText = $geminiRes.candidates[0].content.parts[0].text.Trim()
+            $cleanGeminiSql = $geminiText -replace '(?s)```(?:sql)?\s*(.*?)\s*```', '$1'
+            if ($cleanGeminiSql -match '(?i)^\s*(?:SELECT|WITH)\b') {
+                $log.Add("[STAGE 1: GENIUS LLM] Gemini 2.0 Flash generated state-of-the-art T-SQL query.")
+                return [PSCustomObject]@{ Sql = $cleanGeminiSql.Trim(); Table = "PropertyMast"; Logs = $log }
             }
+        } catch {
+            $log.Add("[STAGE 1: GENIUS LLM NOTE]: Cloud AI offline ($($_.Exception.Message)) -> Seamlessly switched to High-Speed Municipal Semantic Brain.")
         }
     }
 
-    # 3b. Exact or longest match from schema tables
-    if (-not $targetTable) {
-        foreach ($tbl in $script:JarvisSchema.SortedTables) {
-            if ($p -match "(?i)\b$([regex]::Escape($tbl))\b") {
-                $targetTable = $tbl
-                $log.Add("[STAGE 2: SCHEMA GROUNDING] Schema table match -> '$targetTable'")
-                break
-            }
-        }
+    # 2. High-Precision Municipal Semantic Engine (100% Offline, Zero-Lag)
+    $hasReceiptIntent = $p -match '(?i)pavt[iy][a-z]*|\u092A\u093E\u0935\u0924[\u0940\u094D\u092F\u093E]*|receipt|bill|invoice|bharna|\u092D\u0930\u0923\u093E|collection|vasuli|\u0935\u0938\u0941\u0932\u0940'
+    $hasTaxIntent = $p -match '(?i)thakbak[iy][a-z]*|\u0925\u0915\u092C\u093E\u0915[\u0940\u094D\u092F\u093E]*|pending|arrears|demand|kar|\u0915\u0930|tax'
+    $hasOwnerIntent = $p -match '(?i)malak|\u092E\u093E\u0932\u0915|lok|\u0932\u094B\u0915|owner|citizen|nagrik|\u0928\u093E\u0917\u0930\u0940\u0915|name|nav|\u0928\u093E\u0935|aadnav|\u0906\u0921\u0928\u093E\u0935'
+    $hasWardSummaryIntent = $p -match '(?i)ward-wise|ward\s*wise|wardnihay|\u0935\u0949\u0930\u094D\u0921\u0928\u093F\u0939\u093E\u092F|prabhag\s*nusar|ward\s*nusar'
+    $hasCountIntent = $p -match '(?i)\b(?:count|total\s*(?:properties|milkati|records|nondi)|ekun\s*(?:milkat|malmatta|properties|records)|kiti\s*(?:properties|milkati|records|ahet))\b'
+    $hasSumCollectionIntent = $p -match '(?i)\b(?:total\s*(?:collection|vasuli|receipts|amount)|ekun\s*(?:vasuli|bharna|rakkam)|collection\s*kiti|vasuli\s*kiti)\b'
+    $hasSumPendingIntent = $p -match '(?i)\b(?:total\s*(?:pending|thakbaki|arrears|tax)|ekun\s*(?:thakbaki|kar|baki)|thakbaki\s*kiti)\b'
+
+    # Row Limit (TOP N)
+    $topCount = 50
+    if ($p -match '(?i)(?:top|pahil[eyea]|\u092A\u0939\u093F\u0932[\u092F\u093E\u0947]*|first|limit)\s*(\d+)') {
+        $topCount = [int]$matches[1]
+    } elseif ($p -match '(\d+)\s*(?:records|rows|nond[iy][a-z]*|\u0928\u094B\u0902\u0926[\u0940\u094D\u092F\u093E]*|lok|\u0932\u094B\u0915|properties|milkat[iy]*)') {
+        $topCount = [int]$matches[1]
     }
 
-    # 3c. Domain Semantic Fallbacks
-    if (-not $targetTable) {
-        if ($p -match '(?i)pavti|\u092A\u093E\u0935\u0924\u0940|bharna|\u092D\u0930\u0923\u093E|vasuli|\u0935\u0938\u0941\u0932\u0940|receipt|bill|invoice|transaction|challan') {
-            $targetTable = if ($p -match '(?i)challan') { "ChallanDetails" } else { "BillTransactionDetails" }
-            $log.Add("[STAGE 2: SCHEMA GROUNDING] Inferred domain table -> '$targetTable' (Bills/Receipts/Challans)")
-        } elseif ($p -match '(?i)thakbaki|\u0925\u0915\u092C\u093E\u0915\u0940|baki|\u092C\u093E\u0915\u0940|pending|arrears|demand') {
-            $targetTable = "TaxPendingDetails"
-            $log.Add("[STAGE 2: SCHEMA GROUNDING] Inferred domain table -> '$targetTable' (Pending Taxes)")
-        } elseif ($p -match '(?i)aakarni|\u0906\u0915\u093E\u0930\u0923\u0940|assessment|builtup|vapar|\u0935\u093E\u092A\u0930') {
-            $targetTable = "AssessmentDetails"
-            $log.Add("[STAGE 2: SCHEMA GROUNDING] Inferred domain table -> '$targetTable' (Assessment)")
-        } elseif ($p -match '(?i)wardmaster|prabhag\s*master|zone|\u091D\u094B\u0928') {
-            $targetTable = "WardMaster"
-            $log.Add("[STAGE 2: SCHEMA GROUNDING] Inferred domain table -> '$targetTable' (WardMaster)")
-        } elseif ($p -match '(?i)user|login|password|karmachari|\u0915\u0930\u094D\u092E\u091A\u093E\u0930\u0940|staff|privilege') {
-            $targetTable = "UserMaster"
-            $log.Add("[STAGE 2: SCHEMA GROUNDING] Inferred domain table -> '$targetTable' (UserMaster)")
+    # 2a. Ward-Wise Aggregations
+    if ($hasWardSummaryIntent) {
+        if ($hasReceiptIntent) {
+            $sql = "SELECT p.NewWardNo, COUNT(b.BillID) AS TotalBills, SUM(b.Amount) AS TotalCollectedAmount FROM [dbo].[PropertyMast] p WITH (NOLOCK) INNER JOIN [dbo].[BillTransactionDetails] b WITH (NOLOCK) ON p.OwnerID = b.OwnerID WHERE p.NewWardNo IS NOT NULL AND p.NewWardNo <> '' GROUP BY p.NewWardNo ORDER BY TRY_CAST(p.NewWardNo AS INT) ASC;"
+            $log.Add("[STAGE 2: SCHEMA GROUNDING] Ward-wise Revenue Collection Aggregation")
+            return [PSCustomObject]@{ Sql = $sql; Table = "BillTransactionDetails"; Logs = $log }
+        } elseif ($hasTaxIntent) {
+            $sql = "SELECT p.NewWardNo, COUNT(t.TaxPendingID) AS TotalPendingRecords, SUM(t.TaxTotal) AS TotalPendingTax FROM [dbo].[PropertyMast] p WITH (NOLOCK) INNER JOIN [dbo].[TaxPendingDetails] t WITH (NOLOCK) ON p.OwnerID = t.OwnerID WHERE p.NewWardNo IS NOT NULL AND p.NewWardNo <> '' GROUP BY p.NewWardNo ORDER BY TRY_CAST(p.NewWardNo AS INT) ASC;"
+            $log.Add("[STAGE 2: SCHEMA GROUNDING] Ward-wise Tax Arrears Aggregation")
+            return [PSCustomObject]@{ Sql = $sql; Table = "TaxPendingDetails"; Logs = $log }
         } else {
-            $targetTable = "PropertyMast"
-            $log.Add("[STAGE 2: SCHEMA GROUNDING] Defaulted to Municipal Core -> '$targetTable'")
+            $sql = "SELECT NewWardNo, COUNT(*) AS TotalProperties FROM [dbo].[PropertyMast] WITH (NOLOCK) WHERE NewWardNo IS NOT NULL AND NewWardNo <> '' GROUP BY NewWardNo ORDER BY TRY_CAST(NewWardNo AS INT) ASC;"
+            $log.Add("[STAGE 2: SCHEMA GROUNDING] Ward-wise Property Distribution Aggregation")
+            return [PSCustomObject]@{ Sql = $sql; Table = "PropertyMast"; Logs = $log }
         }
     }
 
-    $targetSchema = if ($script:JarvisSchema.TableSchemas.ContainsKey($targetTable)) { $script:JarvisSchema.TableSchemas[$targetTable] } else { "dbo" }
+    # 2b. Grand Totals (Scalar Aggregations)
+    if ($hasCountIntent -and -not $hasReceiptIntent -and -not $hasTaxIntent) {
+        $sql = "SELECT COUNT(*) AS TotalProperties FROM [dbo].[PropertyMast] WITH (NOLOCK);"
+        $log.Add("[STAGE 2: SCHEMA GROUNDING] Total Municipal Properties Count")
+        return [PSCustomObject]@{ Sql = $sql; Table = "PropertyMast"; Logs = $log }
+    }
+    if ($hasSumCollectionIntent) {
+        $sql = "SELECT COUNT(*) AS TotalReceipts, SUM(Amount) AS TotalCollectedAmount, AVG(Amount) AS AverageReceiptAmount FROM [dbo].[BillTransactionDetails] WITH (NOLOCK);"
+        $log.Add("[STAGE 2: SCHEMA GROUNDING] Total Revenue Collection Summary")
+        return [PSCustomObject]@{ Sql = $sql; Table = "BillTransactionDetails"; Logs = $log }
+    }
+    if ($hasSumPendingIntent) {
+        $sql = "SELECT COUNT(*) AS TotalPendingRecords, SUM(TaxTotal) AS TotalPendingTax, SUM(Interest) AS TotalInterestPending FROM [dbo].[TaxPendingDetails] WITH (NOLOCK);"
+        $log.Add("[STAGE 2: SCHEMA GROUNDING] Total Municipal Pending Tax & Interest")
+        return [PSCustomObject]@{ Sql = $sql; Table = "TaxPendingDetails"; Logs = $log }
+    }
+
+    # 2c. Relational Multi-Table Joins
+    $wantsJoinTax = $hasOwnerIntent -and $hasTaxIntent -and ($p -match '(?i)baki|pending|thakbaki|kar|tax')
+    $wantsJoinReceipt = $hasOwnerIntent -and $hasReceiptIntent
+
+    if ($wantsJoinTax) {
+        $whereConds = [System.Collections.Generic.List[string]]::new()
+        if ($p -match '(?i)\b(?:ward|\u0935\u0949\u0930\u094D\u0921|prabhag|\u092A\u094D\u0930\u092D\u093E\u0917)\s*(?:no\.?|kramank|kra\.?|#)?\s*(\d+)\b' -or $p -match '(?i)\b(\d+)\s*(?:ward|prabhag)\b') {
+            $whereConds.Add("p.NewWardNo = '$($matches[1])'")
+        }
+        if ($p -match '(\d+)\s*(?:peksha\s*j[a]*st|\u092A\u0947\u0915\u094D\u0937\u093E\s*\u091C\u093E\u0938\u094D\u0924|hun\s*adhik|greater\s*than|above|>=|>)' -or $p -match '(?i)(?:tax|kar|thakbaki|amount)\s*(?:>=|>)\s*(\d+)') {
+            $whereConds.Add("t.TaxTotal >= $($matches[1])")
+        }
+        if ($p -match '(\d+)\s*(?:peksha\s*kam[iy]|\u092A\u0947\u0915\u094D\u0937\u093E\s*\u0915\u092E\u0940|chya\s*aat|less\s*than|below|<=|<)' -or $p -match '(?i)(?:tax|kar|thakbaki|amount)\s*(?:<=|<)\s*(\d+)') {
+            $whereConds.Add("t.TaxTotal <= $($matches[1])")
+        }
+        $whereClause = if ($whereConds.Count -gt 0) { "WHERE " + ($whereConds -join " AND ") } else { "" }
+        $sql = "SELECT TOP $topCount p.OwnerID, p.NewWardNo, p.NewPropertyNo, p.OwnerFirstName, p.OwnerLastName, p.MarathiOwnerPrathamNav, p.MarathiOwnerAadnav, p.MobileNo, t.PendingYear, t.PropertyTax, t.TaxTotal, t.Interest FROM [dbo].[PropertyMast] p WITH (NOLOCK) INNER JOIN [dbo].[TaxPendingDetails] t WITH (NOLOCK) ON p.OwnerID = t.OwnerID $whereClause ORDER BY t.TaxTotal DESC;"
+        $log.Add("[STAGE 2: SCHEMA GROUNDING] Relational Join -> PropertyMast + TaxPendingDetails ON OwnerID")
+        return [PSCustomObject]@{ Sql = $sql; Table = "PropertyMast"; Logs = $log }
+    }
+
+    if ($wantsJoinReceipt) {
+        $whereConds = [System.Collections.Generic.List[string]]::new()
+        if ($p -match '(?i)\b(?:ward|\u0935\u0949\u0930\u094D\u0921|prabhag|\u092A\u094D\u0930\u092D\u093E\u0917)\s*(?:no\.?|kramank|kra\.?|#)?\s*(\d+)\b' -or $p -match '(?i)\b(\d+)\s*(?:ward|prabhag)\b') {
+            $whereConds.Add("p.NewWardNo = '$($matches[1])'")
+        }
+        if ($p -match '\b(20\d\d)\b') {
+            $whereConds.Add("YEAR(b.TransactionDate) = $($matches[1])")
+        }
+        if ($p -match '(?i)\b(?:aaj|today|\u0906\u091C)\b') {
+            $whereConds.Add("CAST(b.TransactionDate AS DATE) = CAST(GETDATE() AS DATE)")
+        } elseif ($p -match '(?i)\b(?:kal|yesterday|\u0915\u093E\u0932)\b') {
+            $whereConds.Add("CAST(b.TransactionDate AS DATE) = CAST(DATEADD(day, -1, GETDATE()) AS DATE)")
+        }
+        $whereClause = if ($whereConds.Count -gt 0) { "WHERE " + ($whereConds -join " AND ") } else { "" }
+        $sql = "SELECT TOP $topCount p.OwnerID, p.NewWardNo, p.NewPropertyNo, p.OwnerFirstName, p.OwnerLastName, p.MarathiOwnerPrathamNav, p.MarathiOwnerAadnav, p.MobileNo, b.InvoiceNo, b.BillBookNo, b.TransactionDate, b.Amount, b.PaymentMode FROM [dbo].[PropertyMast] p WITH (NOLOCK) INNER JOIN [dbo].[BillTransactionDetails] b WITH (NOLOCK) ON p.OwnerID = b.OwnerID $whereClause ORDER BY b.TransactionDate DESC;"
+        $log.Add("[STAGE 2: SCHEMA GROUNDING] Relational Join -> PropertyMast + BillTransactionDetails ON OwnerID")
+        return [PSCustomObject]@{ Sql = $sql; Table = "PropertyMast"; Logs = $log }
+    }
+
+    # 2d. Single-Table Resolution
+    $targetTable = "PropertyMast"
+    if ($hasReceiptIntent -and -not $hasOwnerIntent) {
+        $targetTable = "BillTransactionDetails"
+    } elseif ($hasTaxIntent -and -not $hasOwnerIntent -and ($p -match '(?i)year|varsh|pendingyear|due|penalty')) {
+        $targetTable = "TaxPendingDetails"
+    } elseif ($p -match '(?i)assessment|builtup|rateable|vapar|\u0906\u0915\u093E\u0930\u0923\u0940') {
+        $targetTable = "AssessmentDetails"
+    } elseif ($p -match '(?i)wardmaster|ward\s*name|adhikari|officer|\u0905\u0927\u093F\u0915\u093E\u0930\u0940') {
+        $targetTable = "WardMaster"
+    } elseif ($p -match '(?i)user|login|karmachari|staff|\u0915\u0930\u094D\u092E\u091A\u093E\u0930\u0940') {
+        $targetTable = "UserMaster"
+    } elseif ($p -match '(?i)challan|\u091A\u0932\u0928') {
+        $targetTable = "ChallanDetails"
+    }
+
+    # 2e. Filter Extraction
+    $whereConditions = [System.Collections.Generic.List[string]]::new()
     $availableCols = if ($script:JarvisSchema.Tables.ContainsKey($targetTable)) {
         $script:JarvisSchema.Tables[$targetTable] | ForEach-Object { $_.Column }
     } else { @() }
 
-    # 4. Check for ALL COLUMNS wildcard
-    $wantsAllColumns = $p -match '(?i)\b(?:all|all\s+columns|sarv|\u0938\u0930\u094D\u0935|sagale|\u0938\u0917\u0933\u0947|purna|\u092A\u0942\u0930\u094D\u0923|full\s+data|\*)\b'
-
-    # 5. Extract Columns
-    $selectedCols = [System.Collections.Generic.List[string]]::new()
-
-    if ($wantsAllColumns) {
-        $colStr = "*"
-        $log.Add("[STAGE 2: SCHEMA GROUNDING] User requested all attributes -> '*'")
-    } else {
-        foreach ($c in $availableCols) {
-            if ($p -match "(?i)\b$([regex]::Escape($c))\b" -and -not $selectedCols.Contains($c)) {
-                $selectedCols.Add($c)
-                $log.Add("[STAGE 2: SCHEMA GROUNDING] Explicit attribute mapped -> '$c'")
-            }
-        }
-
-        if ($p -match '(?i)malak|\u092E\u093E\u0932\u0915|owner|name|nav|\u0928\u093E\u0935|pratham|aadnav|unicodeowner') {
-            foreach ($c in @("OwnerFirstName", "OwnerLastName", "MarathiOwnerPrathamNav", "MarathiOwnerAadnav", "UnicodeOwnerName")) {
-                if ($availableCols -contains $c -and -not $selectedCols.Contains($c)) { $selectedCols.Add($c) }
-            }
-        }
-
-        if ($p -match '(?i)ward|\u0935\u0949\u0930\u094D\u0921|prabhag|\u092A\u094D\u0930\u092D\u093E\u0917|zone') {
-            foreach ($c in @("NewWardNo", "WardNo", "NewZoneNo", "OldWardNo", "WardName")) {
-                if ($availableCols -contains $c -and -not $selectedCols.Contains($c)) { $selectedCols.Add($c) }
-            }
-        }
-
-        if ($p -match '(?i)mobile|\u092E\u094B\u092C\u093E\u0907\u0932|phone|\u092B\u094B\u0928|sampark|\u0938\u0902\u092A\u0930\u094D\u0915|contact') {
-            foreach ($c in @("MobileNo", "PhoneNo", "ContactNo")) {
-                if ($availableCols -contains $c -and -not $selectedCols.Contains($c)) { $selectedCols.Add($c) }
-            }
-        }
-
-        if ($p -match '(?i)patta|\u092A\u0924\u094D\u0924\u093E|address|colony|\u0915\u0949\u0932\u0928\u0940|thikan') {
-            foreach ($c in @("Address", "ColonyName", "MarathiOwnerPatta")) {
-                if ($availableCols -contains $c -and -not $selectedCols.Contains($c)) { $selectedCols.Add($c) }
-            }
-        }
-
-        if ($p -match '(?i)tax|kar|\u0915\u0930|thakbaki|\u0925\u0915\u092C\u093E\u0915\u0940|amount|rakkam|\u0930\u0915\u094D\u0915\u092E|total|interest|penalty') {
-            foreach ($c in @("PropertyTax", "TaxTotal", "Interest", "Amount", "NetTotal", "EducationTax", "Penalty")) {
-                if ($availableCols -contains $c -and -not $selectedCols.Contains($c)) { $selectedCols.Add($c) }
-            }
-        }
-
-        if ($p -match '(?i)pavti|\u092A\u093E\u0935\u0924\u0940|receipt|date|tarikh|\u0924\u093E\u0930\u0940\u0916|bill|invoice') {
-            foreach ($c in @("InvoiceNo", "BillBookNo", "TransactionDate", "BillNo", "ReceiptDate", "Amount", "PaymentMode")) {
-                if ($availableCols -contains $c -and -not $selectedCols.Contains($c)) { $selectedCols.Add($c) }
-            }
-        }
-
-        $idCandidates = @("OwnerID", "BillID", "TaxPendingID", "AssessmentID", "WardID", "ChallanID", "UserID", "PropertyID")
-        foreach ($idCand in $idCandidates) {
-            if ($availableCols -contains $idCand -and -not $selectedCols.Contains($idCand)) {
-                $selectedCols.Insert(0, $idCand)
-                break
-            }
-        }
-
-        if ($selectedCols.Count -le 1) {
-            $prominent = switch ($targetTable) {
-                "PropertyMast" { @("OwnerID", "NewWardNo", "NewPropertyNo", "OwnerFirstName", "OwnerLastName", "MarathiOwnerPrathamNav", "MobileNo", "Address", "PropertyTax") }
-                "BillTransactionDetails" { @("BillID", "InvoiceNo", "BillBookNo", "OwnerID", "Amount", "TransactionDate", "PaymentMode") }
-                "TaxPendingDetails" { @("TaxPendingID", "OwnerID", "PendingYear", "PropertyTax", "TaxTotal", "Interest", "NetTotal") }
-                "WardMaster" { @("WardID", "WardNo", "WardName", "MarathiWardName", "ZoneName", "OfficerInCharge") }
-                "AssessmentDetails" { @("AssessmentID", "OwnerID", "AssessmentYear", "AnnualRateableValue", "BuiltUpArea", "UsageType") }
-                "ChallanDetails" { @("ChallanID", "ChallanNo", "OwnerID", "ChallanDate", "Amount", "Status") }
-                "UserMaster" { @("UserID", "UserName", "LoginName", "RoleName", "Department", "IsActive") }
-                Default { @("OwnerID", "NewWardNo", "OwnerFirstName", "OwnerLastName", "MobileNo") }
-            }
-            foreach ($pr in $prominent) {
-                if ($availableCols -contains $pr -and -not $selectedCols.Contains($pr)) { $selectedCols.Add($pr) }
-                if ($selectedCols.Count -ge 8) { break }
-            }
-            if ($selectedCols.Count -eq 0 -and $availableCols.Count -gt 0) {
-                for ($idx = 0; $idx -lt [Math]::Min(6, $availableCols.Count); $idx++) {
-                    $selectedCols.Add($availableCols[$idx])
-                }
-            }
-        }
-
-        $colStr = if ($selectedCols.Count -gt 0) { ($selectedCols -join ", ") } else { "*" }
+    # Property No / Milkat Kramank
+    if ($p -match '(?i)(?:newpropertyno|propertyno|property\s*#?|milkat\s*(?:no\.?|kramank|kra\.?))\s*[:=]?\s*[''"]?([0-9]+[a-zA-Z0-9_\-\/]*)[''"]?') {
+        $pVal = $matches[1]
+        if ($availableCols -contains "NewPropertyNo") { $whereConditions.Add("NewPropertyNo = '$pVal'") }
+        elseif ($availableCols -contains "PropertyNo") { $whereConditions.Add("PropertyNo = '$pVal'") }
     }
 
-    # 6. Row Limit (TOP N)
-    $topCount = 50
-    if ($p -match '(?i)(?:top|pahile|\u092A\u0939\u093F\u0932\u0947|first|limit)\s*(\d+)') {
-        $topCount = [int]$matches[1]
-    } elseif ($p -match '(\d+)\s*(?:records|rows|nondi|\u0928\u094B\u0902\u0926\u0940)') {
-        $topCount = [int]$matches[1]
-    }
-
-    # 7. WHERE Filter Conditions
-    $whereConditions = [System.Collections.Generic.List[string]]::new()
-
-    # 7a. Ward Filter
+    # Ward No
     if ($p -match '(?i)\b(?:ward|\u0935\u0949\u0930\u094D\u0921|prabhag|\u092A\u094D\u0930\u092D\u093E\u0917)\s*(?:no\.?|kramank|\u0915\u094D\u0930|kra\.?|#)?\s*(\d+)\b' -or $p -match '(?i)\b(\d+)\s*(?:ward|prabhag)\b') {
         $wNo = $matches[1]
-        if ($availableCols -contains "NewWardNo") {
-            $whereConditions.Add("NewWardNo = '$wNo'")
-            $log.Add("[STAGE 2: SCHEMA GROUNDING] Applied Ward Filter -> NewWardNo = '$wNo'")
-        } elseif ($availableCols -contains "WardNo") {
-            $whereConditions.Add("WardNo = '$wNo'")
-            $log.Add("[STAGE 2: SCHEMA GROUNDING] Applied Ward Filter -> WardNo = '$wNo'")
-        }
+        if ($availableCols -contains "NewWardNo") { $whereConditions.Add("NewWardNo = '$wNo'") }
+        elseif ($availableCols -contains "WardNo") { $whereConditions.Add("WardNo = '$wNo'") }
     }
 
-    # 7b. Specific OwnerID
-    if ($p -match '(?i)\b(?:ownerid|owner\s*id|malak\s*id|\u092E\u093E\u0932\u0915\s*id|id)\s*(?:=|:)?\s*(\d+)\b') {
-        $oId = $matches[1]
-        if ($availableCols -contains "OwnerID") {
-            $whereConditions.Add("OwnerID = $oId")
-            $log.Add("[STAGE 2: SCHEMA GROUNDING] Applied OwnerID Filter -> OwnerID = $oId")
-        }
-    }
-
-    # 7c. Specific Year
-    if ($p -match '(?i)\b(?:year|varsh|\u0935\u0930\u094D\u0937)\s*(?:=|:)?\s*(20\d\d)\b') {
+    # Year / Date Filters
+    if ($p -match '\b(20\d\d)\b') {
         $yVal = $matches[1]
-        if ($availableCols -contains "PendingYear") {
-            $whereConditions.Add("PendingYear = $yVal")
-            $log.Add("[STAGE 2: SCHEMA GROUNDING] Applied Year Filter -> PendingYear = $yVal")
-        } elseif ($availableCols -contains "AssessmentYear") {
-            $whereConditions.Add("AssessmentYear = '$yVal'")
-            $log.Add("[STAGE 2: SCHEMA GROUNDING] Applied Assessment Year Filter -> AssessmentYear = '$yVal'")
-        } elseif ($availableCols -contains "TransactionDate") {
-            $whereConditions.Add("YEAR(TransactionDate) = $yVal")
-            $log.Add("[STAGE 2: SCHEMA GROUNDING] Applied Date Year Filter -> YEAR(TransactionDate) = $yVal")
+        if ($availableCols -contains "PendingYear") { $whereConditions.Add("PendingYear = '$yVal'") }
+        elseif ($availableCols -contains "TransactionDate") { $whereConditions.Add("YEAR(TransactionDate) = $yVal") }
+        elseif ($availableCols -contains "AssessmentYear") { $whereConditions.Add("AssessmentYear = '$yVal'") }
+        elseif ($availableCols -contains "CreatedDate") { $whereConditions.Add("YEAR(CreatedDate) = $yVal") }
+    }
+    if ($p -match '(?i)\b(?:aaj|today|\u0906\u091C)\b' -and $availableCols -contains "TransactionDate") {
+        $whereConditions.Add("CAST(TransactionDate AS DATE) = CAST(GETDATE() AS DATE)")
+    } elseif ($p -match '(?i)\b(?:kal|yesterday|\u0915\u093E\u0932)\b' -and $availableCols -contains "TransactionDate") {
+        $whereConditions.Add("CAST(TransactionDate AS DATE) = CAST(DATEADD(day, -1, GETDATE()) AS DATE)")
+    } elseif ($p -match '(?i)(?:ya\s*mahinyat|this\s*month|\u092F\u093E\s*\u092E\u0939\u093F\u0928\u094D\u092F\u093E\u0924)' -and $availableCols -contains "TransactionDate") {
+        $whereConditions.Add("MONTH(TransactionDate) = MONTH(GETDATE()) AND YEAR(TransactionDate) = YEAR(GETDATE())")
+    }
+
+    # Amounts
+    if ($p -match '(\d+)\s*(?:peksha\s*j[a]*st|\u092A\u0947\u0915\u094D\u0937\u093E\s*\u091C\u093E\u0938\u094D\u0924|hun\s*adhik|greater\s*than|above|>=|>)' -or $p -match '(?i)(?:tax|kar|thakbaki|amount|rakkam)\s*(?:>=|>)\s*(\d+)') {
+        $aGt = $matches[1]
+        if ($availableCols -contains "TaxTotal") { $whereConditions.Add("TaxTotal >= $aGt") }
+        elseif ($availableCols -contains "Amount") { $whereConditions.Add("Amount >= $aGt") }
+        elseif ($availableCols -contains "PropertyTax") { $whereConditions.Add("PropertyTax >= $aGt") }
+    }
+    if ($p -match '(\d+)\s*(?:peksha\s*kam[iy]|\u092A\u0947\u0915\u094D\u0937\u093E\s*\u0915\u092E\u0940|chya\s*aat|less\s*than|below|<=|<)' -or $p -match '(?i)(?:tax|kar|thakbaki|amount|rakkam)\s*(?:<=|<)\s*(\d+)') {
+        $aLt = $matches[1]
+        if ($availableCols -contains "TaxTotal") { $whereConditions.Add("TaxTotal <= $aLt") }
+        elseif ($availableCols -contains "Amount") { $whereConditions.Add("Amount <= $aLt") }
+        elseif ($availableCols -contains "PropertyTax") { $whereConditions.Add("PropertyTax <= $aLt") }
+    }
+
+    # Mobile Presence
+    if ($p -match '(?i)mobile\s*naslel[eyea]|\u092E\u094B\u092C\u093E\u0907\u0932\s*\u0928\u0938\u0932\u0947\u0932[\u0947\u094D\u092F\u093E]*|without\s*mobile|no\s*mobile|bina\s*mobile') {
+        if ($availableCols -contains "MobileNo") { $whereConditions.Add("(MobileNo IS NULL OR MobileNo = '')") }
+    } elseif ($p -match '(?i)mobile\s*aslel[eyea]|\u092E\u094B\u092C\u093E\u0907\u0932\s*\u0905\u0938\u0932\u0947\u0932[\u0947\u094D\u092F\u093E]*|with\s*mobile|has\s*mobile') {
+        if ($availableCols -contains "MobileNo") { $whereConditions.Add("(MobileNo IS NOT NULL AND MobileNo <> '')") }
+    }
+
+    # Payment Mode
+    if ($p -match '(?i)\b(?:online|netbanking|upi|rtgs|neft)\b' -and $availableCols -contains "PaymentMode") {
+        $whereConditions.Add("PaymentMode IN ('Online', 'UPI', 'NetBanking')")
+    } elseif ($p -match '(?i)\b(?:cheque|dd|check)\b' -and $availableCols -contains "PaymentMode") {
+        $whereConditions.Add("PaymentMode = 'Cheque'")
+    } elseif ($p -match '(?i)\b(?:cash|rokh|\u0930\u094B\u0916)\b' -and $availableCols -contains "PaymentMode") {
+        $whereConditions.Add("PaymentMode = 'Cash'")
+    }
+
+    # Multilingual Surname / Name Match
+    $stopWords = @('ani', 'va', 'ya', 'chya', 'che', 'cha', 'chi', 'la', 'madhe', 'madhun', 'madhil', 'dakhva', 'shodha', 'pahije', 'sarv', 'and', 'with', 'or', 'for', 'the', 'in', 'to', 'of', 'from', 'where', 'as', 'on', 'mobile', 'phone', 'ward', 'tax', 'property', 'properties', 'bill', 'receipt', 'pavti', 'pavtya', 'top', 'record', 'records', 'aslele', 'aslelya', 'naslele', 'naslelya', 'lok')
+    $nameCand = $null
+    if ($p -match "(?i)\b([a-zA-Z\u0900-\u097F]+)\s+(?:aadnav|\u0906\u0921\u0928\u093E\u0935|navacha|navache)\b") {
+        $c = $matches[1]
+        if ($stopWords -notcontains $c.ToLower()) { $nameCand = $c }
+    }
+    if (-not $nameCand -and $p -match "(?i)\b(?:named|name|nav|\u0928\u093E\u0935|aadnav|\u0906\u0921\u0928\u093E\u0935)\s+['""]?([a-zA-Z\u0900-\u097F]+)['""]?") {
+        $c = $matches[1]
+        if ($stopWords -notcontains $c.ToLower()) { $nameCand = $c }
+    }
+    if (-not $nameCand -and $p -match "(?i)\b(Patil|Jadhav|Chavan|Deshmukh|Pawar|Kadam|Shinde|Gaikwad|Joshi|Mhatre|Sawant|Thakur|More|Bhosale|Raut|Tambe|Kale)\b") {
+        $nameCand = $matches[1]
+    }
+    if ($nameCand) {
+        $nConds = @()
+        if ($availableCols -contains "OwnerLastName") { $nConds += "OwnerLastName LIKE '%$nameCand%'" }
+        if ($availableCols -contains "OwnerFirstName") { $nConds += "OwnerFirstName LIKE '%$nameCand%'" }
+        if ($availableCols -contains "MarathiOwnerAadnav") { $nConds += "MarathiOwnerAadnav LIKE N'%$nameCand%'" }
+        if ($availableCols -contains "MarathiOwnerPrathamNav") { $nConds += "MarathiOwnerPrathamNav LIKE N'%$nameCand%'" }
+        if ($nConds.Count -gt 0) {
+            $whereConditions.Add("(" + ($nConds -join " OR ") + ")")
         }
     }
 
-    # 7d. Amount / Tax Comparisons
-    $amtGt = $null
-    $amtLt = $null
-    if ($p -match '(?i)(?:amount|tax|thakbaki|\u0925\u0915\u092C\u093E\u0915\u0940|kar|\u0915\u0930|taxtotal|rakkam)\s*(?:>=|>)\s*(\d+)') {
-        $amtGt = $matches[1]
-    } elseif ($p -match '(\d+)\s*(?:peksha\s*jaast|\u092A\u0947\u0915\u094D\u0937\u093E\s*\u091C\u093E\u0938\u094D\u0924|hun\s*adhik|greater\s*than|above)') {
-        $amtGt = $matches[1]
-    }
-
-    if ($p -match '(?i)(?:amount|tax|thakbaki|\u0925\u0915\u092C\u093E\u0915\u0940|kar|\u0915\u0930|taxtotal|rakkam)\s*(?:<=|<)\s*(\d+)') {
-        $amtLt = $matches[1]
-    } elseif ($p -match '(\d+)\s*(?:peksha\s*kami|\u092A\u0947\u0915\u094D\u0937\u093E\s*\u0915\u092E\u0940|less\s*than|below)') {
-        $amtLt = $matches[1]
-    }
-
-    if ($amtGt) {
-        if ($availableCols -contains "TaxTotal") { $whereConditions.Add("TaxTotal >= $amtGt") }
-        elseif ($availableCols -contains "Amount") { $whereConditions.Add("Amount >= $amtGt") }
-        elseif ($availableCols -contains "PropertyTax") { $whereConditions.Add("PropertyTax >= $amtGt") }
-        elseif ($availableCols -contains "NetTotal") { $whereConditions.Add("NetTotal >= $amtGt") }
-        $log.Add("[STAGE 2: SCHEMA GROUNDING] Applied Greater-Than Amount Threshold >= $amtGt")
-    }
-    if ($amtLt) {
-        if ($availableCols -contains "TaxTotal") { $whereConditions.Add("TaxTotal <= $amtLt") }
-        elseif ($availableCols -contains "Amount") { $whereConditions.Add("Amount <= $amtLt") }
-        elseif ($availableCols -contains "PropertyTax") { $whereConditions.Add("PropertyTax <= $amtLt") }
-        elseif ($availableCols -contains "NetTotal") { $whereConditions.Add("NetTotal <= $amtLt") }
-        $log.Add("[STAGE 2: SCHEMA GROUNDING] Applied Less-Than Amount Threshold <= $amtLt")
-    }
-
-    # 7e. Name Search with Stopword Exclusion
-    $nVal = $null
-    $stopWords = @('ani', 'va', 'ya', 'chya', 'che', 'cha', 'chi', 'la', 'madhe', 'madhun', 'dakhva', 'shodha', 'pahije', 'sarv', 'and', 'with', 'or', 'for', 'the', 'in', 'to', 'of', 'from', 'where', 'as', 'on', 'mobile', 'phone', 'ward', 'tax', 'property', 'properties', 'bill', 'receipt')
-    if ($p -match "(?i)\b(?:named|name|nav|\u0928\u093E\u0935|navache|malak|\u092E\u093E\u0932\u0915)\s+['""]?([a-zA-Z\u0900-\u097F]+)['""]?") {
-        $candName = $matches[1]
-        if ($stopWords -notcontains $candName.ToLower()) {
-            $nVal = $candName
+    # 2f. Select Columns
+    $colsToSelect = [System.Collections.Generic.List[string]]::new()
+    $wantsAll = $p -match '(?i)\b(?:all|sarv|sagale|purna|full|\*)\b'
+    if ($wantsAll) {
+        $colStr = "*"
+    } else {
+        $prominent = switch ($targetTable) {
+            "PropertyMast" { @("OwnerID", "NewWardNo", "NewPropertyNo", "OwnerFirstName", "OwnerLastName", "MarathiOwnerPrathamNav", "MobileNo", "Address", "PropertyTax") }
+            "BillTransactionDetails" { @("BillID", "InvoiceNo", "BillBookNo", "OwnerID", "Amount", "TransactionDate", "PaymentMode") }
+            "TaxPendingDetails" { @("TaxPendingID", "OwnerID", "PendingYear", "PropertyTax", "TaxTotal", "Interest", "NetTotal") }
+            Default { $availableCols[0..([Math]::Min(6, $availableCols.Count - 1))] }
         }
-    }
-    if (-not $nVal -and $p -match "(?i)\b(Patil|Jadhav|Chavan|Deshmukh|Pawar|Kadam|Shinde|Gaikwad|Joshi|Mhatre|Sawant|Thakur|More)\b") {
-        $nVal = $matches[1]
-    }
-
-    if ($nVal) {
-        $nameConds = @()
-        if ($availableCols -contains "OwnerLastName") { $nameConds += "OwnerLastName LIKE '%$nVal%'" }
-        if ($availableCols -contains "OwnerFirstName") { $nameConds += "OwnerFirstName LIKE '%$nVal%'" }
-        if ($availableCols -contains "MarathiOwnerAadnav") { $nameConds += "MarathiOwnerAadnav LIKE N'%$nVal%'" }
-        if ($availableCols -contains "MarathiOwnerPrathamNav") { $nameConds += "MarathiOwnerPrathamNav LIKE N'%$nVal%'" }
-        if ($nameConds.Count -gt 0) {
-            $whereConditions.Add("(" + ($nameConds -join " OR ") + ")")
-            $log.Add("[STAGE 2: SCHEMA GROUNDING] Applied Multilingual Fuzzy Name Search for '$nVal'")
+        foreach ($pr in $prominent) {
+            if ($availableCols -contains $pr -and -not $colsToSelect.Contains($pr)) {
+                $colsToSelect.Add($pr)
+            }
         }
+        $colStr = if ($colsToSelect.Count -gt 0) { ($colsToSelect -join ", ") } else { "*" }
     }
 
-    # 7f. Mobile Presence Filter
-    if ($p -match '(?i)mobile\s*naslele|\u092E\u094B\u092C\u093E\u0907\u0932\s*\u0928\u0938\u0932\u0947\u0932\u0947|without\s*mobile|no\s*mobile|bina\s*mobile') {
-        if ($availableCols -contains "MobileNo") {
-            $whereConditions.Add("(MobileNo IS NULL OR MobileNo = '')")
-            $log.Add("[STAGE 2: SCHEMA GROUNDING] Applied Mobile Absence Filter (MobileNo IS NULL OR MobileNo = '')")
-        }
-    } elseif ($p -match '(?i)mobile\s*aslele|\u092E\u094B\u092C\u093E\u0907\u0932\s*\u0905\u0938\u0932\u0947\u0932\u0947|with\s*mobile|has\s*mobile') {
-        if ($availableCols -contains "MobileNo") {
-            $whereConditions.Add("(MobileNo IS NOT NULL AND MobileNo <> '')")
-            $log.Add("[STAGE 2: SCHEMA GROUNDING] Applied Mobile Presence Filter (MobileNo IS NOT NULL AND MobileNo <> '')")
-        }
-    } elseif ($p -match '(?i)\bmobile\s*(?:no\.?)?\s*(?:=|:)?\s*(\d{10})\b') {
-        $phoneVal = $matches[1]
-        if ($availableCols -contains "MobileNo") {
-            $whereConditions.Add("MobileNo LIKE '%$phoneVal%'")
-            $log.Add("[STAGE 2: SCHEMA GROUNDING] Applied Specific Mobile Match for '$phoneVal'")
-        }
-    }
-
+    # 2g. WHERE & ORDER BY
     $whereStr = if ($whereConditions.Count -gt 0) { "WHERE " + ($whereConditions -join " AND ") } else { "" }
-
-    # 8. Intelligent ORDER BY Clause
-    $orderCol = if ($amtGt -or $amtLt) {
-                    if ($availableCols -contains "TaxTotal") { "TaxTotal DESC" }
-                    elseif ($availableCols -contains "Amount") { "Amount DESC" }
-                    elseif ($availableCols -contains "PropertyTax") { "PropertyTax DESC" }
-                    else { "1" }
-                }
-                elseif ($targetTable -eq "TaxPendingDetails" -and $availableCols -contains "TaxTotal") { "TaxTotal DESC" }
-                elseif ($targetTable -eq "BillTransactionDetails" -and $availableCols -contains "TransactionDate") { "TransactionDate DESC" }
-                elseif ($availableCols -contains "OwnerID") { "OwnerID DESC" }
-                elseif ($availableCols -contains "BillID") { "BillID DESC" }
-                elseif ($availableCols -contains "TaxPendingID") { "TaxPendingID DESC" }
-                elseif ($availableCols -contains "WardID") { "WardID ASC" }
-                elseif ($availableCols.Count -gt 0) { "$($availableCols[0]) DESC" }
-                else { "1" }
-
-    $sql = "SELECT TOP $topCount $colStr FROM [$targetSchema].[$targetTable] WITH (NOLOCK) $whereStr ORDER BY $orderCol;"
-    $log.Add("[STAGE 3: T-SQL SYNTAX & COMPLIANCE] Constructed Optimized T-SQL -> $sql")
-
-    return [PSCustomObject]@{
-        Sql = $sql
-        Table = $targetTable
-        Logs = $log
+    $orderCol = switch ($targetTable) {
+        "BillTransactionDetails" { "TransactionDate DESC" }
+        "TaxPendingDetails" { "TaxTotal DESC" }
+        Default { if ($availableCols -contains "OwnerID") { "OwnerID DESC" } else { "1" } }
     }
+
+    $sql = "SELECT TOP $topCount $colStr FROM [dbo].[$targetTable] WITH (NOLOCK) $whereStr ORDER BY $orderCol;"
+    return [PSCustomObject]@{ Sql = $sql; Table = $targetTable; Logs = $log }
 }
 
 function Invoke-JarvisAutonomousSqlTester($dbConn, [string]$sql, [string]$targetTable) {
@@ -9901,6 +9787,128 @@ function Show-JarvisAssistantWindow {
         [System.Windows.Controls.Grid]::SetColumn($hLeftStack, 0)
         $hdrGrid.Children.Add($hLeftStack) | Out-Null
 
+        $hRightStack = New-Object System.Windows.Controls.StackPanel
+        $hRightStack.Orientation = [System.Windows.Controls.Orientation]::Horizontal
+
+        $btnGeminiKey = New-Object System.Windows.Controls.Button
+        $geminiKeyVal = ""
+        try {
+            $regKey = Get-ItemProperty -Path "HKCU:\Software\NexusEnterprise\JarvisAI" -Name "GeminiApiKey" -ErrorAction SilentlyContinue
+            if ($regKey -and $regKey.GeminiApiKey) { $geminiKeyVal = $regKey.GeminiApiKey; $script:JarvisGeminiApiKey = $geminiKeyVal }
+        } catch { }
+
+        $btnGeminiKey.Content = if ([string]::IsNullOrWhiteSpace($geminiKeyVal)) { "AI ENGINE: OFFLINE TURBO (CLICK FOR GEMINI)" } else { "AI ENGINE: GEMINI 2.0 FLASH ACTIVE" }
+        $btnGeminiKey.Background = if ([string]::IsNullOrWhiteSpace($geminiKeyVal)) { [System.Windows.Media.BrushConverter]::new().ConvertFromString("#1E293B") } else { [System.Windows.Media.BrushConverter]::new().ConvertFromString("#065F46") }
+        $btnGeminiKey.Foreground = if ([string]::IsNullOrWhiteSpace($geminiKeyVal)) { [System.Windows.Media.BrushConverter]::new().ConvertFromString("#94A3B8") } else { [System.Windows.Media.BrushConverter]::new().ConvertFromString("#34D399") }
+        $btnGeminiKey.BorderBrush = if ([string]::IsNullOrWhiteSpace($geminiKeyVal)) { [System.Windows.Media.BrushConverter]::new().ConvertFromString("#334155") } else { [System.Windows.Media.BrushConverter]::new().ConvertFromString("#10B981") }
+        $btnGeminiKey.BorderThickness = New-Object System.Windows.Thickness(1)
+        $btnGeminiKey.FontWeight = [System.Windows.FontWeights]::Bold
+        $btnGeminiKey.Padding = New-Object System.Windows.Thickness(10,5,10,5)
+        $btnGeminiKey.Margin = New-Object System.Windows.Thickness(0,0,8,0)
+        $btnGeminiKey.Cursor = [System.Windows.Input.Cursors]::Hand
+        $btnGeminiKey.ToolTip = "Configure Google Gemini Neural Cloud AI Key (Free at aistudio.google.com)"
+
+        $btnGeminiKey.Add_Click({
+            $curKey = if ($script:JarvisGeminiApiKey) { $script:JarvisGeminiApiKey } else { "" }
+            $inputWin = New-Object System.Windows.Window
+            $inputWin.Title = "Google Gemini Neural Cloud Engine Configuration"
+            $inputWin.Width = 540
+            $inputWin.Height = 230
+            $inputWin.WindowStartupLocation = [System.Windows.WindowStartupLocation]::CenterOwner
+            $inputWin.Owner = $win
+            $inputWin.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#0B132B")
+            $inputWin.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#F8FAFC")
+            $inputWin.ResizeMode = [System.Windows.ResizeMode]::NoResize
+
+            $iGrid = New-Object System.Windows.Controls.Grid
+            $iGrid.Margin = New-Object System.Windows.Thickness(16)
+            $ir0 = New-Object System.Windows.Controls.RowDefinition; $ir0.Height = [System.Windows.GridLength]::Auto
+            $ir1 = New-Object System.Windows.Controls.RowDefinition; $ir1.Height = [System.Windows.GridLength]::Auto
+            $ir2 = New-Object System.Windows.Controls.RowDefinition; $ir2.Height = [System.Windows.GridLength]::Auto
+            $ir3 = New-Object System.Windows.Controls.RowDefinition; $ir3.Height = [System.Windows.GridLength]::Auto
+            $iGrid.RowDefinitions.Add($ir0); $iGrid.RowDefinitions.Add($ir1); $iGrid.RowDefinitions.Add($ir2); $iGrid.RowDefinitions.Add($ir3)
+
+            $iLbl = New-Object System.Windows.Controls.TextBlock
+            $iLbl.Text = "Paste Google Gemini API Key (from aistudio.google.com):"
+            $iLbl.FontSize = 12.5; $iLbl.FontWeight = [System.Windows.FontWeights]::Bold
+            $iLbl.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#38BDF8")
+            [System.Windows.Controls.Grid]::SetRow($iLbl, 0)
+            $iGrid.Children.Add($iLbl) | Out-Null
+
+            $iBox = New-Object System.Windows.Controls.TextBox
+            $iBox.Text = $curKey
+            $iBox.Height = 32
+            $iBox.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#060A13")
+            $iBox.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#00F0FF")
+            $iBox.BorderBrush = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#1E3A8A")
+            $iBox.Margin = New-Object System.Windows.Thickness(0,8,0,8)
+            $iBox.FontFamily = New-Object System.Windows.Media.FontFamily("Consolas")
+            $iBox.FontSize = 12
+            [System.Windows.Controls.Grid]::SetRow($iBox, 1)
+            $iGrid.Children.Add($iBox) | Out-Null
+
+            $iHint = New-Object System.Windows.Controls.TextBlock
+            $iHint.Text = "Leave empty to use Ultra-Fast Built-in Municipal Heuristic Engine (100% Offline, Zero Config)."
+            $iHint.FontSize = 11; $iHint.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#94A3B8")
+            $iHint.Margin = New-Object System.Windows.Thickness(0,0,0,12)
+            [System.Windows.Controls.Grid]::SetRow($iHint, 2)
+            $iGrid.Children.Add($iHint) | Out-Null
+
+            $iBtnStack = New-Object System.Windows.Controls.StackPanel
+            $iBtnStack.Orientation = [System.Windows.Controls.Orientation]::Horizontal
+            $iBtnStack.HorizontalAlignment = [System.Windows.HorizontalAlignment]::Right
+            [System.Windows.Controls.Grid]::SetRow($iBtnStack, 3)
+
+            $iBtnSave = New-Object System.Windows.Controls.Button
+            $iBtnSave.Content = "SAVE & ACTIVATE"
+            $iBtnSave.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#0284C7")
+            $iBtnSave.Foreground = [System.Windows.Media.Brushes]::White
+            $iBtnSave.FontWeight = [System.Windows.FontWeights]::Bold
+            $iBtnSave.Padding = New-Object System.Windows.Thickness(12,6,12,6)
+            $iBtnSave.Margin = New-Object System.Windows.Thickness(0,0,8,0)
+            $iBtnSave.Cursor = [System.Windows.Input.Cursors]::Hand
+            $iBtnSave.Add_Click({
+                $newKey = $iBox.Text.Trim()
+                $script:JarvisGeminiApiKey = $newKey
+                try {
+                    $regPath = "HKCU:\Software\NexusEnterprise\JarvisAI"
+                    if (-not (Test-Path $regPath)) { New-Item -Path $regPath -Force | Out-Null }
+                    Set-ItemProperty -Path $regPath -Name "GeminiApiKey" -Value $newKey | Out-Null
+                } catch { }
+
+                if (-not [string]::IsNullOrWhiteSpace($newKey)) {
+                    $btnGeminiKey.Content = "AI ENGINE: GEMINI 2.0 FLASH ACTIVE"
+                    $btnGeminiKey.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#065F46")
+                    $btnGeminiKey.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#34D399")
+                    $btnGeminiKey.BorderBrush = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#10B981")
+                    $badgeTxt.Text = "GEMINI 2.0 FLASH AI ONLINE"
+                    $badge.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#00F0FF")
+                } else {
+                    $btnGeminiKey.Content = "AI ENGINE: OFFLINE TURBO (CLICK FOR GEMINI)"
+                    $btnGeminiKey.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#1E293B")
+                    $btnGeminiKey.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#94A3B8")
+                    $btnGeminiKey.BorderBrush = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#334155")
+                    $badgeTxt.Text = if ($isLiveSql) { "LIVE DATABASE ACTIVE" } else { "AUTONOMOUS SIMULATION ACTIVE" }
+                    $badge.Background = if ($isLiveSql) { [System.Windows.Media.BrushConverter]::new().ConvertFromString("#10B981") } else { [System.Windows.Media.BrushConverter]::new().ConvertFromString("#00F0FF") }
+                }
+                $inputWin.Close()
+            })
+            $iBtnStack.Children.Add($iBtnSave) | Out-Null
+
+            $iBtnCancel = New-Object System.Windows.Controls.Button
+            $iBtnCancel.Content = "CANCEL"
+            $iBtnCancel.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#475569")
+            $iBtnCancel.Foreground = [System.Windows.Media.Brushes]::White
+            $iBtnCancel.Padding = New-Object System.Windows.Thickness(12,6,12,6)
+            $iBtnCancel.Cursor = [System.Windows.Input.Cursors]::Hand
+            $iBtnCancel.Add_Click({ $inputWin.Close() })
+            $iBtnStack.Children.Add($iBtnCancel) | Out-Null
+
+            $iGrid.Children.Add($iBtnStack) | Out-Null
+            $inputWin.Content = $iGrid
+            $inputWin.ShowDialog() | Out-Null
+        })
+
         $btnReindex = New-Object System.Windows.Controls.Button
         $btnReindex.Content = "RE-INDEX SCHEMA"
         $btnReindex.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#1E293B")
@@ -9910,8 +9918,11 @@ function Show-JarvisAssistantWindow {
         $btnReindex.FontWeight = [System.Windows.FontWeights]::Bold
         $btnReindex.Padding = New-Object System.Windows.Thickness(10,5,10,5)
         $btnReindex.Cursor = [System.Windows.Input.Cursors]::Hand
-        [System.Windows.Controls.Grid]::SetColumn($btnReindex, 1)
-        $hdrGrid.Children.Add($btnReindex) | Out-Null
+
+        $hRightStack.Children.Add($btnGeminiKey) | Out-Null
+        $hRightStack.Children.Add($btnReindex) | Out-Null
+        [System.Windows.Controls.Grid]::SetColumn($hRightStack, 1)
+        $hdrGrid.Children.Add($hRightStack) | Out-Null
 
         $hdrBorder.Child = $hdrGrid
         $rootGrid.Children.Add($hdrBorder) | Out-Null
@@ -10201,14 +10212,14 @@ function Show-JarvisAssistantWindow {
 
         # Populate Quick Action Chips now that execAction and all UI controls are in scope
         $chipConfigs = @(
-            @{ Label = "[ Top 50 Properties (PropertyMast) ]"; Prompt = "PropertyMast madhun top 50 malak ani mobile dakhva" },
-            @{ Label = "[ Pending Tax (TaxPendingDetails) ]"; Prompt = "top 50 thakbaki ani kar tapshil dakhva" },
-            @{ Label = "[ Bill Receipts (BillTransactionDetails) ]"; Prompt = "BillTransactionDetails madhun top 50 pavti dakhva" },
-            @{ Label = "[ Search Owner Name (Patil) ]"; Prompt = "PropertyMast madhun nav Patil aslele malak dakhva" },
-            @{ Label = "[ Ward-wise Property Count ]"; Prompt = "wardnihay malmatta count dakhva" },
-            @{ Label = "[ Broken Query Mistake Healer ]"; Prompt = "SELECT TOP 5 OwnerID, Phonexxx, Warrrd FROM PropertyMast" },
-            @{ Label = "[ Join Properties + Receipts ]"; Prompt = "PropertyMast join BillTransactionDetails on OwnerID" },
-            @{ Label = "[ Unregistered Mobile Search ]"; Prompt = "PropertyMast madhun mobile naslelya milkati dakhva" }
+            @{ Label = "[ 5000+ Kar Baki (Top 100) ]"; Prompt = "5000 peksha jast kar baki aslele top 100 lok" },
+            @{ Label = "[ 2024 Pavtya (Receipts) ]"; Prompt = "2024 madhe bharlelya pavtya" },
+            @{ Label = "[ Aajchi Vasuli (Today) ]"; Prompt = "Aaj bharlelya pavtya" },
+            @{ Label = "[ Ward-wise Thakbaki ]"; Prompt = "Ward wise thakbaki dakhva" },
+            @{ Label = "[ Ward-wise Vasuli ]"; Prompt = "Ward wise vasuli dakhva" },
+            @{ Label = "[ Mobile Naslelya Milkat ]"; Prompt = "Mobile naslelya properties dakhva" },
+            @{ Label = "[ Top 50 Malak & Mobile ]"; Prompt = "PropertyMast madhun top 50 malak ani mobile dakhva" },
+            @{ Label = "[ Ekun Vasuli Report ]"; Prompt = "Ekun vasuli kiti zali" }
         )
 
         foreach ($chip in $chipConfigs) {
