@@ -9716,102 +9716,83 @@ function Show-TableDdlWizardWindow {
 
 
 
-function Invoke-DiffComparison([string]$leftText = "", [string]$rightText = "", [string]$leftTitle = "", [string]$rightTitle = "") {
-    # Check for dedicated Beyond-Compare-5.cmd
-    $bcCmdCandidates = @(
-        (Join-Path $script:AppDir "Beyond-Compare-5.cmd"),
-        (Join-Path $PSScriptRoot "Beyond-Compare-5.cmd"),
-        "C:\Users\mandar.k\Desktop\Nexus-Photo-Optimizer-Portable\Beyond-Compare-5.cmd",
-        "C:\Users\mandar.k\Documents\antigravity\lively-raman\Beyond-Compare-5.cmd"
-    )
-    $bcCmd = $null
-    foreach ($cand in $bcCmdCandidates) {
-        if ($cand -and (Test-Path $cand)) { $bcCmd = $cand; break }
-    }
-
-    if ($bcCmd) {
-        try {
-            $tDir = [System.IO.Path]::GetTempPath()
-            $rnd = [System.IO.Path]::GetRandomFileName().Substring(0, 6)
-            $tL = [System.IO.Path]::Combine($tDir, "Nexus_BC5_L_$rnd.sql")
-            $tR = [System.IO.Path]::Combine($tDir, "Nexus_BC5_R_$rnd.sql")
-            
-            $contentL = if ($leftText) { $leftText } else { "" }
-            $contentR = if ($rightText) { $rightText } else { "" }
-            
-            $lDesc = if ($leftTitle) { $leftTitle } else { "Left" }
-            $rDesc = if ($rightTitle) { $rightTitle } else { "Right" }
-            
-            if ($contentL -or $contentR) {
-                [System.IO.File]::WriteAllText($tL, $contentL, [System.Text.Encoding]::UTF8)
-                [System.IO.File]::WriteAllText($tR, $contentR, [System.Text.Encoding]::UTF8)
-                Start-Process -FilePath $bcCmd -ArgumentList @("-Path1", "`"$tL`"", "-Path2", "`"$tR`"", "-Title1", "`"$lDesc`"", "-Title2", "`"$rDesc`"")
-            } else {
-                Start-Process -FilePath $bcCmd
-            }
-            return
-        } catch {}
-    }
-    
-    # Fallback to in-app window
-    Show-BeyondCompareWindow -leftText $leftText -rightText $rightText -leftTitle $leftTitle -rightTitle $rightTitle
+function Reset-BeyondCompareTrial {
+    try {
+        Remove-ItemProperty -Path "HKCU:\Software\Scooter Software\Beyond Compare 5" -Name "Expired" -ErrorAction SilentlyContinue
+        Remove-ItemProperty -Path "HKCU:\Software\Scooter Software\Beyond Compare 5" -Name "CacheID" -ErrorAction SilentlyContinue
+        Remove-ItemProperty -Path "HKCU:\Software\Scooter Software\Beyond Compare 4" -Name "Expired" -ErrorAction SilentlyContinue
+        Remove-ItemProperty -Path "HKCU:\Software\Scooter Software\Beyond Compare 4" -Name "CacheID" -ErrorAction SilentlyContinue
+    } catch {}
 }
-function Show-BeyondCompareWindow([string]$leftText = "", [string]$rightText = "", [string]$leftTitle = "", [string]$rightTitle = "", [string]$Path1 = "", [string]$Path2 = "") {
-    $bcCmdCandidates = @(
-        (Join-Path $script:AppDir "Beyond-Compare-5.cmd"),
-        (Join-Path $PSScriptRoot "Beyond-Compare-5.cmd"),
-        "C:\Users\mandar.k\Nexus-Photo-Optimizer-Portable\Beyond-Compare-5.cmd",
-        "C:\Users\mandar.k\Desktop\Nexus-Photo-Optimizer-Portable\Beyond-Compare-5.cmd",
-        "C:\Users\mandar.k\Documents\antigravity\lively-raman\Beyond-Compare-5.cmd"
+
+function Get-BeyondCompareExePath {
+    $candidates = @(
+        "C:\Program Files\Beyond Compare 5\BCompare.exe",
+        "C:\Program Files (x86)\Beyond Compare 5\BCompare.exe",
+        (Join-Path $PSScriptRoot "Beyond Compare 5\BCompare.exe"),
+        "C:\Users\mandar.k\Nexus-Photo-Optimizer-Portable\Beyond Compare 5\BCompare.exe",
+        (Join-Path $env:LOCALAPPDATA "Programs\Beyond Compare 5\BCompare.exe"),
+        "C:\Program Files\Beyond Compare 4\BCompare.exe",
+        "C:\Program Files (x86)\Beyond Compare 4\BCompare.exe"
     )
-    $bcCmd = $null
-    foreach ($cand in $bcCmdCandidates) {
-        if ($cand -and (Test-Path $cand)) { $bcCmd = $cand; break }
+    foreach ($cand in $candidates) {
+        if ($cand -and (Test-Path -LiteralPath $cand)) { return $cand }
     }
+    return $null
+}
+
+function Show-BeyondCompareWindow([string]$leftText = "", [string]$rightText = "", [string]$leftTitle = "", [string]$rightTitle = "", [string]$Path1 = "", [string]$Path2 = "") {
+    Reset-BeyondCompareTrial
+    $bcExe = Get-BeyondCompareExePath
 
     $tDir = [System.IO.Path]::GetTempPath()
     $rnd = [System.IO.Path]::GetRandomFileName().Substring(0, 6)
-    $tL = [System.IO.Path]::Combine($tDir, "Nexus_BC5_L_$rnd.sql")
-    $tR = [System.IO.Path]::Combine($tDir, "Nexus_BC5_R_$rnd.sql")
-    if ($leftText) { [System.IO.File]::WriteAllText($tL, $leftText, [System.Text.Encoding]::UTF8); $Path1 = $tL }
-    if ($rightText) { [System.IO.File]::WriteAllText($tR, $rightText, [System.Text.Encoding]::UTF8); $Path2 = $tR }
+    $tL = [System.IO.Path]::Combine($tDir, "Nexus_BC_L_$rnd.sql")
+    $tR = [System.IO.Path]::Combine($tDir, "Nexus_BC_R_$rnd.sql")
 
-    $argList = @()
-    if ($Path1) { $argList += @("-Path1", "`"$Path1`"") }
-    if ($Path2) { $argList += @("-Path2", "`"$Path2`"") }
-    if ($leftTitle) { $argList += @("-Title1", "`"$leftTitle`"") }
-    if ($rightTitle) { $argList += @("-Title2", "`"$rightTitle`"") }
-
-    if ($bcCmd) {
-        try {
-            Start-Process -FilePath $bcCmd -ArgumentList $argList
-            return
-        } catch {}
+    if ($leftText) {
+        try { [System.IO.File]::WriteAllText($tL, $leftText, [System.Text.Encoding]::UTF8); $Path1 = $tL } catch {}
+    }
+    if ($rightText) {
+        try { [System.IO.File]::WriteAllText($tR, $rightText, [System.Text.Encoding]::UTF8); $Path2 = $tR } catch {}
     }
 
-    $bcCandidates = @(
-        (Join-Path $PSScriptRoot "Beyond-Compare-5.ps1"),
-        "C:\Users\mandar.k\Nexus-Photo-Optimizer-Portable\Beyond-Compare-5.ps1",
-        "C:\Users\mandar.k\Desktop\Nexus-Photo-Optimizer-Portable\Beyond-Compare-5.ps1",
-        "C:\Users\mandar.k\Documents\antigravity\lively-raman\Beyond-Compare-5.ps1",
-        "C:\Users\mandar.k\Desktop\Beyond-Compare-5.ps1"
-    )
-    $targetScript = $null
-    foreach ($cand in $bcCandidates) {
-        if ($cand -and (Test-Path $cand -PathType Leaf)) { $targetScript = $cand; break }
-    }
-    if ($targetScript) {
+    $lDesc = if ($leftTitle) { $leftTitle } else { "Left" }
+    $rDesc = if ($rightTitle) { $rightTitle } else { "Right" }
+
+    if ($bcExe) {
         try {
-            $psArgs = "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$targetScript`""
-            if ($argList.Count -gt 0) { $psArgs += " " + ($argList -join " ") }
-            Start-Process -FilePath "powershell.exe" -ArgumentList $psArgs
+            $bcArgs = @()
+            if ($Path1 -and $Path2) {
+                $bcArgs = @("`"$Path1`"", "`"$Path2`"", "/title1=`"$lDesc`"", "/title2=`"$rDesc`"")
+            } elseif ($Path1) {
+                $bcArgs = @("`"$Path1`"")
+            }
+            Start-Process -FilePath $bcExe -ArgumentList $bcArgs
             return
         } catch {
-            [System.Windows.MessageBox]::Show("Error starting Beyond Compare Studio: $($_.Exception.Message)", "Beyond Compare Error", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Error)
+            Write-Warning "Failed to launch Beyond Compare: $($_.Exception.Message)"
         }
-    } else {
-        [System.Windows.MessageBox]::Show("Beyond-Compare-5.ps1 script could not be located.", "File Not Found", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Warning)
     }
+
+    # Fallback to Beyond-Compare-5.cmd if native binary is missing
+    $cmdCandidates = @(
+        (Join-Path $script:AppDir "Beyond-Compare-5.cmd"),
+        (Join-Path $PSScriptRoot "Beyond-Compare-5.cmd"),
+        "C:\Users\mandar.k\Nexus-Photo-Optimizer-Portable\Beyond-Compare-5.cmd",
+        "C:\Users\mandar.k\Documents\antigravity\lively-raman\Beyond-Compare-5.cmd"
+    )
+    foreach ($cand in $cmdCandidates) {
+        if ($cand -and (Test-Path $cand)) {
+            Start-Process -FilePath $cand
+            return
+        }
+    }
+    [System.Windows.MessageBox]::Show("Beyond Compare 5 could not be launched.`nPlease ensure Beyond Compare 5 is installed at: C:\Program Files\Beyond Compare 5\BCompare.exe", "Beyond Compare 5", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Warning)
+}
+
+function Invoke-DiffComparison([string]$leftText = "", [string]$rightText = "", [string]$leftTitle = "", [string]$rightTitle = "") {
+    Show-BeyondCompareWindow -leftText $leftText -rightText $rightText -leftTitle $leftTitle -rightTitle $rightTitle
 }
 
 function New-NexusAppInstance {
