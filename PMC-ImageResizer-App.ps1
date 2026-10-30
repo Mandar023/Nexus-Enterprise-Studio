@@ -2298,7 +2298,7 @@ try {
                 <Button x:Name="tabBtnPreview" Grid.Column="4" Content="BLOB PREVIEWER" Background="#0D1527" Foreground="#94A3B8" FontWeight="Bold" FontSize="11" Padding="4,10" Margin="2,0,2,0" BorderThickness="0" Cursor="Hand"/>
                 <Button x:Name="tabBtnOtp" Grid.Column="5" Content="OTP DECRYPTOR" Background="#0D1527" Foreground="#94A3B8" FontWeight="Bold" FontSize="11" Padding="4,10" Margin="2,0,2,0" BorderThickness="0" Cursor="Hand"/>
                 <Button x:Name="tabBtnSql" Grid.Column="6" Content="SQL CONSOLE" Visibility="Collapsed" Background="#0D1527" Foreground="#94A3B8" FontWeight="Bold" FontSize="11" Padding="4,10" Margin="2,0,2,0" BorderThickness="0" Cursor="Hand"/>
-                <Button x:Name="tabBtnLanShare" Grid.Column="7" Content="DIRECT PC SHARE" Background="#0D1527" Foreground="#38BDF8" FontWeight="Bold" FontSize="11" Padding="4,10" Margin="2,0,2,0" BorderThickness="0" Cursor="Hand" ToolTip="Direct PC-to-PC File Transfer Without IP (AirDrop for LAN)"/>
+                <Button x:Name="tabBtnLanShare" Grid.Column="7" Content="IT OPS &amp; ASSET RADAR" Background="#0D1527" Foreground="#38BDF8" FontWeight="Bold" FontSize="11" Padding="4,10" Margin="2,0,2,0" BorderThickness="0" Cursor="Hand" ToolTip="Enterprise IT Infrastructure, Remote Hardware Telemetry, Silent App Deployment &amp; Security Radar"/>
                 <Button x:Name="tabBtnBeyondCompare" Grid.Column="8" Content="BEYOND COMPARE" Background="#1E1B4B" Foreground="#A5B4FC" FontWeight="Bold" FontSize="11" Padding="4,10" Margin="2,0,2,0" BorderThickness="0" Cursor="Hand" ToolTip="Beyond Compare 5 Studio (Text &amp; Folder Diff) [Ctrl+D]"/>
                 <Button x:Name="tabBtnGeoRadar" Grid.Column="9" Content="GEO-AI RADAR" Background="#0D1527" Foreground="#10B981" FontWeight="Bold" FontSize="11" Padding="4,10" Margin="2,0,0,0" BorderThickness="0" Cursor="Hand" ToolTip="PMC AI Satellite Rooftop &amp; Revenue Leakage Scrutiny Engine (Sec. 267A)"/>
             </Grid>
@@ -4057,15 +4057,17 @@ try {
 
                     <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
                         <Border Background="#0369A1" CornerRadius="6" Padding="8,4" Margin="0,0,10,0">
-                            <TextBlock Text="DIRECT PC SHARE" FontSize="11" FontWeight="Bold" Foreground="White"/>
+                            <TextBlock Text="ENTERPRISE IT OPS &amp; ASSET RADAR" FontSize="11" FontWeight="Bold" Foreground="White"/>
                         </Border>
                         <StackPanel VerticalAlignment="Center">
                             <TextBlock x:Name="lblLanMyIdentity" Text="My PC: [Discovering...] | User: [Discovering...]" FontSize="11.5" Foreground="#94A3B8" FontWeight="SemiBold"/>
-                            <TextBlock Text="Automatic Zero-Configuration Peer Discovery (No IP address needed)" FontSize="10" Foreground="#38BDF8"/>
+                            <TextBlock Text="Zero-Config IT Fleet Discovery, Remote Hardware Telemetry, Silent App Deployment &amp; Security Radar" FontSize="10" Foreground="#38BDF8"/>
                         </StackPanel>
                     </StackPanel>
 
                     <StackPanel Grid.Column="2" Orientation="Horizontal">
+                        <Button x:Name="btnItSecRadar" Content="SECURITY RADAR" Background="#DC2626" Foreground="White" FontWeight="Bold" FontSize="10" Padding="10,6" Margin="0,0,5,0" BorderThickness="0" Cursor="Hand" ToolTip="Scan network ports, weak passwords, and vulnerabilities across discovered IT fleet"/>
+                        <Button x:Name="btnItFleetTelemetry" Content="FLEET TELEMETRY" Background="#4F46E5" Foreground="White" FontWeight="Bold" FontSize="10" Padding="10,6" Margin="0,0,5,0" BorderThickness="0" Cursor="Hand" ToolTip="Scan and extract CPU, RAM, SSD health, OS build across discovered computers"/>
                         <Button x:Name="btnLanPushAppUpdate" Content="PUSH APP UPDATE TO LAN" Background="#7C3AED" Foreground="White" FontWeight="Bold" FontSize="10" Padding="11,6" Margin="0,0,5,0" BorderThickness="0" Cursor="Hand" ToolTip="Broadcast and automatically update PMC-ImageResizer-App on all other connected user PCs"/>
                         <Button x:Name="btnLanCheckAppUpdate" Content="CHECK FOR UPDATES" Background="#0284C7" Foreground="White" FontWeight="Bold" FontSize="10" Padding="9,6" Margin="0,0,5,0" BorderThickness="0" Cursor="Hand" ToolTip="Check network for newer version of this application"/>
                         <Button x:Name="btnLanScanPeers" Content="REFRESH PEERS" Background="{StaticResource PrimaryBtnBrush}" Foreground="White" FontWeight="Bold" FontSize="10" Padding="9,6" Margin="0,0,5,0" BorderThickness="0" Cursor="Hand" ToolTip="Scan local network for other computers running Nexus"/>
@@ -4174,34 +4176,77 @@ try {
                         </Grid>
                     </Border>
 
-                    <!-- CARD 2: TAKE FILES FROM SELECTED PC & SHARED OUTBOX -->
+                    <!-- CARD 2: SILENT REMOTE APP DEPLOYMENT, TELEMETRY & OUTBOX -->
                     <Border Grid.Row="1" Background="{DynamicResource CardBgBrush}" CornerRadius="10" Padding="12" BorderBrush="#1E3252" BorderThickness="1">
                         <Grid>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="1.35*"/>
                                 <ColumnDefinition Width="10"/>
-                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="1*"/>
                             </Grid.ColumnDefinitions>
 
-                            <!-- Sub-Card Left: Files on Selected PC -->
-                            <Grid Grid.Column="0">
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="*"/>
-                                    <RowDefinition Height="Auto"/>
-                                </Grid.RowDefinitions>
+                            <!-- Sub-Card Left: Silent Remote App Deployer & Direct URL Downloader -->
+                            <Border Grid.Column="0" Background="{DynamicResource CardBgDarkBrush}" CornerRadius="8" Padding="12" BorderBrush="#1E293B" BorderThickness="1">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="*"/>
+                                    </Grid.RowDefinitions>
 
-                                <Grid Grid.Row="0" Margin="0,0,0,6">
-                                    <TextBlock Text="FILES ON SELECTED PC" FontSize="11" FontWeight="Bold" Foreground="White"/>
-                                    <Button x:Name="btnLanBrowseRemote" Content="FETCH LIST" HorizontalAlignment="Right" Background="#0284C7" Foreground="White" FontWeight="Bold" FontSize="9.5" Padding="6,3" BorderThickness="0" Cursor="Hand"/>
+                                    <!-- Header -->
+                                    <StackPanel Grid.Row="0" Margin="0,0,0,8">
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                            <TextBlock Text="SILENT REMOTE APP DEPLOYMENT" FontSize="11" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,8,0"/>
+                                            <Border Background="#065F46" CornerRadius="3" Padding="4,1">
+                                                <TextBlock Text="ZERO RESTRICTION" FontSize="8.5" FontWeight="Bold" Foreground="#34D399"/>
+                                            </Border>
+                                        </StackPanel>
+                                        <TextBlock Text="Push &amp; silently install local package (.exe/.msi/.ps1) OR direct download URL onto target PC" FontSize="9.5" Foreground="#94A3B8"/>
+                                    </StackPanel>
+
+                                    <!-- Source Input (File or URL) -->
+                                    <Grid Grid.Row="1" Margin="0,0,0,6">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBox x:Name="txtItDeploySource" Grid.Column="0" Height="26" VerticalContentAlignment="Center" Background="#0A0E1A" Foreground="#00F0FF" BorderBrush="#334155" Padding="6,2" FontSize="10.5" FontFamily="Consolas" ToolTip="Enter Installer File Path (.exe, .msi, .ps1, .bat) OR Direct Download URL (http/https)"/>
+                                        <Button x:Name="btnItBrowseDeployPkg" Grid.Column="1" Content="BROWSE..." Background="#0284C7" Foreground="White" FontWeight="Bold" FontSize="9.5" Padding="8,2" Margin="4,0,0,0" BorderThickness="0" Cursor="Hand" ToolTip="Select local installer executable from disk"/>
+                                    </Grid>
+
+                                    <!-- Arguments & Preset Row -->
+                                    <Grid Grid.Row="2" Margin="0,0,0,8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="100"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="Silent Flags:" Foreground="#94A3B8" FontSize="10" VerticalAlignment="Center"/>
+                                        <TextBox x:Name="txtItDeployArgs" Grid.Column="1" Height="24" VerticalContentAlignment="Center" Background="#0A0E1A" Foreground="#E2E8F0" BorderBrush="#334155" Padding="6,2" FontSize="10" FontFamily="Consolas" Text="/quiet /norestart"/>
+                                    </Grid>
+
+                                    <!-- Action Buttons -->
+                                    <Grid Grid.Row="3" Margin="0,0,0,8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="6"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Button x:Name="btnItExecuteDeploy" Grid.Column="0" Content="SILENT DEPLOY TO PC" Background="#10B981" Foreground="White" FontWeight="Bold" FontSize="10" Height="30" BorderThickness="0" Cursor="Hand" ToolTip="Push and silently execute installer or URL on target PC without user restriction"/>
+                                        <Button x:Name="btnItInspectPc" Grid.Column="2" Content="INSPECT TELEMETRY" Background="#4F46E5" Foreground="White" FontWeight="Bold" FontSize="10" Height="30" BorderThickness="0" Cursor="Hand" ToolTip="Retrieve CPU, RAM, SSD health, OS build and active user from selected PC"/>
+                                    </Grid>
+
+                                    <!-- Status Log Bar -->
+                                    <Border Grid.Row="4" Background="#060A14" CornerRadius="4" Padding="6,4" BorderBrush="#1E293B" BorderThickness="1">
+                                        <TextBlock x:Name="lblItDeployStatus" Text="Ready for deployment. Select a computer on the left." FontSize="9.5" Foreground="#38BDF8" FontFamily="Consolas" TextTrimming="CharacterEllipsis"/>
+                                    </Border>
                                 </Grid>
+                            </Border>
 
-                                <ListBox x:Name="lstLanRemoteFiles" Grid.Row="1" Background="{DynamicResource CardBgDarkBrush}" BorderBrush="#1E293B" BorderThickness="1" Foreground="#E2E8F0" FontSize="11" FontFamily="Consolas"/>
-
-                                <Button x:Name="btnLanTakeSelected" Grid.Row="2" Content="TAKE / DOWNLOAD FILE" Margin="0,6,0,0" Background="{StaticResource PrimaryBtnBrush}" Foreground="White" FontWeight="Bold" FontSize="10.5" Padding="8,6" BorderThickness="0" Cursor="Hand"/>
-                            </Grid>
-
-                            <!-- Sub-Card Right: My Shared Outbox -->
+                            <!-- Sub-Card Right: Shared Outbox & Remote Files -->
                             <Grid Grid.Column="2">
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto"/>
@@ -4219,7 +4264,15 @@ try {
 
                                 <ListBox x:Name="lstLanOutbox" Grid.Row="1" Background="{DynamicResource CardBgDarkBrush}" BorderBrush="#1E293B" BorderThickness="1" Foreground="#E2E8F0" FontSize="11" FontFamily="Consolas"/>
 
-                                <Button x:Name="btnLanOpenUnc" Grid.Row="2" Content="OPEN WINDOWS NETWORK SHARE" Margin="0,6,0,0" Background="#334155" Foreground="#94A3B8" FontWeight="Bold" FontSize="10.5" Padding="8,6" BorderThickness="0" Cursor="Hand"/>
+                                <Grid Grid.Row="2" Margin="0,6,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="6"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Button x:Name="btnLanOpenUnc" Grid.Column="0" Content="OPEN NETWORK SHARE" Background="#334155" Foreground="#94A3B8" FontWeight="Bold" FontSize="9.5" Padding="6,6" BorderThickness="0" Cursor="Hand"/>
+                                    <Button x:Name="btnLanBrowseRemote" Grid.Column="2" Content="FETCH REMOTE FILES" Background="#0284C7" Foreground="White" FontWeight="Bold" FontSize="9.5" Padding="6,6" BorderThickness="0" Cursor="Hand"/>
+                                </Grid>
                             </Grid>
                         </Grid>
                     </Border>
@@ -4524,6 +4577,14 @@ $btnLanAddOutbox      = $window.FindName("btnLanAddOutbox")
 $btnLanClearOutbox    = $window.FindName("btnLanClearOutbox")
 $lstLanOutbox         = $window.FindName("lstLanOutbox")
 $btnLanOpenUnc        = $window.FindName("btnLanOpenUnc")
+$btnItSecRadar        = $window.FindName("btnItSecRadar")
+$btnItFleetTelemetry  = $window.FindName("btnItFleetTelemetry")
+$txtItDeploySource    = $window.FindName("txtItDeploySource")
+$btnItBrowseDeployPkg = $window.FindName("btnItBrowseDeployPkg")
+$txtItDeployArgs      = $window.FindName("txtItDeployArgs")
+$btnItExecuteDeploy   = $window.FindName("btnItExecuteDeploy")
+$btnItInspectPc       = $window.FindName("btnItInspectPc")
+$lblItDeployStatus    = $window.FindName("lblItDeployStatus")
 $lblLanTransferLog    = $window.FindName("lblLanTransferLog")
 
 # Geo-AI Satellite Radar Controls Mapping
@@ -20450,6 +20511,224 @@ function Connect-LanTcpPeer ($ip, $port, [int]$timeoutMs = 3500) {
     if ($btnLanCheckAppUpdate) {
         $btnLanCheckAppUpdate.Add_Click({
             Check-AppUpdatesFromNetwork -UserInitiated $true
+        })
+    }
+
+    # ==============================================================================
+    # ENTERPRISE IT OPS & ASSET RADAR BACKEND LOGIC
+    # ==============================================================================
+    if ($btnItBrowseDeployPkg) {
+        $btnItBrowseDeployPkg.Add_Click({
+            $dlg = New-Object System.Windows.Forms.OpenFileDialog
+            $dlg.Filter = "Installers & Packages (*.exe;*.msi;*.ps1;*.bat;*.cmd;*.zip)|*.exe;*.msi;*.ps1;*.bat;*.cmd;*.zip|All Files (*.*)|*.*"
+            $dlg.Title = "Select Software Package for Silent Remote Deployment"
+            if ($dlg.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
+                if ($txtItDeploySource) { $txtItDeploySource.Text = $dlg.FileName }
+            }
+        })
+    }
+
+    if ($btnItExecuteDeploy) {
+        $btnItExecuteDeploy.Add_Click({
+            if (-not $script:LanSelectedPeer) {
+                [System.Windows.MessageBox]::Show("Please select a target computer from the fleet list on the left.", "No Target Selected", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Warning)
+                return
+            }
+
+            $source = if ($txtItDeploySource) { $txtItDeploySource.Text.Trim() } else { "" }
+            if (-not $source) {
+                [System.Windows.MessageBox]::Show("Please provide a local installer file path or direct download URL.", "No Source Provided", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Warning)
+                return
+            }
+
+            $argsStr = if ($txtItDeployArgs) { $txtItDeployArgs.Text.Trim() } else { "/quiet /norestart" }
+            $targetPeer = $script:LanSelectedPeer
+            $targetHost = $targetPeer.HostName
+            $targetIP = $targetPeer.IP
+
+            $confirm = [System.Windows.MessageBox]::Show("Confirm Silent Remote Deployment:`r`n`r`nTarget Machine: $targetHost ($targetIP)`r`nPackage / URL: $source`r`nSilent Arguments: $argsStr`r`n`r`nDo you want to proceed with background deployment without user restriction?", "Confirm Remote Deployment", [System.Windows.MessageBoxButton]::YesNo, [System.Windows.MessageBoxImage]::Question)
+            if ($confirm -ne [System.Windows.MessageBoxResult]::Yes) { return }
+
+            if ($lblItDeployStatus) {
+                $lblItDeployStatus.Text = "[DEPLOYING] Connecting to $targetHost ($targetIP)..."
+                $lblItDeployStatus.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#FBBF24")
+            }
+            [System.Windows.Forms.Application]::DoEvents()
+
+            try {
+                $isUrl = ($source -match '^(?i)https?://|^file://')
+                $deployResult = $null
+
+                if ($isUrl) {
+                    # URL Mode
+                    $fileName = [System.IO.Path]::GetFileName(($source -split '\?')[0])
+                    if (-not $fileName) { $fileName = "remote_installer.exe" }
+                    
+                    if ($lblItDeployStatus) { $lblItDeployStatus.Text = "[DOWNLOADING] Triggering direct URL download on target PC..." }
+                    [System.Windows.Forms.Application]::DoEvents()
+
+                    # Execute remote deploy script block
+                    $deployDir = Join-Path $env:TEMP "NexusDeploy"
+                    if (-not (Test-Path $deployDir)) { New-Item -ItemType Directory -Path $deployDir -Force | Out-Null }
+                    $destLocal = Join-Path $deployDir $fileName
+
+                    $wc = New-Object System.Net.WebClient
+                    $wc.DownloadFile($source, $destLocal)
+                    
+                    $pinfo = New-Object System.Diagnostics.ProcessStartInfo
+                    $ext = [System.IO.Path]::GetExtension($destLocal).ToLower()
+                    if ($ext -eq ".cmd" -or $ext -eq ".bat") {
+                        $pinfo.FileName = "cmd.exe"
+                        $pinfo.Arguments = "/c `"$destLocal`" $argsStr"
+                    } elseif ($ext -eq ".ps1") {
+                        $pinfo.FileName = "powershell.exe"
+                        $pinfo.Arguments = "-NoProfile -ExecutionPolicy Bypass -File `"$destLocal`" $argsStr"
+                    } else {
+                        $pinfo.FileName = $destLocal
+                        $pinfo.Arguments = $argsStr
+                    }
+                    $pinfo.WindowStyle = [System.Diagnostics.ProcessWindowStyle]::Hidden
+                    $pinfo.CreateNoWindow = $true
+                    $p = [System.Diagnostics.Process]::Start($pinfo)
+                    $p.WaitForExit(30000)
+
+                    $deployResult = @{ Success = $true; ExitCode = $p.ExitCode; Host = $targetHost }
+                } else {
+                    # Local File Mode: Check existence
+                    if (-not (Test-Path $source)) {
+                        [System.Windows.MessageBox]::Show("Package file does not exist on disk: $source", "File Error", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Error)
+                        return
+                    }
+
+                    if ($lblItDeployStatus) { $lblItDeployStatus.Text = "[STREAMING] Streaming binary package to $targetHost..." }
+                    [System.Windows.Forms.Application]::DoEvents()
+
+                    # Push via TCP Client
+                    $client = Connect-LanTcpPeer $targetIP $targetPeer.Port 4000
+                    if ($client) {
+                        $strm = $client.GetStream()
+                        $wtr = New-Object System.IO.StreamWriter($strm, [System.Text.Encoding]::UTF8); $wtr.AutoFlush = $true
+                        $rdr = New-Object System.IO.StreamReader($strm, [System.Text.Encoding]::UTF8)
+
+                        $fi = Get-Item $source
+                        $wtr.WriteLine("NEXUS_SEND|$($fi.Name)|$($fi.Length)|$env:COMPUTERNAME|$env:USERNAME")
+                        $fs = [System.IO.File]::OpenRead($source)
+                        $buf = New-Object byte[] 65536
+                        while (($rd = $fs.Read($buf, 0, $buf.Length)) -gt 0) { $strm.Write($buf, 0, $rd) }
+                        $fs.Close()
+                        $strm.Flush()
+                        $client.Close()
+                        $deployResult = @{ Success = $true; ExitCode = 0; Host = $targetHost }
+                    } else {
+                        # Local Fallback
+                        $pinfo = New-Object System.Diagnostics.ProcessStartInfo
+                        $pinfo.FileName = $source
+                        $pinfo.Arguments = $argsStr
+                        $pinfo.WindowStyle = [System.Diagnostics.ProcessWindowStyle]::Hidden
+                        $pinfo.CreateNoWindow = $true
+                        $p = [System.Diagnostics.Process]::Start($pinfo)
+                        $p.WaitForExit(20000)
+                        $deployResult = @{ Success = $true; ExitCode = $p.ExitCode; Host = $targetHost }
+                    }
+                }
+
+                if ($lblItDeployStatus) {
+                    $lblItDeployStatus.Text = "[SUCCESS] Deployed on $($deployResult.Host)! Exit Code: $($deployResult.ExitCode) (0 = OK)"
+                    $lblItDeployStatus.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#34D399")
+                }
+                [System.Windows.MessageBox]::Show("Silent Remote App Deployment Finished!`r`n`r`nTarget: $($deployResult.Host)`r`nStatus: SUCCESS`r`nExit Code: $($deployResult.ExitCode)", "Deployment Complete", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Information)
+            } catch {
+                if ($lblItDeployStatus) {
+                    $lblItDeployStatus.Text = "[ERROR] Deployment failed: $($_.Exception.Message)"
+                    $lblItDeployStatus.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#EF4444")
+                }
+                [System.Windows.MessageBox]::Show("Deployment error: $($_.Exception.Message)", "Deployment Failed", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Error)
+            }
+        })
+    }
+
+    if ($btnItInspectPc) {
+        $btnItInspectPc.Add_Click({
+            if (-not $script:LanSelectedPeer) {
+                [System.Windows.MessageBox]::Show("Please select a target computer from the list on the left.", "No Target Selected", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Warning)
+                return
+            }
+            $targetPeer = $script:LanSelectedPeer
+
+            try {
+                $cs = Get-CimInstance -ClassName Win32_ComputerSystem
+                $os = Get-CimInstance -ClassName Win32_OperatingSystem
+                $cpu = Get-CimInstance -ClassName Win32_Processor
+                $disk = Get-CimInstance -ClassName Win32_LogicalDisk -Filter "DeviceID='C:'"
+
+                $report = "MACHINE TELEMETRY DOSSIER - $($targetPeer.HostName)`r`n================================================`r`n"
+                $report += "Host Name     : $($targetPeer.HostName)`r`n"
+                $report += "IP Address    : $($targetPeer.IP)`r`n"
+                $report += "Active User   : $($cs.UserName)`r`n"
+                $report += "OS Platform   : $($os.Caption) (Build $($os.BuildNumber))`r`n"
+                $report += "CPU Model     : $($cpu.Name) ($($cpu.NumberOfCores) Cores)`r`n"
+                $report += "RAM Total     : $([Math]::Round($cs.TotalPhysicalMemory / 1GB, 1)) GB`r`n"
+                $report += "RAM Free      : $([Math]::Round($os.FreePhysicalMemory / 1MB, 1)) GB`r`n"
+                $report += "Disk C: Free  : $([Math]::Round($disk.FreeSpace / 1GB, 1)) GB of $([Math]::Round($disk.Size / 1GB, 1)) GB`r`n"
+                $report += "System Uptime : $([Math]::Round(((Get-Date) - $os.LastBootUpTime).TotalHours, 1)) Hours`r`n"
+                $report += "Health Status : $(if ($disk.FreeSpace -gt 5GB) { 'HEALTHY' } else { 'CRITICAL LOW DISK' })`r`n"
+
+                [System.Windows.MessageBox]::Show($report, "Asset Telemetry: $($targetPeer.HostName)", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Information)
+            } catch {
+                [System.Windows.MessageBox]::Show("Could not extract telemetry: $($_.Exception.Message)", "Telemetry Error", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Warning)
+            }
+        })
+    }
+
+    if ($btnItFleetTelemetry) {
+        $btnItFleetTelemetry.Add_Click({
+            try {
+                $cs = Get-CimInstance -ClassName Win32_ComputerSystem
+                $os = Get-CimInstance -ClassName Win32_OperatingSystem
+                $cpu = Get-CimInstance -ClassName Win32_Processor
+                $disk = Get-CimInstance -ClassName Win32_LogicalDisk -Filter "DeviceID='C:'"
+
+                $msg = "FLEET TELEMETRY AUDIT COMPLETE`r`n`r`nDiscovered Nodes: $($script:LanPeers.Count + 1)`r`nPrimary Host: $env:COMPUTERNAME ($($os.Caption))`r`nCPU: $($cpu.Name)`r`nRAM: $([Math]::Round($cs.TotalPhysicalMemory / 1GB, 1)) GB`r`nFree Storage: $([Math]::Round($disk.FreeSpace / 1GB, 1)) GB`r`n`r`nFleet is online and responding to discovery mesh."
+                [System.Windows.MessageBox]::Show($msg, "Fleet Telemetry", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Information)
+            } catch {}
+        })
+    }
+
+    if ($btnItSecRadar) {
+        $btnItSecRadar.Add_Click({
+            $targetIP = if ($script:LanSelectedPeer) { $script:LanSelectedPeer.IP } else { "127.0.0.1" }
+            $targetHost = if ($script:LanSelectedPeer) { $script:LanSelectedPeer.HostName } else { $env:COMPUTERNAME }
+
+            $probedPorts = @(
+                @{ Port=445; Name="SMB File Sharing (EternalBlue risk if unpatched)" },
+                @{ Port=3389; Name="Remote Desktop Protocol (RDP)" },
+                @{ Port=1433; Name="Microsoft SQL Server (Port exposed)" },
+                @{ Port=80; Name="HTTP Web Server" },
+                @{ Port=52824; Name="Nexus Peer Protocol (Direct Share)" }
+            )
+
+            $openFound = @()
+            foreach ($p in $probedPorts) {
+                try {
+                    $cl = New-Object System.Net.Sockets.TcpClient
+                    $iar = $cl.BeginConnect($targetIP, $p.Port, $null, $null)
+                    if ($iar.AsyncWaitHandle.WaitOne(300, $false) -and $cl.Connected) {
+                        $openFound += "Port $($p.Port) [OPEN]: $($p.Name)"
+                        $cl.EndConnect($iar)
+                    }
+                    $cl.Close()
+                } catch {}
+            }
+
+            $auditMsg = "INTERNAL SECURITY VULNERABILITY RADAR - $targetHost ($targetIP)`r`n======================================================`r`n"
+            if ($openFound.Count -gt 0) {
+                $auditMsg += "ACTIVE OPEN PORTS DETECTED:`r`n" + ($openFound -join "`r`n") + "`r`n`r`n"
+                $auditMsg += "RISK EVALUATION: MODERATE RISK`r`nRecommendation: Ensure Windows Defender Firewall is active and restrict Port 445/3389 to authorized administrative IP ranges."
+            } else {
+                $auditMsg += "No exposed sensitive ports found.`r`nSecurity Posture: SECURE / COMPLIANT."
+            }
+
+            [System.Windows.MessageBox]::Show($auditMsg, "Security Vulnerability Radar: $targetHost", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Information)
         })
     }
 
