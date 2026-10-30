@@ -45,7 +45,7 @@ if ($global:IsRunningAsAdmin) {
     } catch {}
 }
 
-Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, System.Drawing, System.Windows.Forms
+Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, System.Drawing, System.Windows.Forms, System.IO.Compression.FileSystem, System.Xml.Linq
 Add-Type -AssemblyName System.Runtime.WindowsRuntime -ErrorAction SilentlyContinue
 
 # Load WinRT types for PDF handling
@@ -2810,15 +2810,17 @@ try {
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <!-- Mode Switcher: Standard Property Extractor vs 3-URL Plan Photo Sharer & Sync -->
+            <!-- Mode Switcher: Standard Property Extractor vs 3-URL Plan Photo Sharer & Sync vs Application No. PDF Extractor -->
             <Border Grid.Row="0" Background="{DynamicResource CardBgDarkBrush}" CornerRadius="10" Padding="4" Margin="0,0,0,8" BorderBrush="#0284C7" BorderThickness="1.5">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <Button x:Name="btnSubModeStandardExtract" Grid.Column="0" Content="1. Standard / Multi-Source Property Extractor (Excel / Desktop)" FontWeight="Bold" FontSize="11.5" Height="34" Cursor="Hand" Background="#0284C7" Foreground="White" BorderThickness="0"/>
-                    <Button x:Name="btnSubModeThreeUrlSync" Grid.Column="1" Content="2. Multi-Server Consolidator &amp; Asset Extractor (Panvel 3-Server / LAN)" FontWeight="Bold" FontSize="11.5" Height="34" Cursor="Hand" Background="#0D1527" Foreground="#94A3B8" BorderThickness="0" Margin="4,0,0,0"/>
+                    <Button x:Name="btnSubModeStandardExtract" Grid.Column="0" Content="1. Property Extractor (JPG / WMF)" FontWeight="Bold" FontSize="11" Height="34" Cursor="Hand" Background="#0284C7" Foreground="White" BorderThickness="0"/>
+                    <Button x:Name="btnSubModeThreeUrlSync" Grid.Column="1" Content="2. Multi-Server Consolidator (19 / 11 / 22)" FontWeight="Bold" FontSize="11" Height="34" Cursor="Hand" Background="#0D1527" Foreground="#94A3B8" BorderThickness="0" Margin="4,0,2,0"/>
+                    <Button x:Name="btnSubModeAppPdfExtract" Grid.Column="2" Content="3. Application No. PDF Extractor (Excel -> PDFs)" FontWeight="Bold" FontSize="11" Height="34" Cursor="Hand" Background="#0D1527" Foreground="#94A3B8" BorderThickness="0" Margin="2,0,0,0"/>
                 </Grid>
             </Border>
 
@@ -3005,6 +3007,114 @@ try {
                 </Border>
             </StackPanel>
 
+            <!-- Sub-Panel 3: Application No. PDF Extractor -->
+            <StackPanel x:Name="pnlAppPdfExtract" Grid.Row="1" Visibility="Collapsed">
+                <Border Background="{DynamicResource CardBgBrush}" CornerRadius="12" Padding="18,14" Margin="0,0,0,8" BorderBrush="#8B5CF6" BorderThickness="1.5">
+                    <StackPanel>
+                        <!-- Top Header & Quick Presets -->
+                        <Grid Margin="0,0,0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="APPLICATION NO. PDF EXTRACTOR &amp; MATCHER" FontWeight="Bold" FontSize="13" Foreground="#A78BFA"/>
+                                <TextBlock Text="Extract all PDFs matching Application Numbers from an Excel sheet into a target folder with 1-click audit." FontSize="11" Foreground="#94A3B8" Margin="0,2,0,0"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                <Button x:Name="btnAppPdfPreset11" Style="{StaticResource ActionButton}" Content="Server 11 (NTIS_4030)" Background="#0D9488" FontSize="11" Padding="10,4" Height="30" Margin="0,0,6,0" ToolTip="Set Source to \\192.168.1.11\d\Images\NTIS_4030"/>
+                                <Button x:Name="btnAppPdfPreset19" Style="{StaticResource ActionButton}" Content="Server 19 (Files)" Background="#0284C7" FontSize="11" Padding="10,4" Height="30" Margin="0,0,6,0" ToolTip="Set Source to \\192.168.1.19\Files"/>
+                                <Button x:Name="btnAppPdfPresetDesktop" Style="{StaticResource ActionButton}" Content="Desktop Folder" Background="#1E293B" FontSize="11" Padding="10,4" Height="30" ToolTip="Set Source to Desktop"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- STEP 1: EXCEL FILE SELECTION -->
+                        <TextBlock Text="STEP 1: SELECT EXCEL / CSV FILE WITH APPLICATION NUMBERS" FontWeight="Bold" FontSize="12" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                        <Grid Margin="0,0,0,6">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox x:Name="txtAppPdfExcel" Grid.Column="0" Text="" ToolTip="Browse or enter path to Excel (.xlsx, .xls) or CSV file with Application Numbers"/>
+                            <Button x:Name="btnAppPdfBrowseExcel" Grid.Column="1" Style="{StaticResource ActionButton}" Content="Browse Excel..." Margin="10,0,0,0" Width="140" Background="#0D9488" FontWeight="Bold"/>
+                        </Grid>
+
+                        <!-- Column Selector & Detection Badge -->
+                        <Border Background="{DynamicResource CardBgDarkBrush}" CornerRadius="8" Padding="12,8" Margin="0,0,0,10" BorderBrush="#1C2D4A" BorderThickness="1">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="220"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Select Application Column:" FontWeight="Bold" FontSize="11.5" Foreground="#38BDF8" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <ComboBox x:Name="cmbAppPdfColumn" Grid.Column="1" Height="28" VerticalContentAlignment="Center" Background="#0F172A" Foreground="#E2E8F0" BorderBrush="#334155" FontSize="11.5" ToolTip="Select the column containing Application Numbers"/>
+                                <Button x:Name="btnAppPdfReloadExcel" Grid.Column="2" Style="{StaticResource ActionButton}" Content="Reload Columns" Background="#1E293B" Height="28" Padding="10,2" Margin="10,0,0,0" FontSize="11"/>
+                                <TextBlock x:Name="lblAppPdfExcelCount" Grid.Column="3" Text="Select an Excel file to detect application numbers" Foreground="#34D399" FontWeight="SemiBold" FontSize="11.5" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="10,0,0,0"/>
+                            </Grid>
+                        </Border>
+
+                        <!-- STEP 2: SOURCE PDF DIRECTORY -->
+                        <TextBlock Text="STEP 2: SELECT SOURCE FOLDER CONTAINING PDFs (LOCAL, NETWORK OR SERVER)" FontWeight="Bold" FontSize="12" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                        <Grid Margin="0,0,0,8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox x:Name="txtAppPdfSource" Grid.Column="0" Text="\\192.168.1.11\d\Images\NTIS_4030" ToolTip="Folder containing PDF files. Can be local folder, external drive, or server path like \\192.168.1.11\..."/>
+                            <Button x:Name="btnAppPdfBrowseSource" Grid.Column="1" Style="{StaticResource ActionButton}" Content="Browse Folder..." Margin="10,0,0,0" Width="140" Background="{StaticResource CyanBadgeBrush}" FontWeight="Bold"/>
+                        </Grid>
+
+                        <!-- PDF Match Criteria & Rules -->
+                        <Border Background="{DynamicResource CardBgDarkBrush}" CornerRadius="8" Padding="12,8" Margin="0,0,0,10" BorderBrush="#1C2D4A" BorderThickness="1">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <Grid Grid.Row="0" Margin="0,0,0,6">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="MATCH MODE:" FontWeight="Bold" FontSize="11" Foreground="#38BDF8" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                                    <WrapPanel Grid.Column="1" VerticalAlignment="Center">
+                                        <RadioButton x:Name="rbAppPdfMatchContains" GroupName="AppPdfMatchGroup" Content="Contains App No (*&lt;AppNo&gt;*.pdf)" IsChecked="True" Foreground="#34D399" FontWeight="SemiBold" Margin="0,0,16,0" ToolTip="Matches any PDF whose file name contains the Application Number"/>
+                                        <RadioButton x:Name="rbAppPdfMatchExact" GroupName="AppPdfMatchGroup" Content="Exact File Name (&lt;AppNo&gt;.pdf)" Foreground="#38BDF8" FontWeight="SemiBold" Margin="0,0,16,0" ToolTip="Matches only PDFs named exactly like the Application Number"/>
+                                        <RadioButton x:Name="rbAppPdfMatchSubfolder" GroupName="AppPdfMatchGroup" Content="Subfolder or File Name Contains" Foreground="#FBBF24" FontWeight="SemiBold" ToolTip="Matches if parent subfolder name or file name contains the Application Number"/>
+                                    </WrapPanel>
+                                </Grid>
+                                <WrapPanel Grid.Row="1">
+                                    <CheckBox x:Name="chkAppPdfRecursive" Content="Scan Subdirectories Recursively (all subfolders)" IsChecked="True" Foreground="#E2E8F0" FontWeight="SemiBold" Margin="0,0,20,0"/>
+                                    <CheckBox x:Name="chkAppPdfNumericNormalize" Content="Normalize Numeric App No (e.g. 0045 = 45)" IsChecked="True" Foreground="#38BDF8" FontWeight="SemiBold" Margin="0,0,20,0"/>
+                                    <CheckBox x:Name="chkAppPdfCaseInsensitive" Content="Case-Insensitive Match" IsChecked="True" Foreground="#94A3B8" FontWeight="SemiBold" Margin="0,0,20,0"/>
+                                </WrapPanel>
+                            </Grid>
+                        </Border>
+
+                        <!-- STEP 3: OUTPUT DESTINATION -->
+                        <TextBlock Text="STEP 3: TARGET OUTPUT FOLDER ON DESKTOP" FontWeight="Bold" FontSize="12" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                        <Grid Margin="0,0,0,8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox x:Name="txtAppPdfDest" Grid.Column="0" Text="C:\Users\mandar.k\Desktop\Extracted_Application_PDFs"/>
+                            <Button x:Name="btnAppPdfBrowseDest" Grid.Column="1" Style="{StaticResource ActionButton}" Content="Browse Dest..." Margin="10,0,0,0" Width="130" Background="#1E293B"/>
+                            <Button x:Name="btnAppPdfResetDest" Grid.Column="2" Style="{StaticResource ActionButton}" Content="Auto Desktop" Margin="6,0,0,0" Width="120" Background="#334155"/>
+                        </Grid>
+
+                        <WrapPanel Margin="0,2,0,0">
+                            <CheckBox x:Name="chkAppPdfSubfolderOrg" Content="Organize into Subfolders per Application No" IsChecked="False" Foreground="#E2E8F0" FontWeight="SemiBold" Margin="0,0,20,0" ToolTip="Creates a dedicated subfolder for each application number in target"/>
+                            <CheckBox x:Name="chkAppPdfOverwrite" Content="Overwrite if Already Present in Target" IsChecked="True" Foreground="#34D399" FontWeight="SemiBold" Margin="0,0,20,0"/>
+                            <CheckBox x:Name="chkAppPdfDryRun" Content="Simulation Only (Dry-Run Audit without copying files)" IsChecked="False" Foreground="#F59E0B" FontWeight="SemiBold" Margin="0,0,20,0"/>
+                        </WrapPanel>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+
             <!-- Row 2: Statistics Cards (Standard) -->
             <Grid x:Name="gridStatsStandard" Grid.Row="2" Margin="0,0,0,8">
                 <Grid.ColumnDefinitions>
@@ -3081,6 +3191,44 @@ try {
                 </Border>
             </Grid>
 
+            <!-- Row 2: Statistics Cards (Application No. PDF Extractor) -->
+            <Grid x:Name="gridStatsAppPdf" Grid.Row="2" Margin="0,0,0,8" Visibility="Collapsed">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <Border Grid.Column="0" Background="{DynamicResource CardBgBrush}" CornerRadius="10" Padding="14,10" Margin="0,0,8,0" BorderBrush="#8B5CF6" BorderThickness="1.5">
+                    <StackPanel>
+                        <TextBlock Text="TOTAL APP NUMBERS" FontSize="11" Foreground="#94A3B8" FontWeight="Bold"/>
+                        <TextBlock x:Name="lblAppPdfTotalAppNo" Text="0" FontSize="22" FontWeight="Bold" Foreground="#A78BFA" Margin="0,2,0,0"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Column="1" Background="{DynamicResource CardBgBrush}" CornerRadius="10" Padding="14,10" Margin="4,0,4,0" BorderBrush="#059669" BorderThickness="1.5">
+                    <StackPanel>
+                        <TextBlock Text="APP NUMBERS FOUND" FontSize="11" Foreground="#94A3B8" FontWeight="Bold"/>
+                        <TextBlock x:Name="lblAppPdfFoundAppNo" Text="0" FontSize="22" FontWeight="Bold" Foreground="#34D399" Margin="0,2,0,0"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Column="2" Background="{DynamicResource CardBgBrush}" CornerRadius="10" Padding="14,10" Margin="4,0,4,0" BorderBrush="#D97706" BorderThickness="1.5">
+                    <StackPanel>
+                        <TextBlock Text="MISSING APP NUMBERS" FontSize="11" Foreground="#94A3B8" FontWeight="Bold"/>
+                        <TextBlock x:Name="lblAppPdfMissingAppNo" Text="0" FontSize="22" FontWeight="Bold" Foreground="#FDE047" Margin="0,2,0,0"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Column="3" Background="{DynamicResource CardBgBrush}" CornerRadius="10" Padding="14,10" Margin="8,0,0,0" BorderBrush="#10B981" BorderThickness="1.5">
+                    <StackPanel>
+                        <TextBlock Text="PDF FILES EXTRACTED" FontSize="11" Foreground="#94A3B8" FontWeight="Bold"/>
+                        <TextBlock x:Name="lblAppPdfCopiedFiles" Text="0" FontSize="22" FontWeight="Bold" Foreground="#4ADE80" Margin="0,2,0,0"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
             <!-- Row 3: Console Log Box & Progress -->
             <Border Grid.Row="3" Background="{DynamicResource InnerBoxBrush}" CornerRadius="12" Padding="12" Margin="0,0,0,8" BorderBrush="#1E2B45" BorderThickness="1">
                 <Grid>
@@ -3131,6 +3279,24 @@ try {
                 <Button x:Name="btnThreeUrlExportWard" Grid.Column="2" Content="Export Ward Paths (Excel/CSV)" Background="#0D9488" Style="{StaticResource ActionButton}" Margin="0,0,8,0" Padding="14,8" FontSize="12" ToolTip="Scan All Ward folders and export Photos &amp; Plans paths to Excel (Options A, B, C)"/>
                 <Button x:Name="btnThreeUrlAnalyze" Grid.Column="3" Content="1. SCAN &amp; COMPARE (AUDIT)" Background="#0284C7" FontSize="12" FontWeight="Bold" Padding="14,10" Style="{StaticResource ActionButton}" HorizontalAlignment="Right" Margin="0,0,8,0"/>
                 <Button x:Name="btnThreeUrlStart" Grid.Column="4" Content="2. START MIGRATING TO TARGET MASTER" Background="{StaticResource SuccessBtnBrush}" FontSize="12.5" FontWeight="Bold" Padding="20,10" Style="{StaticResource ActionButton}"/>
+            </Grid>
+
+            <!-- Row 4: Action Buttons Footer (Application No. PDF Extractor) -->
+            <Grid x:Name="gridFooterAppPdf" Grid.Row="4" Visibility="Collapsed">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <Button x:Name="btnAppPdfOpenFolder" Grid.Column="0" Content="Open Output Folder" Background="#1E293B" Style="{StaticResource ActionButton}" Margin="0,0,8,0" Padding="14,8" FontSize="12"/>
+                <Button x:Name="btnAppPdfOpenReport" Grid.Column="1" Content="View CSV Audit Report" Background="#1E293B" Style="{StaticResource ActionButton}" Margin="0,0,8,0" Padding="14,8" FontSize="12" IsEnabled="False"/>
+                <Button x:Name="btnAppPdfScanAudit" Grid.Column="2" Content="1. Fast Audit / Dry-Run" Background="#0284C7" FontSize="12" FontWeight="Bold" Padding="14,8" Style="{StaticResource ActionButton}" Margin="0,0,8,0" ToolTip="Quickly check how many application numbers have matching PDFs without copying"/>
+                <Button x:Name="btnAppPdfStart" Grid.Column="4" Content="START EXTRACTING APPLICATION PDFs" Background="{StaticResource SuccessBtnBrush}" FontSize="12.5" FontWeight="Bold" Padding="20,10" Style="{StaticResource ActionButton}"/>
+                <Button x:Name="btnAppPdfStop" Grid.Column="5" Content="STOP" Background="#EF4444" Foreground="White" FontSize="12" FontWeight="Bold" Padding="16,10" Style="{StaticResource ActionButton}" Margin="8,0,0,0" Visibility="Collapsed"/>
             </Grid>
         </Grid>
 
@@ -4113,6 +4279,49 @@ $gridStatsStandard         = $window.FindName("gridStatsStandard")
 $gridStatsThreeUrl         = $window.FindName("gridStatsThreeUrl")
 $gridFooterStandard        = $window.FindName("gridFooterStandard")
 $gridFooterThreeUrl        = $window.FindName("gridFooterThreeUrl")
+
+# Tab 5 Sub-Mode 3: Application No. PDF Extractor Controls
+$btnSubModeAppPdfExtract   = $window.FindName("btnSubModeAppPdfExtract")
+$pnlAppPdfExtract          = $window.FindName("pnlAppPdfExtract")
+$gridStatsAppPdf           = $window.FindName("gridStatsAppPdf")
+$gridFooterAppPdf          = $window.FindName("gridFooterAppPdf")
+
+$btnAppPdfPreset11         = $window.FindName("btnAppPdfPreset11")
+$btnAppPdfPreset19         = $window.FindName("btnAppPdfPreset19")
+$btnAppPdfPresetDesktop    = $window.FindName("btnAppPdfPresetDesktop")
+$txtAppPdfExcel            = $window.FindName("txtAppPdfExcel")
+$btnAppPdfBrowseExcel      = $window.FindName("btnAppPdfBrowseExcel")
+$cmbAppPdfColumn           = $window.FindName("cmbAppPdfColumn")
+$btnAppPdfReloadExcel      = $window.FindName("btnAppPdfReloadExcel")
+$lblAppPdfExcelCount       = $window.FindName("lblAppPdfExcelCount")
+
+$txtAppPdfSource           = $window.FindName("txtAppPdfSource")
+$btnAppPdfBrowseSource     = $window.FindName("btnAppPdfBrowseSource")
+$rbAppPdfMatchContains     = $window.FindName("rbAppPdfMatchContains")
+$rbAppPdfMatchExact        = $window.FindName("rbAppPdfMatchExact")
+$rbAppPdfMatchSubfolder    = $window.FindName("rbAppPdfMatchSubfolder")
+$chkAppPdfRecursive        = $window.FindName("chkAppPdfRecursive")
+$chkAppPdfNumericNormalize = $window.FindName("chkAppPdfNumericNormalize")
+$chkAppPdfCaseInsensitive  = $window.FindName("chkAppPdfCaseInsensitive")
+
+$txtAppPdfDest             = $window.FindName("txtAppPdfDest")
+$btnAppPdfBrowseDest       = $window.FindName("btnAppPdfBrowseDest")
+$btnAppPdfResetDest        = $window.FindName("btnAppPdfResetDest")
+$chkAppPdfSubfolderOrg     = $window.FindName("chkAppPdfSubfolderOrg")
+$chkAppPdfOverwrite        = $window.FindName("chkAppPdfOverwrite")
+$chkAppPdfDryRun           = $window.FindName("chkAppPdfDryRun")
+
+$lblAppPdfTotalAppNo       = $window.FindName("lblAppPdfTotalAppNo")
+$lblAppPdfFoundAppNo       = $window.FindName("lblAppPdfFoundAppNo")
+$lblAppPdfMissingAppNo     = $window.FindName("lblAppPdfMissingAppNo")
+$lblAppPdfCopiedFiles      = $window.FindName("lblAppPdfCopiedFiles")
+
+$btnAppPdfOpenFolder       = $window.FindName("btnAppPdfOpenFolder")
+$btnAppPdfOpenReport       = $window.FindName("btnAppPdfOpenReport")
+$btnAppPdfScanAudit        = $window.FindName("btnAppPdfScanAudit")
+$btnAppPdfStart            = $window.FindName("btnAppPdfStart")
+$btnAppPdfStop             = $window.FindName("btnAppPdfStop")
+$script:cancelAppPdfExtract = $false
 
 $borderUrl1                = $window.FindName("borderUrl1")
 $borderUrl2                = $window.FindName("borderUrl2")
@@ -14515,7 +14724,7 @@ function Get-SpreadsheetProperties($excelPath) {
         try {
             $zip = [System.IO.Compression.ZipFile]::OpenRead($excelPath)
             $sharedStrings = [System.Collections.Generic.List[string]]::new()
-            $ssEntry = $zip.GetEntry("xl/sharedStrings.xml")
+            $ssEntry = @($zip.Entries | Where-Object { $_.FullName.Replace('\', '/') -eq "xl/sharedStrings.xml" }) | Select-Object -First 1
             if ($ssEntry) {
                 $sStream = $ssEntry.Open()
                 $sDoc = [System.Xml.Linq.XDocument]::Load($sStream)
@@ -14527,7 +14736,7 @@ function Get-SpreadsheetProperties($excelPath) {
                     $sharedStrings.Add($fullT)
                 }
             }
-            $sheetEntries = @($zip.Entries | Where-Object { $_.FullName -like "xl/worksheets/sheet*.xml" })
+            $sheetEntries = @($zip.Entries | Where-Object { $_.FullName.Replace('\', '/') -like "xl/worksheets/sheet*.xml" })
             foreach ($sEntry in $sheetEntries) {
                 $wStream = $sEntry.Open()
                 $wDoc = [System.Xml.Linq.XDocument]::Load($wStream)
@@ -15200,6 +15409,10 @@ if ($btnSubModeStandardExtract) {
         $btnSubModeStandardExtract.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#FFFFFF")
         $btnSubModeThreeUrlSync.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#0D1527")
         $btnSubModeThreeUrlSync.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#94A3B8")
+        if ($btnSubModeAppPdfExtract) {
+            $btnSubModeAppPdfExtract.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#0D1527")
+            $btnSubModeAppPdfExtract.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#94A3B8")
+        }
         
         $pnlStandardExtract.Visibility = "Visible"
         $gridStatsStandard.Visibility = "Visible"
@@ -15208,6 +15421,10 @@ if ($btnSubModeStandardExtract) {
         $pnlThreeUrlSync.Visibility = "Collapsed"
         $gridStatsThreeUrl.Visibility = "Collapsed"
         $gridFooterThreeUrl.Visibility = "Collapsed"
+
+        if ($pnlAppPdfExtract) { $pnlAppPdfExtract.Visibility = "Collapsed" }
+        if ($gridStatsAppPdf)  { $gridStatsAppPdf.Visibility = "Collapsed" }
+        if ($gridFooterAppPdf) { $gridFooterAppPdf.Visibility = "Collapsed" }
     })
 }
 
@@ -15217,6 +15434,10 @@ if ($btnSubModeThreeUrlSync) {
         $btnSubModeThreeUrlSync.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#FFFFFF")
         $btnSubModeStandardExtract.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#0D1527")
         $btnSubModeStandardExtract.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#94A3B8")
+        if ($btnSubModeAppPdfExtract) {
+            $btnSubModeAppPdfExtract.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#0D1527")
+            $btnSubModeAppPdfExtract.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#94A3B8")
+        }
         
         $pnlStandardExtract.Visibility = "Collapsed"
         $gridStatsStandard.Visibility = "Collapsed"
@@ -15225,6 +15446,630 @@ if ($btnSubModeThreeUrlSync) {
         $pnlThreeUrlSync.Visibility = "Visible"
         $gridStatsThreeUrl.Visibility = "Visible"
         $gridFooterThreeUrl.Visibility = "Visible"
+
+        if ($pnlAppPdfExtract) { $pnlAppPdfExtract.Visibility = "Collapsed" }
+        if ($gridStatsAppPdf)  { $gridStatsAppPdf.Visibility = "Collapsed" }
+        if ($gridFooterAppPdf) { $gridFooterAppPdf.Visibility = "Collapsed" }
+    })
+}
+
+if ($btnSubModeAppPdfExtract) {
+    $btnSubModeAppPdfExtract.Add_Click({
+        $btnSubModeAppPdfExtract.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#8B5CF6")
+        $btnSubModeAppPdfExtract.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#FFFFFF")
+        $btnSubModeStandardExtract.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#0D1527")
+        $btnSubModeStandardExtract.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#94A3B8")
+        $btnSubModeThreeUrlSync.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#0D1527")
+        $btnSubModeThreeUrlSync.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#94A3B8")
+        
+        $pnlStandardExtract.Visibility = "Collapsed"
+        $gridStatsStandard.Visibility = "Collapsed"
+        $gridFooterStandard.Visibility = "Collapsed"
+        
+        $pnlThreeUrlSync.Visibility = "Collapsed"
+        $gridStatsThreeUrl.Visibility = "Collapsed"
+        $gridFooterThreeUrl.Visibility = "Collapsed"
+
+        if ($pnlAppPdfExtract) { $pnlAppPdfExtract.Visibility = "Visible" }
+        if ($gridStatsAppPdf)  { $gridStatsAppPdf.Visibility = "Visible" }
+        if ($gridFooterAppPdf) { $gridFooterAppPdf.Visibility = "Visible" }
+    })
+}
+
+# =====================================================================
+# SPREADSHEET PARSER FOR APPLICATION NUMBERS
+# =====================================================================
+function Get-ApplicationNumbersFromSpreadsheet($excelPath, $targetCol = "") {
+    Add-Type -AssemblyName System.IO.Compression.FileSystem, System.Xml.Linq -ErrorAction SilentlyContinue
+    $result = [PSCustomObject]@{
+        Headers = [System.Collections.Generic.List[string]]::new()
+        AppNumbers = [System.Collections.Generic.List[string]]::new()
+        SelectedColumn = ""
+    }
+    if (-not (Test-Path -LiteralPath $excelPath)) { return $result }
+
+    $ext = [System.IO.Path]::GetExtension($excelPath).ToLower()
+    $rows = [System.Collections.Generic.List[hashtable]]::new()
+    $discoveredHeaders = [System.Collections.Generic.List[string]]::new()
+
+    # 1. Parse XLSX via OpenXML
+    if ($ext -eq ".xlsx") {
+        try {
+            $zip = [System.IO.Compression.ZipFile]::OpenRead($excelPath)
+            $sharedStrings = [System.Collections.Generic.List[string]]::new()
+            $ssEntry = @($zip.Entries | Where-Object { $_.FullName.Replace("\", "/") -eq "xl/sharedStrings.xml" }) | Select-Object -First 1
+            if ($ssEntry) {
+                $sStream = $ssEntry.Open()
+                $sDoc = [System.Xml.Linq.XDocument]::Load($sStream)
+                $sStream.Dispose()
+                $sNs = $sDoc.Root.Name.Namespace
+                foreach ($si in $sDoc.Descendants($sNs + "si")) {
+                    $fullT = ""
+                    foreach ($t in $si.Descendants($sNs + "t")) { $fullT += $t.Value }
+                    $sharedStrings.Add($fullT)
+                }
+            }
+            $sheetEntries = @($zip.Entries | Where-Object { $_.FullName.Replace("\", "/") -like "xl/worksheets/sheet*.xml" })
+            if ($sheetEntries.Count -gt 0) {
+                $wStream = $sheetEntries[0].Open()
+                $wDoc = [System.Xml.Linq.XDocument]::Load($wStream)
+                $wStream.Dispose()
+                $wNs = $wDoc.Root.Name.Namespace
+                $sheetDataList = @($wDoc.Descendants($wNs + "sheetData"))
+                if ($sheetDataList.Count -gt 0) {
+                    $sheetData = $sheetDataList[0]
+                    $headerMap = @{}
+                    $isHeader = $true
+                    foreach ($row in $sheetData.Elements($wNs + "row")) {
+                        $rowVals = @{}
+                        foreach ($c in $row.Elements($wNs + "c")) {
+                            $cRef = $c.Attribute("r").Value
+                            $colLetters = $cRef -replace '\d+', ''
+                            $cType = if ($c.Attribute("t")) { $c.Attribute("t").Value } else { "" }
+                            $vElem = $c.Element($wNs + "v")
+                            $val = ""
+                            if ($vElem) {
+                                $rawV = $vElem.Value
+                                if ($cType -eq "s") {
+                                    $idx = 0
+                                    if ([int]::TryParse($rawV, [ref]$idx) -and $idx -ge 0 -and $idx -lt $sharedStrings.Count) {
+                                        $val = $sharedStrings[$idx]
+                                    }
+                                } elseif ($cType -eq "inlineStr") {
+                                    $isElem = $c.Element($wNs + "is")
+                                    if ($isElem) {
+                                        $tElem = $isElem.Element($wNs + "t")
+                                        if ($tElem) { $val = $tElem.Value }
+                                    }
+                                } else {
+                                    $val = $rawV
+                                }
+                            }
+                            $val = $val.Trim()
+                            if ($isHeader) {
+                                $colTitle = if ($val) { $val } else { "Col_$colLetters" }
+                                $headerMap[$colLetters] = $colTitle
+                                if (-not $discoveredHeaders.Contains($colTitle)) { $discoveredHeaders.Add($colTitle) }
+                            } else {
+                                $hName = if ($headerMap.ContainsKey($colLetters)) { $headerMap[$colLetters] } else { "Col_$colLetters" }
+                                $rowVals[$hName] = $val
+                            }
+                        }
+                        if ($isHeader) {
+                            $isHeader = $false
+                        } else {
+                            if ($rowVals.Count -gt 0) { $rows.Add($rowVals) }
+                        }
+                    }
+                }
+            }
+            $zip.Dispose()
+        } catch {
+            Append-ExtractLog "OpenXML parse warning: $($_.Exception.Message)"
+        }
+    }
+
+    # 2. Parse CSV / TSV / TXT
+    if ($rows.Count -eq 0 -and ($ext -eq ".csv" -or $ext -eq ".txt" -or $ext -eq ".tsv")) {
+        try {
+            $lines = [System.IO.File]::ReadAllLines($excelPath)
+            if ($lines.Length -gt 0) {
+                $firstLine = $lines[0]
+                $delim = ","
+                if ($firstLine.Contains("`t")) { $delim = "`t" }
+                elseif ($firstLine.Contains(";")) { $delim = ";" }
+                elseif ($firstLine.Contains("|")) { $delim = "|" }
+
+                $cols = $firstLine.Split($delim) | ForEach-Object { $_.Trim('"', ' ') }
+                foreach ($c in $cols) {
+                    $colTitle = if ($c) { $c } else { "Col_$($discoveredHeaders.Count + 1)" }
+                    $discoveredHeaders.Add($colTitle)
+                }
+                for ($r = 1; $r -lt $lines.Length; $r++) {
+                    $l = $lines[$r].Trim()
+                    if (-not $l) { continue }
+                    $vList = $l.Split($delim) | ForEach-Object { $_.Trim('"', ' ') }
+                    $rowVals = @{}
+                    for ($c = 0; $c -lt $discoveredHeaders.Count; $c++) {
+                        $val = if ($c -lt $vList.Length) { $vList[$c] } else { "" }
+                        $rowVals[$discoveredHeaders[$c]] = $val
+                    }
+                    $rows.Add($rowVals)
+                }
+            }
+        } catch {
+            Append-ExtractLog "CSV parser warning: $($_.Exception.Message)"
+        }
+    }
+
+    # Determine best column
+    $chosenCol = $targetCol
+    if (-not $chosenCol -or -not $discoveredHeaders.Contains($chosenCol)) {
+        foreach ($h in $discoveredHeaders) {
+            if ($h -match '(?i)^(application_?no|app_?no|token_?no|case_?no|file_?no|form_?no|application_?number)') {
+                $chosenCol = $h
+                break
+            }
+        }
+        if (-not $chosenCol -and $discoveredHeaders.Count -gt 0) {
+            $chosenCol = $discoveredHeaders[0]
+        }
+    }
+
+    # Extract Application Numbers
+    $appNumbers = [System.Collections.Generic.List[string]]::new()
+    $seenSet = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+
+    foreach ($row in $rows) {
+        $val = ""
+        if ($chosenCol -and $row.ContainsKey($chosenCol)) {
+            $val = [string]$row[$chosenCol]
+        } elseif ($row.Values.Count -gt 0) {
+            $val = [string]($row.Values | Select-Object -First 1)
+        }
+        $val = $val.Trim()
+        # Strip trailing .pdf if present in application number column
+        if ($val.EndsWith(".pdf", [System.StringComparison]::OrdinalIgnoreCase)) {
+            $val = $val.Substring(0, $val.Length - 4).Trim()
+        }
+        if ($val -and -not $seenSet.Contains($val)) {
+            $seenSet.Add($val)
+            $appNumbers.Add($val)
+        }
+    }
+
+    $result.Headers = $discoveredHeaders
+    $result.AppNumbers = $appNumbers
+    $result.SelectedColumn = $chosenCol
+    return $result
+}
+
+# =====================================================================
+# CORE APPLICATION PDF EXTRACTION ENGINE
+# =====================================================================
+function Invoke-ApplicationPdfExtraction($isAuditOnly = $false) {
+    $excelPath = $txtAppPdfExcel.Text.Trim()
+    $sourceDir = $txtAppPdfSource.Text.Trim()
+    $destDir   = $txtAppPdfDest.Text.Trim()
+    $chosenCol = if ($cmbAppPdfColumn.SelectedItem) { [string]$cmbAppPdfColumn.SelectedItem } else { "" }
+
+    if (-not (Test-Path -LiteralPath $excelPath)) {
+        [System.Windows.MessageBox]::Show("Please select a valid Excel or CSV file containing Application Numbers.", "Excel File Not Found", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Warning)
+        return
+    }
+    if (-not (Test-Path -LiteralPath $sourceDir)) {
+        [System.Windows.MessageBox]::Show("Source folder not found or unreachable:`n$sourceDir`n`nPlease verify network connection or select a valid folder.", "Source Folder Unreachable", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Warning)
+        return
+    }
+    if (-not $isAuditOnly) {
+        if (-not (Test-Path -LiteralPath $destDir)) {
+            try { [System.IO.Directory]::CreateDirectory($destDir) | Out-Null }
+            catch {
+                [System.Windows.MessageBox]::Show("Failed to create destination folder:`n$($_.Exception.Message)", "Destination Error", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Error)
+                return
+            }
+        }
+    }
+
+    $script:cancelAppPdfExtract = $false
+    $btnAppPdfStart.IsEnabled = $false
+    $btnAppPdfScanAudit.IsEnabled = $false
+    $btnAppPdfStop.Visibility = "Visible"
+    $btnAppPdfOpenReport.IsEnabled = $false
+
+    $lblExtractStatus.Text = "Status: Reading Excel Application Numbers..."
+    $extractProgressBar.Value = 5
+    Append-ExtractLog "======================================================="
+    Append-ExtractLog if ($isAuditOnly) { "STARTING APPLICATION PDF FAST AUDIT" } else { "STARTING APPLICATION PDF EXTRACTION ENGINE" }
+    Append-ExtractLog "Excel File           : $excelPath"
+    Append-ExtractLog "Column Name          : $(if ($chosenCol) {$chosenCol} else {'Auto/First'})"
+    Append-ExtractLog "Source PDF Folder    : $sourceDir"
+    Append-ExtractLog "Destination Folder   : $destDir"
+    Append-ExtractLog "======================================================="
+    [System.Windows.Forms.Application]::DoEvents()
+
+    $parsed = Get-ApplicationNumbersFromSpreadsheet -excelPath $excelPath -targetCol $chosenCol
+    $appNumbers = $parsed.AppNumbers
+    $lblAppPdfTotalAppNo.Text = $appNumbers.Count.ToString()
+    Append-ExtractLog "Loaded $($appNumbers.Count) unique Application Numbers from Excel (Column: '$($parsed.SelectedColumn)')."
+
+    if ($appNumbers.Count -eq 0) {
+        [System.Windows.MessageBox]::Show("No application numbers found in the selected Excel file/column.", "No Numbers Found", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Warning)
+        $btnAppPdfStart.IsEnabled = $true
+        $btnAppPdfScanAudit.IsEnabled = $true
+        $btnAppPdfStop.Visibility = "Collapsed"
+        return
+    }
+
+    $lblExtractStatus.Text = "Status: Scanning source directory for PDF files..."
+    $extractProgressBar.Value = 15
+    [System.Windows.Forms.Application]::DoEvents()
+
+    $searchOption = if ($chkAppPdfRecursive.IsChecked) { [System.IO.SearchOption]::AllDirectories } else { [System.IO.SearchOption]::TopDirectoryOnly }
+    
+    $sw = [System.Diagnostics.Stopwatch]::StartNew()
+    $pdfList = [System.Collections.Generic.List[PSCustomObject]]::new()
+    $exactMap = [System.Collections.Generic.Dictionary[string, System.Collections.Generic.List[string]]]::new([System.StringComparer]::OrdinalIgnoreCase)
+
+    try {
+        $enumerator = [System.IO.Directory]::EnumerateFiles($sourceDir, "*.pdf", $searchOption)
+        foreach ($filePath in $enumerator) {
+            $baseName = [System.IO.Path]::GetFileNameWithoutExtension($filePath)
+            $fName = [System.IO.Path]::GetFileName($filePath)
+            $parentDirName = [System.IO.Path]::GetFileName([System.IO.Path]::GetDirectoryName($filePath))
+            
+            $item = [PSCustomObject]@{
+                FullPath = $filePath
+                FileName = $fName
+                BaseName = $baseName
+                ParentDir = $parentDirName
+            }
+            $pdfList.Add($item)
+
+            if (-not $exactMap.ContainsKey($baseName)) {
+                $exactMap[$baseName] = [System.Collections.Generic.List[string]]::new()
+            }
+            $exactMap[$baseName].Add($filePath)
+        }
+    } catch {
+        Append-ExtractLog "[WARNING] Enumeration issue in source: $($_.Exception.Message)"
+    }
+    $sw.Stop()
+
+    Append-ExtractLog "Discovered $($pdfList.Count) total PDF files in source folder in $($sw.ElapsedMilliseconds) ms."
+
+    if ($pdfList.Count -eq 0) {
+        [System.Windows.MessageBox]::Show("Zero PDF files found in source folder:`n$sourceDir", "No PDFs Found", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Warning)
+        $btnAppPdfStart.IsEnabled = $true
+        $btnAppPdfScanAudit.IsEnabled = $true
+        $btnAppPdfStop.Visibility = "Collapsed"
+        return
+    }
+
+    $isMatchExact = ($rbAppPdfMatchExact.IsChecked -eq $true)
+    $isMatchSubfolder = ($rbAppPdfMatchSubfolder.IsChecked -eq $true)
+    $isNormalize = ($chkAppPdfNumericNormalize.IsChecked -eq $true)
+    $isSubfolderOrg = ($chkAppPdfSubfolderOrg.IsChecked -eq $true)
+    $isOverwrite = ($chkAppPdfOverwrite.IsChecked -eq $true)
+
+    $foundAppCount = 0
+    $missingAppCount = 0
+    $copiedFilesCount = 0
+    $totalBytesCopied = 0
+    $auditRecords = [System.Collections.Generic.List[PSCustomObject]]::new()
+
+    $totalApps = $appNumbers.Count
+    $lblExtractStatus.Text = "Status: Matching Application Numbers against PDFs..."
+    $extractProgressBar.Value = 20
+    [System.Windows.Forms.Application]::DoEvents()
+
+    for ($i = 0; $i -lt $totalApps; $i++) {
+        if ($script:cancelAppPdfExtract) {
+            Append-ExtractLog "[STOPPED] Extraction process cancelled by user."
+            break
+        }
+
+        $appNo = $appNumbers[$i]
+        $matchedPaths = [System.Collections.Generic.List[string]]::new()
+
+        $appVariants = [System.Collections.Generic.List[string]]::new()
+        $appVariants.Add($appNo)
+        if ($isNormalize -and $appNo -match '^\d+$') {
+            $numVal = [int64]$appNo
+            $numStr = $numVal.ToString()
+            if (-not $appVariants.Contains($numStr)) { $appVariants.Add($numStr) }
+        }
+
+        if ($isMatchExact) {
+            foreach ($v in $appVariants) {
+                if ($exactMap.ContainsKey($v)) {
+                    foreach ($p in $exactMap[$v]) {
+                        if (-not $matchedPaths.Contains($p)) { $matchedPaths.Add($p) }
+                    }
+                }
+            }
+        } elseif ($isMatchSubfolder) {
+            foreach ($pItem in $pdfList) {
+                $matched = $false
+                foreach ($v in $appVariants) {
+                    if ($pItem.FileName.IndexOf($v, [System.StringComparison]::OrdinalIgnoreCase) -ge 0 -or
+                        $pItem.ParentDir.IndexOf($v, [System.StringComparison]::OrdinalIgnoreCase) -ge 0) {
+                        $matched = $true
+                        break
+                    }
+                }
+                if ($matched) { $matchedPaths.Add($pItem.FullPath) }
+            }
+        } else {
+            # Contains Match (Default)
+            foreach ($pItem in $pdfList) {
+                $matched = $false
+                foreach ($v in $appVariants) {
+                    if ($pItem.FileName.IndexOf($v, [System.StringComparison]::OrdinalIgnoreCase) -ge 0) {
+                        $matched = $true
+                        break
+                    }
+                }
+                if ($matched) { $matchedPaths.Add($pItem.FullPath) }
+            }
+        }
+
+        if ($matchedPaths.Count -gt 0) {
+            $foundAppCount++
+            $destFileNames = [System.Collections.Generic.List[string]]::new()
+            
+            foreach ($srcPath in $matchedPaths) {
+                $fName = [System.IO.Path]::GetFileName($srcPath)
+                $destFileNames.Add($fName)
+                
+                if (-not $isAuditOnly) {
+                    $targetFolder = $destDir
+                    if ($isSubfolderOrg) {
+                        $targetFolder = Join-Path $destDir $appNo
+                        if (-not (Test-Path -LiteralPath $targetFolder)) {
+                            [System.IO.Directory]::CreateDirectory($targetFolder) | Out-Null
+                        }
+                    }
+                    $destFilePath = Join-Path $targetFolder $fName
+                    try {
+                        [System.IO.File]::Copy($srcPath, $destFilePath, $isOverwrite)
+                        $copiedFilesCount++
+                        $fLen = (New-Object System.IO.FileInfo($srcPath)).Length
+                        $totalBytesCopied += $fLen
+                    } catch {
+                        Append-ExtractLog "[ERROR] Copying '$fName': $($_.Exception.Message)"
+                    }
+                } else {
+                    $copiedFilesCount++
+                }
+            }
+
+            $auditRecords.Add([PSCustomObject]@{
+                SrNo = ($i + 1)
+                ApplicationNo = $appNo
+                Status = "FOUND"
+                MatchedPDFCount = $matchedPaths.Count
+                MatchedFiles = ($destFileNames -join "; ")
+                SourcePaths = ($matchedPaths -join "; ")
+            })
+
+            if ($matchedPaths.Count -eq 1) {
+                Append-ExtractLog "[FOUND] AppNo: $appNo -> $($destFileNames[0])"
+            } else {
+                Append-ExtractLog "[FOUND] AppNo: $appNo -> $($matchedPaths.Count) PDFs ($($destFileNames -join ', '))"
+            }
+        } else {
+            $missingAppCount++
+            $auditRecords.Add([PSCustomObject]@{
+                SrNo = ($i + 1)
+                ApplicationNo = $appNo
+                Status = "MISSING"
+                MatchedPDFCount = 0
+                MatchedFiles = ""
+                SourcePaths = ""
+            })
+            Append-ExtractLog "[MISSING] AppNo: $appNo (No matching PDF)"
+        }
+
+        $lblAppPdfFoundAppNo.Text = $foundAppCount.ToString()
+        $lblAppPdfMissingAppNo.Text = $missingAppCount.ToString()
+        $lblAppPdfCopiedFiles.Text = $copiedFilesCount.ToString()
+
+        if (($i + 1) % 10 -eq 0 -or ($i + 1) -eq $totalApps) {
+            $pct = [int](20 + (($i + 1) / $totalApps * 80))
+            $extractProgressBar.Value = [Math]::Min(100, $pct)
+            $actionLabel = if ($isAuditOnly) { "Audited" } else { "Extracted" }
+            $lblExtractStatus.Text = "Status: $actionLabel $($i + 1) / $totalApps applications ($foundAppCount found, $missingAppCount missing)..."
+            [System.Windows.Forms.Application]::DoEvents()
+        }
+    }
+
+    $extractProgressBar.Value = 100
+    $mbCopied = [Math]::Round($totalBytesCopied / 1MB, 2)
+    $reportFileName = "Application_PDF_Audit_Report_" + (Get-Date -Format "yyyyMMdd_HHmmss") + ".csv"
+    $reportFilePath = Join-Path $destDir $reportFileName
+
+    try {
+        $csvContent = [System.Collections.Generic.List[string]]::new()
+        $csvContent.Add("SrNo,ApplicationNo,Status,MatchedPDFCount,MatchedFiles,SourcePaths")
+        foreach ($rec in $auditRecords) {
+            $line = "$($rec.SrNo),`"$($rec.ApplicationNo)`",`"$($rec.Status)`",$($rec.MatchedPDFCount),`"$($rec.MatchedFiles -replace '\"', '\"\"')`",`"$($rec.SourcePaths -replace '\"', '\"\"')`""
+            $csvContent.Add($line)
+        }
+        [System.IO.File]::WriteAllLines($reportFilePath, $csvContent, [System.Text.Encoding]::UTF8)
+        Append-ExtractLog "Saved CSV Audit Report: $reportFilePath"
+        $btnAppPdfOpenReport.Tag = $reportFilePath
+        $btnAppPdfOpenReport.IsEnabled = $true
+    } catch {
+        Append-ExtractLog "[WARNING] Could not save CSV audit report: $($_.Exception.Message)"
+    }
+
+    Append-ExtractLog "======================================================="
+    if ($isAuditOnly) {
+        Append-ExtractLog "APPLICATION PDF AUDIT COMPLETE!"
+        Append-ExtractLog "Total Applications   : $totalApps"
+        Append-ExtractLog "Applications Found   : $foundAppCount"
+        Append-ExtractLog "Applications Missing : $missingAppCount"
+        Append-ExtractLog "Matching PDF Files   : $copiedFilesCount"
+        Append-ExtractLog "======================================================="
+        $lblExtractStatus.Text = "Status: Audit Complete. $foundAppCount of $totalApps found ($copiedFilesCount PDFs)."
+        [System.Windows.MessageBox]::Show("Audit Verification Complete!`n`nTotal Applications: $totalApps`nFound with PDFs: $foundAppCount`nMissing: $missingAppCount`nMatched PDF Files: $copiedFilesCount`n`nAudit Report: $reportFilePath", "Audit Complete", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Information)
+    } else {
+        Append-ExtractLog "APPLICATION PDF EXTRACTION COMPLETED!"
+        Append-ExtractLog "Total Applications   : $totalApps"
+        Append-ExtractLog "Applications Found   : $foundAppCount"
+        Append-ExtractLog "Applications Missing : $missingAppCount"
+        Append-ExtractLog "PDF Files Extracted  : $copiedFilesCount ($mbCopied MB)"
+        Append-ExtractLog "Output Destination   : $destDir"
+        Append-ExtractLog "======================================================="
+        $lblExtractStatus.Text = "Status: Successfully extracted $copiedFilesCount PDFs ($mbCopied MB) to Desktop!"
+        try { Start-Process "explorer.exe" -ArgumentList "`"$destDir`"" } catch {}
+        [System.Windows.MessageBox]::Show("PDF Extraction Complete!`n`nApplications Processed: $totalApps`nApplications Found: $foundAppCount`nApplications Missing: $missingAppCount`nTotal PDFs Copied: $copiedFilesCount ($mbCopied MB)`n`nSaved to: $destDir", "Extraction Successful", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Information)
+    }
+
+    $btnAppPdfOpenFolder.Tag = $destDir
+    $btnAppPdfStart.IsEnabled = $true
+    $btnAppPdfScanAudit.IsEnabled = $true
+    $btnAppPdfStop.Visibility = "Collapsed"
+}
+
+# -------------------------------------------------------------
+# Wire Mode 3 Event Handlers
+# -------------------------------------------------------------
+if ($btnAppPdfBrowseExcel) {
+    $btnAppPdfBrowseExcel.Add_Click({
+        $dlg = New-Object System.Windows.Forms.OpenFileDialog
+        $dlg.Title = "Select Excel / CSV File with Application Numbers"
+        $dlg.Filter = "Spreadsheets (*.xlsx;*.xls;*.csv;*.tsv;*.txt)|*.xlsx;*.xls;*.csv;*.tsv;*.txt|All Files (*.*)|*.*"
+        if ($dlg.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
+            $txtAppPdfExcel.Text = $dlg.FileName
+            $parsed = Get-ApplicationNumbersFromSpreadsheet -excelPath $dlg.FileName
+            $cmbAppPdfColumn.Items.Clear()
+            foreach ($h in $parsed.Headers) { [void]$cmbAppPdfColumn.Items.Add($h) }
+            if ($parsed.SelectedColumn) { $cmbAppPdfColumn.SelectedItem = $parsed.SelectedColumn }
+            elseif ($cmbAppPdfColumn.Items.Count -gt 0) { $cmbAppPdfColumn.SelectedIndex = 0 }
+            $lblAppPdfExcelCount.Text = "Loaded: $($parsed.AppNumbers.Count) Application Numbers"
+            $lblAppPdfTotalAppNo.Text = $parsed.AppNumbers.Count.ToString()
+            Append-ExtractLog "Loaded Excel: $($dlg.FileName)"
+            Append-ExtractLog "Detected $($parsed.Headers.Count) column(s). Auto-selected column '$($parsed.SelectedColumn)' ($($parsed.AppNumbers.Count) application numbers)."
+        }
+    })
+}
+
+if ($cmbAppPdfColumn) {
+    $cmbAppPdfColumn.Add_SelectionChanged({
+        if ($txtAppPdfExcel.Text -and (Test-Path -LiteralPath $txtAppPdfExcel.Text.Trim())) {
+            $colName = [string]$cmbAppPdfColumn.SelectedItem
+            if ($colName) {
+                $parsed = Get-ApplicationNumbersFromSpreadsheet -excelPath $txtAppPdfExcel.Text.Trim() -targetCol $colName
+                $lblAppPdfExcelCount.Text = "Loaded: $($parsed.AppNumbers.Count) Application Numbers"
+                $lblAppPdfTotalAppNo.Text = $parsed.AppNumbers.Count.ToString()
+            }
+        }
+    })
+}
+
+if ($btnAppPdfReloadExcel) {
+    $btnAppPdfReloadExcel.Add_Click({
+        if ($txtAppPdfExcel.Text -and (Test-Path -LiteralPath $txtAppPdfExcel.Text.Trim())) {
+            $parsed = Get-ApplicationNumbersFromSpreadsheet -excelPath $txtAppPdfExcel.Text.Trim()
+            $cmbAppPdfColumn.Items.Clear()
+            foreach ($h in $parsed.Headers) { [void]$cmbAppPdfColumn.Items.Add($h) }
+            if ($parsed.SelectedColumn) { $cmbAppPdfColumn.SelectedItem = $parsed.SelectedColumn }
+            elseif ($cmbAppPdfColumn.Items.Count -gt 0) { $cmbAppPdfColumn.SelectedIndex = 0 }
+            $lblAppPdfExcelCount.Text = "Loaded: $($parsed.AppNumbers.Count) Application Numbers"
+            $lblAppPdfTotalAppNo.Text = $parsed.AppNumbers.Count.ToString()
+            Append-ExtractLog "Reloaded columns from $($txtAppPdfExcel.Text.Trim()). Detected $($parsed.Headers.Count) columns."
+        }
+    })
+}
+
+if ($btnAppPdfPreset11) {
+    $btnAppPdfPreset11.Add_Click({
+        $txtAppPdfSource.Text = "\\192.168.1.11\d\Images\NTIS_4030"
+        Append-ExtractLog "Loaded Server 11 source preset: \\192.168.1.11\d\Images\NTIS_4030"
+    })
+}
+
+if ($btnAppPdfPreset19) {
+    $btnAppPdfPreset19.Add_Click({
+        $txtAppPdfSource.Text = "\\192.168.1.19\Files"
+        Append-ExtractLog "Loaded Server 19 source preset: \\192.168.1.19\Files"
+    })
+}
+
+if ($btnAppPdfPresetDesktop) {
+    $btnAppPdfPresetDesktop.Add_Click({
+        $txtAppPdfSource.Text = [Environment]::GetFolderPath('Desktop')
+        Append-ExtractLog "Loaded Desktop source preset."
+    })
+}
+
+if ($btnAppPdfBrowseSource) {
+    $btnAppPdfBrowseSource.Add_Click({
+        $dlg = New-Object System.Windows.Forms.FolderBrowserDialog
+        $dlg.Description = "Select Source Folder Containing PDF Files"
+        $dlg.SelectedPath = $txtAppPdfSource.Text
+        if ($dlg.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
+            $txtAppPdfSource.Text = $dlg.SelectedPath
+        }
+    })
+}
+
+if ($btnAppPdfBrowseDest) {
+    $btnAppPdfBrowseDest.Add_Click({
+        $dlg = New-Object System.Windows.Forms.FolderBrowserDialog
+        $dlg.Description = "Select Destination Output Folder on Desktop"
+        $dlg.SelectedPath = $txtAppPdfDest.Text
+        if ($dlg.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
+            $txtAppPdfDest.Text = $dlg.SelectedPath
+        }
+    })
+}
+
+if ($btnAppPdfResetDest) {
+    $btnAppPdfResetDest.Add_Click({
+        $d = [System.IO.Path]::Combine([Environment]::GetFolderPath('Desktop'), "Extracted_Application_PDFs_" + (Get-Date -Format 'yyyyMMdd_HHmmss'))
+        $txtAppPdfDest.Text = $d
+    })
+}
+
+if ($btnAppPdfOpenFolder) {
+    $btnAppPdfOpenFolder.Add_Click({
+        $p = if ($btnAppPdfOpenFolder.Tag) { [string]$btnAppPdfOpenFolder.Tag } else { $txtAppPdfDest.Text }
+        if (Test-Path -LiteralPath $p) {
+            Start-Process "explorer.exe" -ArgumentList "`"$p`""
+        } else {
+            [System.Windows.MessageBox]::Show("Folder does not exist yet: $p", "Notice", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Information)
+        }
+    })
+}
+
+if ($btnAppPdfOpenReport) {
+    $btnAppPdfOpenReport.Add_Click({
+        $p = [string]$btnAppPdfOpenReport.Tag
+        if ($p -and (Test-Path -LiteralPath $p)) {
+            Start-Process $p
+        }
+    })
+}
+
+if ($btnAppPdfStart) {
+    $btnAppPdfStart.Add_Click({
+        Invoke-ApplicationPdfExtraction -isAuditOnly ($chkAppPdfDryRun.IsChecked -eq $true)
+    })
+}
+
+if ($btnAppPdfScanAudit) {
+    $btnAppPdfScanAudit.Add_Click({
+        Invoke-ApplicationPdfExtraction -isAuditOnly $true
+    })
+}
+
+if ($btnAppPdfStop) {
+    $btnAppPdfStop.Add_Click({
+        $script:cancelAppPdfExtract = $true
+        $lblExtractStatus.Text = "Status: Stopping extraction..."
     })
 }
 
