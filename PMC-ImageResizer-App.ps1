@@ -1,4 +1,4 @@
-# ================================================================================
+SUCCESS: Block 3: Animated execAction with stopwatch SUCCESS: Block 2: pbAgentExtracting in cmdGrid SUCCESS: Block 1: btnAgentTheme in Header # ================================================================================
 # NEXUS PHOTO & DOCUMENT OPTIMIZER (ENTERPRISE EDITION)
 # Startup Initialization: SmartScreen Unblock, Admin Privilege Detection & Config
 # ================================================================================
@@ -10373,6 +10373,19 @@ function Show-JarvisAssistantWindow {
         $btnReindex.Padding = New-Object System.Windows.Thickness(10,5,10,5)
         $btnReindex.Cursor = [System.Windows.Input.Cursors]::Hand
 
+        $btnAgentTheme = New-Object System.Windows.Controls.Button
+        $btnAgentTheme.Content = if ($global:isDarkMode) { "WHITE MODE" } else { "DARK MODE" }
+        $btnAgentTheme.Background = if ($global:isDarkMode) { [System.Windows.Media.BrushConverter]::new().ConvertFromString("#1E293B") } else { [System.Windows.Media.BrushConverter]::new().ConvertFromString("#FFFFFF") }
+        $btnAgentTheme.Foreground = if ($global:isDarkMode) { [System.Windows.Media.BrushConverter]::new().ConvertFromString("#F8FAFC") } else { [System.Windows.Media.BrushConverter]::new().ConvertFromString("#0F172A") }
+        $btnAgentTheme.BorderBrush = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#0284C7")
+        $btnAgentTheme.BorderThickness = New-Object System.Windows.Thickness(1)
+        $btnAgentTheme.FontWeight = [System.Windows.FontWeights]::Bold
+        $btnAgentTheme.Padding = New-Object System.Windows.Thickness(10,5,10,5)
+        $btnAgentTheme.Margin = New-Object System.Windows.Thickness(0,0,8,0)
+        $btnAgentTheme.Cursor = [System.Windows.Input.Cursors]::Hand
+        $btnAgentTheme.ToolTip = "Toggle White Mode (Clean Executive Light) / Dark Mode for AI Agent Screen"
+
+        $hRightStack.Children.Add($btnAgentTheme) | Out-Null
         $hRightStack.Children.Add($btnGeminiKey) | Out-Null
         $hRightStack.Children.Add($btnReindex) | Out-Null
         [System.Windows.Controls.Grid]::SetColumn($hRightStack, 1)
@@ -10385,6 +10398,10 @@ function Show-JarvisAssistantWindow {
         $cmdGrid = New-Object System.Windows.Controls.Grid
         $cmdGrid.Margin = New-Object System.Windows.Thickness(0,0,0,6)
         [System.Windows.Controls.Grid]::SetRow($cmdGrid, 1)
+
+        $cr0 = New-Object System.Windows.Controls.RowDefinition; $cr0.Height = [System.Windows.GridLength]::Auto
+        $cr1 = New-Object System.Windows.Controls.RowDefinition; $cr1.Height = [System.Windows.GridLength]::Auto
+        $cmdGrid.RowDefinitions.Add($cr0); $cmdGrid.RowDefinitions.Add($cr1)
 
         $cc0 = New-Object System.Windows.Controls.ColumnDefinition; $cc0.Width = New-Object System.Windows.GridLength(1, [System.Windows.GridUnitType]::Star)
         $cc1 = New-Object System.Windows.Controls.ColumnDefinition; $cc1.Width = [System.Windows.GridLength]::Auto
@@ -10400,6 +10417,7 @@ function Show-JarvisAssistantWindow {
         $txtPrompt.FontSize = 13.5
         $txtPrompt.FontFamily = New-Object System.Windows.Media.FontFamily("Consolas, Nirmala UI, Segoe UI")
         $txtPrompt.Text = "PropertyMast madhun top 50 malak ani mobile dakhva"
+        [System.Windows.Controls.Grid]::SetRow($txtPrompt, 0)
         [System.Windows.Controls.Grid]::SetColumn($txtPrompt, 0)
 
         $btnRun = New-Object System.Windows.Controls.Button
@@ -10411,10 +10429,23 @@ function Show-JarvisAssistantWindow {
         $btnRun.Margin = New-Object System.Windows.Thickness(8,0,0,0)
         $btnRun.BorderThickness = New-Object System.Windows.Thickness(0)
         $btnRun.Cursor = [System.Windows.Input.Cursors]::Hand
+        [System.Windows.Controls.Grid]::SetRow($btnRun, 0)
         [System.Windows.Controls.Grid]::SetColumn($btnRun, 1)
+
+        # Indeterminate Animated Data Extraction Bar
+        $pbAgentExtracting = New-Object System.Windows.Controls.ProgressBar
+        $pbAgentExtracting.Height = 4
+        $pbAgentExtracting.IsIndeterminate = $true
+        $pbAgentExtracting.Visibility = [System.Windows.Visibility]::Collapsed
+        $pbAgentExtracting.Margin = New-Object System.Windows.Thickness(0,4,0,2)
+        $pbAgentExtracting.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#0B132B")
+        $pbAgentExtracting.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#00F0FF")
+        [System.Windows.Controls.Grid]::SetRow($pbAgentExtracting, 1)
+        [System.Windows.Controls.Grid]::SetColumnSpan($pbAgentExtracting, 2)
 
         $cmdGrid.Children.Add($txtPrompt) | Out-Null
         $cmdGrid.Children.Add($btnRun) | Out-Null
+        $cmdGrid.Children.Add($pbAgentExtracting) | Out-Null
         $rootGrid.Children.Add($cmdGrid) | Out-Null
 
         # 3. Quick Action Chips Bar (Container created here, populated below after execAction is defined)
@@ -10659,7 +10690,7 @@ function Show-JarvisAssistantWindow {
         $btmGrid.Children.Add($bRightStack) | Out-Null
         $rootGrid.Children.Add($btmGrid) | Out-Null
 
-        # Core Execution Engine Action
+        # Core Execution Engine Action with Animated Extraction Feedback & Stopwatch Timing
         $script:JarvisActiveDataTable = $null
         $execAction = {
             $pText = $txtPrompt.Text
@@ -10668,63 +10699,77 @@ function Show-JarvisAssistantWindow {
             $isLiveSql = ($script:SqlConnected -and $script:SqlConnection -and $script:SqlConnection.State -eq [System.Data.ConnectionState]::Open)
             $dbTarget = if ($isLiveSql) { $script:SqlConnection } else { $null }
 
-            $lblDataStatus.Text = if ($isLiveSql) { "Executing & Autonomous Testing against live database..." }
-                                  else { "Generating T-SQL & Running Autonomous Simulation against Municipal Knowledge Base..." }
-            $lblDataStatus.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#FBBF24")
+            # Engage Animated Extraction Bar & Loading State
+            $pbAgentExtracting.Visibility = [System.Windows.Visibility]::Visible
+            $btnRun.Content = "EXTRACTING DATA..."
+            $btnRun.IsEnabled = $false
+            $lblDataStatus.Text = if ($isLiveSql) { "[NEURAL AGENT ENGAGED] Extracting records, executing autonomous T-SQL & analyzing schema..." }
+                                  else { "[NEURAL SIMULATION] Generating T-SQL & extracting verified sample rows from knowledge base..." }
+            $lblDataStatus.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#F59E0B")
+            try { Set-MascotState "processing" "JARVIS: Extracting Data..." } catch {}
+            [System.Windows.Forms.Application]::DoEvents()
 
-            $parsed = Convert-JarvisNLToSql $pText
+            $sw = [System.Diagnostics.Stopwatch]::StartNew()
+            try {
+                $parsed = Convert-JarvisNLToSql $pText
 
-            if ($parsed.IsConversational) {
+                if ($parsed.IsConversational) {
+                    $txtGeneratedSql.Text = $parsed.Sql
+                    $txtLogs.Text = $parsed.ConversationalText
+                    $txtLogs.ScrollToEnd()
+                    if ($parsed.ConversationalDataTable) {
+                        $script:JarvisActiveDataTable = $parsed.ConversationalDataTable
+                        $dgResults.ItemsSource = $parsed.ConversationalDataTable.DefaultView
+                        $tabCtrl.SelectedItem = $tabData
+                        $lblDataStatus.Text = "ARCHITECTURAL SCHEMA: Extracted $($parsed.ConversationalDataTable.Rows.Count) entities in $($sw.ElapsedMilliseconds)ms."
+                        $lblDataStatus.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#38BDF8")
+                    } else {
+                        $tabCtrl.SelectedItem = $tabTest
+                        $lblDataStatus.Text = "AI ARCHITECTURAL KNOWLEDGE: Conversational response generated ($($sw.ElapsedMilliseconds)ms). See 'AUTONOMOUS TESTER' tab."
+                        $lblDataStatus.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#38BDF8")
+                    }
+                    return
+                }
                 $txtGeneratedSql.Text = $parsed.Sql
-                $txtLogs.Text = $parsed.ConversationalText
+
+                # Run Autonomous Tester & Healer
+                $testRes = Invoke-JarvisAutonomousSqlTester $dbTarget $parsed.Sql $parsed.Table
+                $txtGeneratedSql.Text = $testRes.FinalSql
+
+                # Render Log
+                $logBuilder = [System.Text.StringBuilder]::new()
+                foreach ($l in $parsed.Logs) { [void]$logBuilder.AppendLine($l) }
+                [void]$logBuilder.AppendLine("")
+                foreach ($tl in $testRes.TestLogs) { [void]$logBuilder.AppendLine($tl) }
+                $txtLogs.Text = $logBuilder.ToString()
                 $txtLogs.ScrollToEnd()
-                if ($parsed.ConversationalDataTable) {
-                    $script:JarvisActiveDataTable = $parsed.ConversationalDataTable
-                    $dgResults.ItemsSource = $parsed.ConversationalDataTable.DefaultView
+
+                # Render Data Grid
+                if ($testRes.Success -and $testRes.DataTable) {
+                    $script:JarvisActiveDataTable = $testRes.DataTable
+                    $dgResults.ItemsSource = $testRes.DataTable.DefaultView
+                    if ($testRes.IsSimulation) {
+                        $lblDataStatus.Text = "SIMULATION SUCCESS: Generated valid T-SQL. Loaded $($testRes.DataTable.Rows.Count) verified sample rows across $($testRes.DataTable.Columns.Count) columns in $($sw.ElapsedMilliseconds)ms | Autonomous Quality Score: $($testRes.AuditScore)/100"
+                        $lblDataStatus.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#38BDF8")
+                    } else {
+                        $lblDataStatus.Text = "LIVE SUCCESS: Extracted $($testRes.DataTable.Rows.Count) rows in $($sw.ElapsedMilliseconds)ms across $($testRes.DataTable.Columns.Count) columns | Autonomous Quality Score: $($testRes.AuditScore)/100"
+                        $lblDataStatus.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#10B981")
+                    }
                     $tabCtrl.SelectedItem = $tabData
-                    $lblDataStatus.Text = "ARCHITECTURAL SCHEMA: Loaded $($parsed.ConversationalDataTable.Rows.Count) entities directly into Data Table."
-                    $lblDataStatus.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#38BDF8")
+                    try { Set-MascotState "success" "JARVIS: Extracted in $($sw.ElapsedMilliseconds)ms!" } catch { }
                 } else {
+                    $script:JarvisActiveDataTable = $null
+                    $dgResults.ItemsSource = $null
+                    $lblDataStatus.Text = "TEST NOTICE: Please inspect tester diagnostic logs in 'AUTONOMOUS TESTER' tab ($($sw.ElapsedMilliseconds)ms)."
+                    $lblDataStatus.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#EF4444")
                     $tabCtrl.SelectedItem = $tabTest
-                    $lblDataStatus.Text = "AI ARCHITECTURAL KNOWLEDGE: Conversational response generated. See 'AUTONOMOUS TESTER' tab."
-                    $lblDataStatus.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#38BDF8")
+                    try { Set-MascotState "error" "JARVIS: Check Log" } catch { }
                 }
-                return
-            }
-            $txtGeneratedSql.Text = $parsed.Sql
-
-            # Run Autonomous Tester & Healer
-            $testRes = Invoke-JarvisAutonomousSqlTester $dbTarget $parsed.Sql $parsed.Table
-            $txtGeneratedSql.Text = $testRes.FinalSql
-
-            # Render Log
-            $logBuilder = [System.Text.StringBuilder]::new()
-            foreach ($l in $parsed.Logs) { [void]$logBuilder.AppendLine($l) }
-            [void]$logBuilder.AppendLine("")
-            foreach ($tl in $testRes.TestLogs) { [void]$logBuilder.AppendLine($tl) }
-            $txtLogs.Text = $logBuilder.ToString()
-            $txtLogs.ScrollToEnd()
-
-            # Render Data Grid
-            if ($testRes.Success -and $testRes.DataTable) {
-                $script:JarvisActiveDataTable = $testRes.DataTable
-                $dgResults.ItemsSource = $testRes.DataTable.DefaultView
-                if ($testRes.IsSimulation) {
-                    $lblDataStatus.Text = "SIMULATION SUCCESS: Generated valid T-SQL. Loaded $($testRes.DataTable.Rows.Count) verified sample rows across $($testRes.DataTable.Columns.Count) columns | Autonomous Quality Score: $($testRes.AuditScore)/100 [Connect live SQL to query database]"
-                    $lblDataStatus.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#38BDF8")
-                } else {
-                    $lblDataStatus.Text = "LIVE SUCCESS: Loaded $($testRes.DataTable.Rows.Count) rows in $($testRes.DataTable.Columns.Count) columns | Autonomous Quality Score: $($testRes.AuditScore)/100"
-                    $lblDataStatus.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#4ADE80")
-                }
-                $tabCtrl.SelectedItem = $tabData
-                try { Set-MascotState "success" "JARVIS: Ready!" } catch { }
-            } else {
-                $script:JarvisActiveDataTable = $null
-                $dgResults.ItemsSource = $null
-                $lblDataStatus.Text = "TEST NOTICE: Please inspect tester diagnostic logs in 'AUTONOMOUS TESTER' tab."
-                $lblDataStatus.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#EF4444")
-                $tabCtrl.SelectedItem = $tabTest
-                try { Set-MascotState "error" "JARVIS: Check Log" } catch { }
+            } finally {
+                $sw.Stop()
+                $pbAgentExtracting.Visibility = [System.Windows.Visibility]::Collapsed
+                $btnRun.Content = "EXECUTE & AUTO-TEST (ENTER)"
+                $btnRun.IsEnabled = $true
             }
         }
 
@@ -10751,6 +10796,9 @@ function Show-JarvisAssistantWindow {
             @{ Label = "[ Ward 3 Trade Licenses ]"; Prompt = "Ward 3 madhil trade licenses dakhva" }
         )
 
+        $script:isAgentWhiteMode = (-not $global:isDarkMode)
+        $agentChipsList = [System.Collections.Generic.List[System.Windows.Controls.Button]]::new()
+
         foreach ($chip in $chipConfigs) {
             $btnChip = New-Object System.Windows.Controls.Button
             $btnChip.Content = $chip.Label
@@ -10768,7 +10816,144 @@ function Show-JarvisAssistantWindow {
                 if ($execAction) { & $execAction }
             }.GetNewClosure())
             $chipsPanel.Children.Add($btnChip) | Out-Null
+            $agentChipsList.Add($btnChip)
         }
+
+        # --- Dynamic White Mode / Dark Mode Theme Engine for Agent Screen ---
+        $updateAgentTheme = {
+            $isWhite = $script:isAgentWhiteMode
+            $bc = [System.Windows.Media.BrushConverter]::new()
+            if ($isWhite) {
+                $win.Background = $bc.ConvertFromString("#F8FAFC")
+                $win.Foreground = $bc.ConvertFromString("#0F172A")
+                $hdrBorder.Background = $bc.ConvertFromString("#FFFFFF")
+                $hdrBorder.BorderBrush = $bc.ConvertFromString("#CBD5E1")
+                $hdrTitle.Foreground = $bc.ConvertFromString("#0F172A")
+                $hdrSub.Foreground = $bc.ConvertFromString("#475569")
+                $btnAgentTheme.Content = "DARK MODE"
+                $btnAgentTheme.Background = $bc.ConvertFromString("#0F172A")
+                $btnAgentTheme.Foreground = $bc.ConvertFromString("#F8FAFC")
+                $btnAgentTheme.BorderBrush = $bc.ConvertFromString("#38BDF8")
+                $txtPrompt.Background = $bc.ConvertFromString("#FFFFFF")
+                $txtPrompt.Foreground = $bc.ConvertFromString("#0F172A")
+                $txtPrompt.BorderBrush = $bc.ConvertFromString("#94A3B8")
+                $pbAgentExtracting.Background = $bc.ConvertFromString("#E2E8F0")
+                $pbAgentExtracting.Foreground = $bc.ConvertFromString("#0284C7")
+                $tabCtrl.Background = $bc.ConvertFromString("#F8FAFC")
+                $tabCtrl.BorderBrush = $bc.ConvertFromString("#CBD5E1")
+                $tabData.Background = $bc.ConvertFromString("#FFFFFF")
+                $dgResults.Background = $bc.ConvertFromString("#FFFFFF")
+                $dgResults.RowBackground = $bc.ConvertFromString("#FFFFFF")
+                $dgResults.AlternatingRowBackground = $bc.ConvertFromString("#F1F5F9")
+                $dgResults.Foreground = $bc.ConvertFromString("#0F172A")
+                $dgResults.HorizontalGridLinesBrush = $bc.ConvertFromString("#E2E8F0")
+                $dgResults.VerticalGridLinesBrush = $bc.ConvertFromString("#E2E8F0")
+                try {
+                    $whiteHdrXaml = @"
+<Style xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" TargetType="DataGridColumnHeader">
+    <Setter Property="Background" Value="#E2E8F0"/>
+    <Setter Property="Foreground" Value="#0F172A"/>
+    <Setter Property="FontWeight" Value="Bold"/>
+    <Setter Property="FontSize" Value="12.5"/>
+    <Setter Property="Padding" Value="10,7"/>
+    <Setter Property="BorderThickness" Value="0,0,1,1"/>
+    <Setter Property="BorderBrush" Value="#CBD5E1"/>
+    <Setter Property="Template">
+        <Setter.Value>
+            <ControlTemplate TargetType="DataGridColumnHeader">
+                <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Padding="{TemplateBinding Padding}">
+                    <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Left" SnapsToDevicePixels="True"/>
+                </Border>
+            </ControlTemplate>
+        </Setter.Value>
+    </Setter>
+</Style>
+"@
+                    $dgResults.ColumnHeaderStyle = [System.Windows.Markup.XamlReader]::Parse($whiteHdrXaml)
+                } catch {}
+                $txtLogs.Background = $bc.ConvertFromString("#FFFFFF")
+                $txtLogs.Foreground = $bc.ConvertFromString("#0F172A")
+                $txtGeneratedSql.Background = $bc.ConvertFromString("#FFFFFF")
+                $txtGeneratedSql.Foreground = $bc.ConvertFromString("#0369A1")
+                $btnClear.Background = $bc.ConvertFromString("#E2E8F0")
+                $btnClear.Foreground = $bc.ConvertFromString("#0F172A")
+                $btnClose.Background = $bc.ConvertFromString("#CBD5E1")
+                $btnClose.Foreground = $bc.ConvertFromString("#0F172A")
+                foreach ($cBtn in $agentChipsList) {
+                    $cBtn.Background = $bc.ConvertFromString("#FFFFFF")
+                    $cBtn.Foreground = $bc.ConvertFromString("#0F172A")
+                    $cBtn.BorderBrush = $bc.ConvertFromString("#CBD5E1")
+                }
+            } else {
+                $win.Background = $bc.ConvertFromString("#060A13")
+                $win.Foreground = $bc.ConvertFromString("#F8FAFC")
+                $hdrBorder.Background = $bc.ConvertFromString("#0B132B")
+                $hdrBorder.BorderBrush = if ($isLiveSql) { $bc.ConvertFromString("#10B981") } else { $bc.ConvertFromString("#00F0FF") }
+                $hdrTitle.Foreground = $bc.ConvertFromString("#F8FAFC")
+                $hdrSub.Foreground = if ($isLiveSql) { $bc.ConvertFromString("#34D399") } else { $bc.ConvertFromString("#38BDF8") }
+                $btnAgentTheme.Content = "WHITE MODE"
+                $btnAgentTheme.Background = $bc.ConvertFromString("#1E293B")
+                $btnAgentTheme.Foreground = $bc.ConvertFromString("#F8FAFC")
+                $btnAgentTheme.BorderBrush = $bc.ConvertFromString("#0284C7")
+                $txtPrompt.Background = $bc.ConvertFromString("#0A0F1D")
+                $txtPrompt.Foreground = $bc.ConvertFromString("#00F0FF")
+                $txtPrompt.BorderBrush = $bc.ConvertFromString("#1E3A8A")
+                $pbAgentExtracting.Background = $bc.ConvertFromString("#0B132B")
+                $pbAgentExtracting.Foreground = $bc.ConvertFromString("#00F0FF")
+                $tabCtrl.Background = $bc.ConvertFromString("#0A101E")
+                $tabCtrl.BorderBrush = $bc.ConvertFromString("#1E293B")
+                $dgResults.Background = $bc.ConvertFromString("#0A101E")
+                $dgResults.RowBackground = $bc.ConvertFromString("#0A101E")
+                $dgResults.AlternatingRowBackground = $bc.ConvertFromString("#0F172A")
+                $dgResults.Foreground = $bc.ConvertFromString("#F8FAFC")
+                $dgResults.HorizontalGridLinesBrush = $bc.ConvertFromString("#1E293B")
+                $dgResults.VerticalGridLinesBrush = $bc.ConvertFromString("#1E293B")
+                try {
+                    $darkHdrXaml = @"
+<Style xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" TargetType="DataGridColumnHeader">
+    <Setter Property="Background" Value="#1E293B"/>
+    <Setter Property="Foreground" Value="#38BDF8"/>
+    <Setter Property="FontWeight" Value="Bold"/>
+    <Setter Property="FontSize" Value="12.5"/>
+    <Setter Property="Padding" Value="10,7"/>
+    <Setter Property="BorderThickness" Value="0,0,1,1"/>
+    <Setter Property="BorderBrush" Value="#334155"/>
+    <Setter Property="Template">
+        <Setter.Value>
+            <ControlTemplate TargetType="DataGridColumnHeader">
+                <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Padding="{TemplateBinding Padding}">
+                    <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Left" SnapsToDevicePixels="True"/>
+                </Border>
+            </ControlTemplate>
+        </Setter.Value>
+    </Setter>
+</Style>
+"@
+                    $dgResults.ColumnHeaderStyle = [System.Windows.Markup.XamlReader]::Parse($darkHdrXaml)
+                } catch {}
+                $txtLogs.Background = $bc.ConvertFromString("#030712")
+                $txtLogs.Foreground = $bc.ConvertFromString("#38BDF8")
+                $txtGeneratedSql.Background = $bc.ConvertFromString("#030712")
+                $txtGeneratedSql.Foreground = $bc.ConvertFromString("#4ADE80")
+                $btnClear.Background = $bc.ConvertFromString("#334155")
+                $btnClear.Foreground = $bc.ConvertFromString("#FFFFFF")
+                $btnClose.Background = $bc.ConvertFromString("#475569")
+                $btnClose.Foreground = $bc.ConvertFromString("#FFFFFF")
+                foreach ($cBtn in $agentChipsList) {
+                    $cBtn.Background = $bc.ConvertFromString("#131E33")
+                    $cBtn.Foreground = $bc.ConvertFromString("#7DD3FC")
+                    $cBtn.BorderBrush = $bc.ConvertFromString("#1E3A8A")
+                }
+            }
+        }
+
+        $btnAgentTheme.Add_Click({
+            $script:isAgentWhiteMode = -not $script:isAgentWhiteMode
+            & $updateAgentTheme
+        })
+
+        # Apply initial theme to Agent screen matching global state
+        & $updateAgentTheme
 
         $btnCopyQuery.Add_Click({
             if (-not [string]::IsNullOrWhiteSpace($txtGeneratedSql.Text)) {
