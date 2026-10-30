@@ -7815,7 +7815,7 @@ function Convert-JarvisNLToSql([string]$prompt) {
         return [PSCustomObject]@{ Sql = $cleanSql; Table = $tGuess; Logs = $log; IsDirectSql = $true }
     }
 
-    # 1. Google Gemini Neural Cloud Engine Bridge
+    # 1. Google Gemini Neural Cloud Engine Bridge (Optional Addon)
     $geminiKey = if ($script:JarvisGeminiApiKey) { $script:JarvisGeminiApiKey } else {
         try { (Get-ItemProperty -Path "HKCU:\Software\NexusEnterprise\JarvisAI" -Name "GeminiApiKey" -ErrorAction SilentlyContinue).GeminiApiKey } catch { "" }
     }
@@ -7837,7 +7837,7 @@ function Convert-JarvisNLToSql([string]$prompt) {
             } | ConvertTo-Json -Depth 5
 
             $url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=$geminiKey"
-            $geminiRes = Invoke-RestMethod -Uri $url -Method Post -Body $payload -ContentType "application/json" -TimeoutSec 10
+            $geminiRes = Invoke-RestMethod -Uri $url -Method Post -Body $payload -ContentType "application/json; charset=utf-8" -TimeoutSec 10
             $geminiText = $geminiRes.candidates[0].content.parts[0].text.Trim()
             $cleanGeminiSql = $geminiText -replace '(?s)```(?:sql)?\s*(.*?)\s*```', '$1'
             if ($cleanGeminiSql -match '(?i)^\s*(?:SELECT|WITH)\b') {
@@ -7852,11 +7852,12 @@ function Convert-JarvisNLToSql([string]$prompt) {
     # 2. High-Precision Municipal Semantic Engine (100% Offline, Zero-Lag)
     $hasReceiptIntent = $p -match '(?i)pavt[iy][a-z]*|\u092A\u093E\u0935\u0924[\u0940\u094D\u092F\u093E]*|receipt|bill|invoice|bharna|\u092D\u0930\u0923\u093E|collection|vasuli|\u0935\u0938\u0941\u0932\u0940'
     $hasTaxIntent = $p -match '(?i)thakbak[iy][a-z]*|\u0925\u0915\u092C\u093E\u0915[\u0940\u094D\u092F\u093E]*|pending|arrears|demand|kar|\u0915\u0930|tax'
-    $hasOwnerIntent = $p -match '(?i)malak|\u092E\u093E\u0932\u0915|lok|\u0932\u094B\u0915|owner|citizen|nagrik|\u0928\u093E\u0917\u0930\u0940\u0915|name|nav|\u0928\u093E\u0935|aadnav|\u0906\u0921\u0928\u093E\u0935'
+    $hasOwnerIntent = $p -match '(?i)malak|\u092E\u093E\u0932\u0915|lok|\u0932\u094B\u0915|owner|citizen|nagrik|\u0928\u093E\u0917\u0930\u0940\u0915|name|nav|\u0928\u093E\u0935|aadnav|\u0906\u0921\u0928\u093E\u0935|konacha|\u0915\u094B\u0923\u093E\u091A[\u092F\u093E\u0947]*|who'
     $hasWardSummaryIntent = $p -match '(?i)ward-wise|ward\s*wise|wardnihay|\u0935\u0949\u0930\u094D\u0921\u0928\u093F\u0939\u093E\u092F|prabhag\s*nusar|ward\s*nusar'
     $hasCountIntent = $p -match '(?i)\b(?:count|total\s*(?:properties|milkati|records|nondi)|ekun\s*(?:milkat|malmatta|properties|records)|kiti\s*(?:properties|milkati|records|ahet))\b'
     $hasSumCollectionIntent = $p -match '(?i)\b(?:total\s*(?:collection|vasuli|receipts|amount)|ekun\s*(?:vasuli|bharna|rakkam)|collection\s*kiti|vasuli\s*kiti)\b'
     $hasSumPendingIntent = $p -match '(?i)\b(?:total\s*(?:pending|thakbaki|arrears|tax)|ekun\s*(?:thakbaki|kar|baki)|thakbaki\s*kiti)\b'
+    $hasHighestIntent = $p -match '(?i)highest|maximum|max|sarvat\s*j[a]*st|\u0938\u0930\u094D\u0935\u093E\u0924\s*\u091C\u093E\u0938\u094D\u0924|mothy?a|top'
 
     # Row Limit (TOP N)
     $topCount = 50
@@ -7901,8 +7902,9 @@ function Convert-JarvisNLToSql([string]$prompt) {
     }
 
     # 2c. Relational Multi-Table Joins
-    $wantsJoinTax = $hasOwnerIntent -and $hasTaxIntent -and ($p -match '(?i)baki|pending|thakbaki|kar|tax')
-    $wantsJoinReceipt = $hasOwnerIntent -and $hasReceiptIntent
+    # Auto-join PropertyMast + TaxPendingDetails if tax/arrears requested
+    $wantsJoinTax = $hasTaxIntent -and ($hasOwnerIntent -or $hasHighestIntent -or ($p -match '(?i)ward\s*\d+|madhe|thakbaki|tax\s*pending|baki|kar'))
+    $wantsJoinReceipt = $hasReceiptIntent -and $hasOwnerIntent
 
     if ($wantsJoinTax) {
         $whereConds = [System.Collections.Generic.List[string]]::new()
@@ -7914,6 +7916,9 @@ function Convert-JarvisNLToSql([string]$prompt) {
         }
         if ($p -match '(\d+)\s*(?:peksha\s*kam[iy]|\u092A\u0947\u0915\u094D\u0937\u093E\s*\u0915\u092E\u0940|chya\s*aat|less\s*than|below|<=|<)' -or $p -match '(?i)(?:tax|kar|thakbaki|amount)\s*(?:<=|<)\s*(\d+)') {
             $whereConds.Add("t.TaxTotal <= $($matches[1])")
+        }
+        if ($p -match '\b(20\d\d)\b') {
+            $whereConds.Add("t.PendingYear = '$($matches[1])'")
         }
         $whereClause = if ($whereConds.Count -gt 0) { "WHERE " + ($whereConds -join " AND ") } else { "" }
         $sql = "SELECT TOP $topCount p.OwnerID, p.NewWardNo, p.NewPropertyNo, p.OwnerFirstName, p.OwnerLastName, p.MarathiOwnerPrathamNav, p.MarathiOwnerAadnav, p.MobileNo, t.PendingYear, t.PropertyTax, t.TaxTotal, t.Interest FROM [dbo].[PropertyMast] p WITH (NOLOCK) INNER JOIN [dbo].[TaxPendingDetails] t WITH (NOLOCK) ON p.OwnerID = t.OwnerID $whereClause ORDER BY t.TaxTotal DESC;"
@@ -7942,9 +7947,9 @@ function Convert-JarvisNLToSql([string]$prompt) {
 
     # 2d. Single-Table Resolution
     $targetTable = "PropertyMast"
-    if ($hasReceiptIntent -and -not $hasOwnerIntent) {
+    if ($hasReceiptIntent) {
         $targetTable = "BillTransactionDetails"
-    } elseif ($hasTaxIntent -and -not $hasOwnerIntent -and ($p -match '(?i)year|varsh|pendingyear|due|penalty')) {
+    } elseif ($hasTaxIntent) {
         $targetTable = "TaxPendingDetails"
     } elseif ($p -match '(?i)assessment|builtup|rateable|vapar|\u0906\u0915\u093E\u0930\u0923\u0940') {
         $targetTable = "AssessmentDetails"
@@ -7962,7 +7967,7 @@ function Convert-JarvisNLToSql([string]$prompt) {
         $script:JarvisSchema.Tables[$targetTable] | ForEach-Object { $_.Column }
     } else { @() }
 
-    # Property No / Milkat Kramank
+    # Property No
     if ($p -match '(?i)(?:newpropertyno|propertyno|property\s*#?|milkat\s*(?:no\.?|kramank|kra\.?))\s*[:=]?\s*[''"]?([0-9]+[a-zA-Z0-9_\-\/]*)[''"]?') {
         $pVal = $matches[1]
         if ($availableCols -contains "NewPropertyNo") { $whereConditions.Add("NewPropertyNo = '$pVal'") }
@@ -8022,7 +8027,7 @@ function Convert-JarvisNLToSql([string]$prompt) {
         $whereConditions.Add("PaymentMode = 'Cash'")
     }
 
-    # Multilingual Surname / Name Match
+    # Surnames / Names
     $stopWords = @('ani', 'va', 'ya', 'chya', 'che', 'cha', 'chi', 'la', 'madhe', 'madhun', 'madhil', 'dakhva', 'shodha', 'pahije', 'sarv', 'and', 'with', 'or', 'for', 'the', 'in', 'to', 'of', 'from', 'where', 'as', 'on', 'mobile', 'phone', 'ward', 'tax', 'property', 'properties', 'bill', 'receipt', 'pavti', 'pavtya', 'top', 'record', 'records', 'aslele', 'aslelya', 'naslele', 'naslelya', 'lok')
     $nameCand = $null
     if ($p -match "(?i)\b([a-zA-Z\u0900-\u097F]+)\s+(?:aadnav|\u0906\u0921\u0928\u093E\u0935|navacha|navache)\b") {
@@ -8047,7 +8052,7 @@ function Convert-JarvisNLToSql([string]$prompt) {
         }
     }
 
-    # 2f. Select Columns
+    # 2f. Column Selection
     $colsToSelect = [System.Collections.Generic.List[string]]::new()
     $wantsAll = $p -match '(?i)\b(?:all|sarv|sagale|purna|full|\*)\b'
     if ($wantsAll) {
@@ -8070,7 +8075,7 @@ function Convert-JarvisNLToSql([string]$prompt) {
     # 2g. WHERE & ORDER BY
     $whereStr = if ($whereConditions.Count -gt 0) { "WHERE " + ($whereConditions -join " AND ") } else { "" }
     $orderCol = switch ($targetTable) {
-        "BillTransactionDetails" { "TransactionDate DESC" }
+        "BillTransactionDetails" { if ($hasHighestIntent) { "Amount DESC" } else { "TransactionDate DESC" } }
         "TaxPendingDetails" { "TaxTotal DESC" }
         Default { if ($availableCols -contains "OwnerID") { "OwnerID DESC" } else { "1" } }
     }
@@ -8093,26 +8098,11 @@ function Invoke-JarvisAutonomousSqlTester($dbConn, [string]$sql, [string]$target
     $auditDeductions = @()
 
     # Pre-Flight Auto-Correction for Common Text Typos
-    if ($currentSql -match '(?i)\bform\b') {
-        $testLogs.Add("[PRE-FLIGHT HEALER]: Detected typo 'form' -> Replaced with 'FROM'")
-        $currentSql = $currentSql -replace '(?i)\bform\b', 'FROM'
-    }
-    if ($currentSql -match '(?i)\bwhre\b') {
-        $testLogs.Add("[PRE-FLIGHT HEALER]: Detected typo 'whre' -> Replaced with 'WHERE'")
-        $currentSql = $currentSql -replace '(?i)\bwhre\b', 'WHERE'
-    }
-    if ($currentSql -match '(?i)\boder\s+by\b') {
-        $testLogs.Add("[PRE-FLIGHT HEALER]: Detected typo 'oder by' -> Replaced with 'ORDER BY'")
-        $currentSql = $currentSql -replace '(?i)\boder\s+by\b', 'ORDER BY'
-    }
-    if ($currentSql -match '(?i)\bselest\b') {
-        $testLogs.Add("[PRE-FLIGHT HEALER]: Detected typo 'selest' -> Replaced with 'SELECT'")
-        $currentSql = $currentSql -replace '(?i)\bselest\b', 'SELECT'
-    }
-    if ($currentSql -match '(?i),\s+FROM\b') {
-        $testLogs.Add("[PRE-FLIGHT HEALER]: Detected trailing comma before FROM -> Cleaned syntax")
-        $currentSql = $currentSql -replace '(?i),\s+FROM\b', ' FROM'
-    }
+    if ($currentSql -match '(?i)\bform\b') { $currentSql = $currentSql -replace '(?i)\bform\b', 'FROM' }
+    if ($currentSql -match '(?i)\bwhre\b') { $currentSql = $currentSql -replace '(?i)\bwhre\b', 'WHERE' }
+    if ($currentSql -match '(?i)\boder\s+by\b') { $currentSql = $currentSql -replace '(?i)\boder\s+by\b', 'ORDER BY' }
+    if ($currentSql -match '(?i)\bselest\b') { $currentSql = $currentSql -replace '(?i)\bselest\b', 'SELECT' }
+    if ($currentSql -match '(?i),\s+FROM\b') { $currentSql = $currentSql -replace '(?i),\s+FROM\b', ' FROM' }
 
     # Ensure WITH (NOLOCK) is present on single-table queries without duplicating
     if ($currentSql -notmatch '(?i)WITH\s*\(NOLOCK\)' -and $currentSql -notmatch '(?i)JOIN') {
@@ -8122,9 +8112,29 @@ function Invoke-JarvisAutonomousSqlTester($dbConn, [string]$sql, [string]$target
             $closestT = Get-BestMatchingTable $tblOnly
             $closestS = if ($script:JarvisSchema.TableSchemas.ContainsKey($closestT)) { $script:JarvisSchema.TableSchemas[$closestT] } else { "dbo" }
             $currentSql = $currentSql -replace "(?i)\bFROM\s+\[?\w+\]?(?:\.\[?\w+\]?)?", "FROM [$closestS].[$closestT] WITH (NOLOCK)"
-            $testLogs.Add("[PRE-FLIGHT OPTIMIZER]: Injected schema qualification and WITH (NOLOCK)")
             $targetTable = $closestT
         }
+    }
+
+    # Collect columns from ALL tables involved in query for multi-table accuracy
+    $allQueryCols = [System.Collections.Generic.List[string]]::new()
+    if ($script:JarvisSchema -and $script:JarvisSchema.AllTables) {
+        foreach ($tName in $script:JarvisSchema.AllTables) {
+            if ($currentSql -match "(?i)\b$tName\b") {
+                if ($script:JarvisSchema.Tables.ContainsKey($tName)) {
+                    foreach ($cObj in $script:JarvisSchema.Tables[$tName]) {
+                        if (-not $allQueryCols.Contains($cObj.Column)) {
+                            $allQueryCols.Add($cObj.Column)
+                        }
+                    }
+                }
+            }
+        }
+    }
+    if ($allQueryCols.Count -eq 0) {
+        $allQueryCols = if ($script:JarvisSchema.Tables.ContainsKey($targetTable)) {
+            $script:JarvisSchema.Tables[$targetTable] | ForEach-Object { $_.Column }
+        } else { @() }
     }
 
     # Check whether Live Database Connection is available
@@ -8166,14 +8176,12 @@ function Invoke-JarvisAutonomousSqlTester($dbConn, [string]$sql, [string]$target
                 # MISTAKE TYPE 1: Invalid Column Name (Msg 207)
                 if ($errMsg -match "Invalid column name '([^']+)'") {
                     $badCol = $matches[1]
-                    $avail = if ($script:JarvisSchema.Tables.ContainsKey($targetTable)) { $script:JarvisSchema.Tables[$targetTable] | ForEach-Object { $_.Column } } else { @() }
-                    
                     $alreadySelected = @()
                     if ($currentSql -match '(?i)SELECT\s+(?:TOP\s+\d+\s+)?(.*)\s+FROM') {
                         $alreadySelected = $matches[1] -split ',' | ForEach-Object { $_.Trim() }
                     }
 
-                    $closestCol = Get-BestMatchingColumn $badCol $avail $alreadySelected
+                    $closestCol = Get-BestMatchingColumn $badCol $allQueryCols $alreadySelected
                     if ($closestCol) {
                         $testLogs.Add("[AUTONOMOUS HEALER]: Detected invalid column '$badCol' -> Auto-corrected to schema column '$closestCol'")
                         $currentSql = $currentSql -replace "\b$([regex]::Escape($badCol))\b", $closestCol
@@ -8229,10 +8237,6 @@ function Invoke-JarvisAutonomousSqlTester($dbConn, [string]$sql, [string]$target
         $testLogs.Add("[ENVIRONMENT]: OFFLINE SIMULATION & SCHEMA VALIDATOR ACTIVE (In-Memory Engine)")
         $testLogs.Add("[SIMULATION]: Grounding query attributes against Municipal Knowledge Base...")
 
-        $avail = if ($script:JarvisSchema.Tables.ContainsKey($targetTable)) {
-            $script:JarvisSchema.Tables[$targetTable] | ForEach-Object { $_.Column }
-        } else { @() }
-
         if ($currentSql -match '(?i)SELECT\s+(?:TOP\s+\d+\s+)?(.*?)\s+FROM') {
             $rawColPart = $matches[1]
             if ($rawColPart.Trim() -ne "*") {
@@ -8243,8 +8247,8 @@ function Invoke-JarvisAutonomousSqlTester($dbConn, [string]$sql, [string]$target
                     if ($cleanCc -match '(?i)AS\s+([a-zA-Z0-9_]+)') { continue }
                     if ($cleanCc -match '\(') { continue }
 
-                    if ($avail.Count -gt 0 -and $avail -notcontains $cleanCc) {
-                        $healed = Get-BestMatchingColumn $cleanCc $avail $candCols
+                    if ($allQueryCols.Count -gt 0 -and $allQueryCols -notcontains $cleanCc) {
+                        $healed = Get-BestMatchingColumn $cleanCc $allQueryCols $candCols
                         if ($healed) {
                             $testLogs.Add("[AUTONOMOUS HEALER]: Schema Mismatch Detected: '$cleanCc' -> Auto-corrected to standard schema column '$healed'")
                             $currentSql = $currentSql -replace "\b$([regex]::Escape($cleanCc))\b", $healed
@@ -8285,7 +8289,6 @@ function Invoke-JarvisAutonomousSqlTester($dbConn, [string]$sql, [string]$target
         IsSimulation = (-not $isLiveDb)
     }
 }
-
 function Process-JarvisNaturalLanguage([string]$prompt) {
     if ([string]::IsNullOrWhiteSpace($prompt)) { return "Please type a question or command for JARVIS." }
     $p = $prompt.Trim().ToLower()
@@ -9797,7 +9800,7 @@ function Show-JarvisAssistantWindow {
             if ($regKey -and $regKey.GeminiApiKey) { $geminiKeyVal = $regKey.GeminiApiKey; $script:JarvisGeminiApiKey = $geminiKeyVal }
         } catch { }
 
-        $btnGeminiKey.Content = if ([string]::IsNullOrWhiteSpace($geminiKeyVal)) { "AI ENGINE: OFFLINE TURBO (CLICK FOR GEMINI)" } else { "AI ENGINE: GEMINI 2.0 FLASH ACTIVE" }
+        $btnGeminiKey.Content = if ([string]::IsNullOrWhiteSpace($geminiKeyVal)) { "AI ENGINE: MUNICIPAL TURBO (ONLINE/OFFLINE)" } else { "AI ENGINE: GEMINI 2.0 FLASH ACTIVE" }
         $btnGeminiKey.Background = if ([string]::IsNullOrWhiteSpace($geminiKeyVal)) { [System.Windows.Media.BrushConverter]::new().ConvertFromString("#1E293B") } else { [System.Windows.Media.BrushConverter]::new().ConvertFromString("#065F46") }
         $btnGeminiKey.Foreground = if ([string]::IsNullOrWhiteSpace($geminiKeyVal)) { [System.Windows.Media.BrushConverter]::new().ConvertFromString("#94A3B8") } else { [System.Windows.Media.BrushConverter]::new().ConvertFromString("#34D399") }
         $btnGeminiKey.BorderBrush = if ([string]::IsNullOrWhiteSpace($geminiKeyVal)) { [System.Windows.Media.BrushConverter]::new().ConvertFromString("#334155") } else { [System.Windows.Media.BrushConverter]::new().ConvertFromString("#10B981") }
