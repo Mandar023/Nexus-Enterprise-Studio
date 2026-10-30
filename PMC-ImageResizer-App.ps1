@@ -16210,9 +16210,19 @@ try {
         if (-not $lstLanPeers) { return }
         $lstLanPeers.Items.Clear()
         
-        $onlineCount = 0
-        foreach ($kv in $script:LanPeers.GetEnumerator()) {
-            $p = $kv.Value
+        $sorted = @($script:LanPeers.Values | Sort-Object -Property @{
+            Expression = {
+                if ($_.Status -eq "ONLINE - READY" -or $_.IsNexusReady) { 0 }
+                elseif ($_.Status -eq "ONLINE - PC ONLY" -or $_.IsOnline) { 1 }
+                else { 2 }
+            }
+        }, "HostName")
+
+        $readyCount = 0
+        $pcCount = 0
+        $offlineCount = 0
+
+        foreach ($p in $sorted) {
             $item = New-Object System.Windows.Controls.ListBoxItem
             $item.Tag = $p
             
@@ -16224,15 +16234,17 @@ try {
             
             $sp = New-Object System.Windows.Controls.StackPanel
             $txtHost = New-Object System.Windows.Controls.TextBlock
-            $txtHost.Text = $p.HostName
-            $txtHost.FontSize = 12
+            $txtHost.Text = if ($p.IP) { "$($p.HostName) ??? $($p.IP)" } else { $p.HostName }
+            $txtHost.FontSize = 11.5
             $txtHost.FontWeight = [System.Windows.FontWeights]::Bold
-            $txtHost.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#38BDF8")
+            $txtHost.Foreground = if ($p.IsNexusReady) { [System.Windows.Media.BrushConverter]::new().ConvertFromString("#38BDF8") }
+                                  elseif ($p.IsOnline) { [System.Windows.Media.BrushConverter]::new().ConvertFromString("#E2E8F0") }
+                                  else { [System.Windows.Media.BrushConverter]::new().ConvertFromString("#94A3B8") }
             
             $txtSub = New-Object System.Windows.Controls.TextBlock
-            $txtSub.Text = "User: $($p.UserName)"
+            $txtSub.Text = "User: $($p.UserName) | " + (if ($p.Status) { $p.Status } else { "Nexus Peer" })
             $txtSub.FontSize = 10
-            $txtSub.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#94A3B8")
+            $txtSub.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#64748B")
             
             $sp.Children.Add($txtHost) | Out-Null
             $sp.Children.Add($txtSub) | Out-Null
@@ -16240,34 +16252,178 @@ try {
             [System.Windows.Controls.Grid]::SetColumn($sp, 0)
             
             $badge = New-Object System.Windows.Controls.Border
-            $badge.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#064E3B")
             $badge.CornerRadius = New-Object System.Windows.CornerRadius(4)
             $badge.Padding = New-Object System.Windows.Thickness(6, 2, 6, 2)
             $badge.VerticalAlignment = [System.Windows.VerticalAlignment]::Center
+            $badge.BorderThickness = New-Object System.Windows.Thickness(1)
             
             $txtBadge = New-Object System.Windows.Controls.TextBlock
-            $txtBadge.Text = "ONLINE"
             $txtBadge.FontSize = 9.5
             $txtBadge.FontWeight = [System.Windows.FontWeights]::Bold
-            $txtBadge.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#34D399")
+
+            if ($p.Status -eq "ONLINE - READY" -or $p.IsNexusReady) {
+                $badge.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#064E3B")
+                $badge.BorderBrush = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#10B981")
+                $txtBadge.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#34D399")
+                $txtBadge.Text = "READY"
+                $readyCount++
+            } elseif ($p.Status -eq "ONLINE - PC ONLY" -or $p.IsOnline) {
+                $badge.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#451A03")
+                $badge.BorderBrush = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#F59E0B")
+                $txtBadge.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#FBBF24")
+                $txtBadge.Text = "PC ONLINE"
+                $pcCount++
+            } else {
+                $badge.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#1E293B")
+                $badge.BorderBrush = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#334155")
+                $txtBadge.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#94A3B8")
+                $txtBadge.Text = "OFFLINE"
+                $offlineCount++
+            }
+
             $badge.Child = $txtBadge
             $grid.Children.Add($badge) | Out-Null
             [System.Windows.Controls.Grid]::SetColumn($badge, 1)
             
             $item.Content = $grid
             $lstLanPeers.Items.Add($item) | Out-Null
-            $onlineCount++
         }
         
         if ($lblLanPeerStatus) {
-            if ($onlineCount -gt 0) {
-                $lblLanPeerStatus.Text = "$onlineCount computer(s) online on your network (No IP needed)"
-                $lblLanPeerStatus.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#34D399")
-            } else {
-                $lblLanPeerStatus.Text = "Searching network for peers... (Click Scan to discover)"
-                $lblLanPeerStatus.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#64748B")
+            $lblLanPeerStatus.Text = "$readyCount Ready for Direct Share | $pcCount PC(s) Online | $offlineCount Offline"
+            $lblLanPeerStatus.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#38BDF8")
+        }
+    }
+
+    function Scan-AllLanPeersAndHosts {
+        $discovered = [System.Collections.Generic.Dictionary[string, PSCustomObject]]::new()
+
+        # 1. SQL Server active connections & sessions (High Fidelity)
+        try {
+            $connInfo = Get-ActiveOrSavedSqlConnection
+            if ($connInfo) {
+                $conn = $connInfo.Connection
+                $shouldClose = -not $connInfo.IsShared
+                try {
+                    $cmd = $conn.CreateCommand()
+                    $cmd.CommandText = "SELECT DISTINCT c.client_net_address, s.host_name, s.login_name FROM sys.dm_exec_connections c WITH (NOLOCK) INNER JOIN sys.dm_exec_sessions s WITH (NOLOCK) ON c.session_id = s.session_id WHERE c.client_net_address IS NOT NULL AND c.client_net_address NOT IN ('<local machine>', '127.0.0.1')"
+                    $rdr = $cmd.ExecuteReader()
+                    while ($rdr.Read()) {
+                        $ip = $rdr['client_net_address'].ToString().Trim()
+                        $h = if (-not $rdr.IsDBNull(1)) { $rdr['host_name'].ToString().Trim().ToUpperInvariant() } else { "" }
+                        $u = if (-not $rdr.IsDBNull(2)) { $rdr['login_name'].ToString().Trim() } else { "Peer" }
+                        if ($ip -and $ip -ne $script:LanLocalIP) {
+                            $discovered[$ip] = [PSCustomObject]@{ IP = $ip; HostName = $h; UserName = $u; Source = "SQL" }
+                        }
+                    }
+                    $rdr.Close()
+                    $cmd.Dispose()
+                } catch { } finally {
+                    if ($shouldClose) { try { $conn.Close() } catch {} }
+                }
+            }
+        } catch { }
+
+        # 2. Known municipal servers
+        $knownServers = @{
+            "192.168.1.1"   = "GATEWAY-ROUTER"
+            "192.168.1.11"  = "HOSTSERVER03 (Server 11)"
+            "192.168.1.19"  = "WEBSERVER (Server 19)"
+            "192.168.1.22"  = "HOSTSERVER06 (Server 22)"
+        }
+        foreach ($k in $knownServers.Keys) {
+            if (-not $discovered.ContainsKey($k) -and $k -ne $script:LanLocalIP) {
+                $discovered[$k] = [PSCustomObject]@{ IP = $k; HostName = $knownServers[$k]; UserName = "System Server"; Source = "Server" }
             }
         }
+
+        # 3. Saved Static Peers
+        try {
+            $saved = Get-SavedLanPeers
+            foreach ($sip in $saved) {
+                $sip = $sip.Trim()
+                if ($sip -and -not $discovered.ContainsKey($sip) -and $sip -ne $script:LanLocalIP) {
+                    $discovered[$sip] = [PSCustomObject]@{ IP = $sip; HostName = ""; UserName = "Saved Peer"; Source = "Saved" }
+                }
+            }
+        } catch { }
+
+        # 4. Active dynamic ARP IPs
+        try {
+            $arpOut = arp -a
+            foreach ($l in ($arpOut -split "\r?\n")) {
+                if ($l -match '(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\s+([0-9a-fA-F-]+)\s+(\w+)') {
+                    $ip = $matches[1]
+                    $type = $matches[3]
+                    if ($type -eq 'dynamic' -and -not $ip.EndsWith('.255') -and -not $ip.StartsWith('224.') -and -not $ip.StartsWith('239.') -and $ip -ne $script:LanLocalIP) {
+                        if (-not $discovered.ContainsKey($ip)) {
+                            $discovered[$ip] = [PSCustomObject]@{ IP = $ip; HostName = ""; UserName = "LAN Peer"; Source = "ARP" }
+                        }
+                    }
+                }
+            }
+        } catch { }
+
+        # 5. Probe each candidate
+        foreach ($ip in $discovered.Keys) {
+            $p = $discovered[$ip]
+            $h = $p.HostName
+            if (-not $h -and $knownServers.ContainsKey($ip)) { $h = $knownServers[$ip] }
+
+            $isNexusReady = $false
+            $isPcOnline = ($p.Source -eq "SQL")
+
+            try {
+                $cl = New-Object System.Net.Sockets.TcpClient
+                $iar = $cl.BeginConnect($ip, $script:LanTcpPort, $null, $null)
+                if ($iar.AsyncWaitHandle.WaitOne(60, $false) -and $cl.Connected) {
+                    $cl.EndConnect($iar)
+                    $isNexusReady = $true
+                    $isPcOnline = $true
+                }
+                $cl.Close()
+            } catch { }
+
+            if (-not $isNexusReady -and -not $isPcOnline) {
+                try {
+                    $cl2 = New-Object System.Net.Sockets.TcpClient
+                    $iar2 = $cl2.BeginConnect($ip, 445, $null, $null)
+                    if ($iar2.AsyncWaitHandle.WaitOne(40, $false) -and $cl2.Connected) {
+                        $cl2.EndConnect($iar2)
+                        $isPcOnline = $true
+                    }
+                    $cl2.Close()
+                } catch { }
+            }
+
+            if (-not $h) {
+                if ($isPcOnline) {
+                    try {
+                        $iarDns = [System.Net.Dns]::BeginGetHostEntry($ip, $null, $null)
+                        if ($iarDns.AsyncWaitHandle.WaitOne(80, $false)) {
+                            $entry = [System.Net.Dns]::EndGetHostEntry($iarDns)
+                            if ($entry -and $entry.HostName) { $h = $entry.HostName.Split('.')[0].ToUpperInvariant() }
+                        }
+                    } catch { }
+                }
+            }
+            if (-not $h) { $h = "PC-" + ($ip.Split('.')[-1]) }
+
+            $status = if ($isNexusReady) { "ONLINE - READY" } elseif ($isPcOnline) { "ONLINE - PC ONLY" } else { "OFFLINE" }
+
+            $script:LanPeers[$ip] = [PSCustomObject]@{
+                HostName     = $h
+                IP           = $ip
+                UserName     = $p.UserName
+                Port         = $script:LanTcpPort
+                Status       = $status
+                IsNexusReady = $isNexusReady
+                IsOnline     = $isPcOnline
+                LastSeen     = (Get-Date)
+            }
+        }
+
+        Refresh-LanPeersList
     }
 
     function Broadcast-LanBeacon {
@@ -17089,16 +17245,25 @@ function Push-AppUpdateToAllPeers {
             $shouldClose = -not $connInfo.IsShared
             try {
                 $cmd = $conn.CreateCommand()
-                $cmd.CommandText = "SELECT DISTINCT client_net_address FROM sys.dm_exec_connections WHERE client_net_address IS NOT NULL AND client_net_address NOT IN ('<local machine>', '127.0.0.1')"
+                $cmd.CommandText = "SELECT DISTINCT ISNULL(s.host_name, ''), ISNULL(s.login_name, ''), c.client_net_address FROM sys.dm_exec_connections c WITH (NOLOCK) INNER JOIN sys.dm_exec_sessions s WITH (NOLOCK) ON c.session_id = s.session_id WHERE c.client_net_address IS NOT NULL AND c.client_net_address NOT IN ('<local machine>', '127.0.0.1')"
                 $rdr = $cmd.ExecuteReader()
                 while ($rdr.Read()) {
-                    $cIp = $rdr.GetString(0)
+                    $hName = $rdr.GetString(0)
+                    $uName = $rdr.GetString(1)
+                    $cIp = $rdr.GetString(2)
                     if ($cIp -and $cIp -ne $script:LanLocalIP -and $cIp -ne "127.0.0.1") {
+                        if ([string]::IsNullOrWhiteSpace($hName)) {
+                            if ($script:LanPeers.ContainsKey($cIp) -and $script:LanPeers[$cIp].HostName) {
+                                $hName = $script:LanPeers[$cIp].HostName
+                            } else {
+                                $hName = $cIp
+                            }
+                        }
                         $alreadyIn = $targets | Where-Object { $_.IP -eq $cIp }
                         if (-not $alreadyIn) {
                             $targets += [PSCustomObject]@{
-                                HostName = $cIp
-                                UserName = "Peer"
+                                HostName = $hName
+                                UserName = if ($uName) { $uName } else { "Peer" }
                                 IP = $cIp
                                 Port = 52824
                             }
@@ -18019,12 +18184,22 @@ function Connect-LanTcpPeer ($ip, $port, [int]$timeoutMs = 3500) {
 
     if ($btnLanScanPeers) {
         $btnLanScanPeers.Add_Click({
+            $btnLanScanPeers.IsEnabled = $false
+            $btnLanScanPeers.Content = "SCANNING..."
             Start-LanNetworking
             Broadcast-LanBeacon
+
             if ($lblLanPeerStatus) {
-                $lblLanPeerStatus.Text = "Scanning network broadcast for peers..."
-                $lblLanPeerStatus.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#38BDF8")
+                $lblLanPeerStatus.Text = "Scanning office network, resolving hostnames & probing active PCs..."
+                $lblLanPeerStatus.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#FBBF24")
             }
+            [System.Windows.Forms.Application]::DoEvents()
+
+            # Execute comprehensive network scan across SQL sessions, ARP table, saved peers & servers
+            Scan-AllLanPeersAndHosts
+
+            $btnLanScanPeers.Content = "REFRESH PEERS"
+            $btnLanScanPeers.IsEnabled = $true
         })
     }
 
@@ -18135,11 +18310,26 @@ function Connect-LanTcpPeer ($ip, $port, [int]$timeoutMs = 3500) {
             $selectedItem = $lstLanPeers.SelectedItem
             if ($selectedItem -and $selectedItem.Tag) {
                 $script:LanSelectedPeer = $selectedItem.Tag
+                $p = $script:LanSelectedPeer
                 if ($lblLanTargetPc) {
-                    $lblLanTargetPc.Text = "$($script:LanSelectedPeer.HostName) ($($script:LanSelectedPeer.UserName))"
-                    $lblLanTargetPc.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#4ADE80")
+                    $lblLanTargetPc.Text = if ($p.IP) { "$($p.HostName) ??? $($p.IP)" } else { "$($p.HostName)" }
+                    $lblLanTargetPc.Foreground = if ($p.IsNexusReady) { [System.Windows.Media.BrushConverter]::new().ConvertFromString("#34D399") }
+                                                elseif ($p.IsOnline) { [System.Windows.Media.BrushConverter]::new().ConvertFromString("#FBBF24") }
+                                                else { [System.Windows.Media.BrushConverter]::new().ConvertFromString("#94A3B8") }
                 }
-                if ($txtLanManualHost) { $txtLanManualHost.Text = $script:LanSelectedPeer.HostName }
+                if ($txtLanManualHost) { $txtLanManualHost.Text = if ($p.HostName) { $p.HostName } else { $p.IP } }
+                if ($lblLanSendStatus) {
+                    if ($p.IsNexusReady) {
+                        $lblLanSendStatus.Text = "Peer is READY (Nexus Port 52824 Open). Click 'SEND FILES NOW' for high-speed direct transfer."
+                        $lblLanSendStatus.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#34D399")
+                    } elseif ($p.IsOnline) {
+                        $lblLanSendStatus.Text = "PC is ONLINE ($($p.HostName) ??? $($p.IP)). Click 'SEND FILES NOW' to send or 'SHARE VIA BROWSER'."
+                        $lblLanSendStatus.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#FBBF24")
+                    } else {
+                        $lblLanSendStatus.Text = "PC appears OFFLINE ($($p.HostName) ??? $($p.IP)). You can generate a Web Share link for them."
+                        $lblLanSendStatus.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#94A3B8")
+                    }
+                }
             }
         })
     }
