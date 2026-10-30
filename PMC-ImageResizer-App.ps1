@@ -1,4 +1,4 @@
- # ================================================================================
+# ================================================================================
 # NEXUS PHOTO & DOCUMENT OPTIMIZER (ENTERPRISE EDITION)
 # Startup Initialization: SmartScreen Unblock, Admin Privilege Detection & Config
 # ================================================================================
@@ -1903,9 +1903,9 @@ try {
         <SolidColorBrush x:Key="SqlBtnFgBrush" Color="#DCDCDC"/>
         <SolidColorBrush x:Key="SqlEditorBgBrush" Color="#1E1E1E"/>
         <SolidColorBrush x:Key="SqlEditorFgBrush" Color="#4ADE80"/>
-        <SolidColorBrush x:Key="SqlHeaderBgBrush" Color="#2D2D30"/>
-        <SolidColorBrush x:Key="SqlHeaderFgBrush" Color="#DCDCDC"/>
-        <SolidColorBrush x:Key="SqlHeaderBorderBrush" Color="#3F3F46"/>
+        <SolidColorBrush x:Key="SqlHeaderBgBrush" Color="#1E293B"/>
+        <SolidColorBrush x:Key="SqlHeaderFgBrush" Color="#38BDF8"/>
+        <SolidColorBrush x:Key="SqlHeaderBorderBrush" Color="#334155"/>
 
         <!-- Element Styles with DynamicResource for Instant 0ms Theme Switching -->
         <Style TargetType="TextBlock">
@@ -1971,6 +1971,34 @@ try {
                 <Trigger Property="IsSelected" Value="True">
                     <Setter Property="Background" Value="#0284C7"/>
                     <Setter Property="Foreground" Value="#FFFFFF"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Global High-Contrast Style for all DataGrid Column Headers -->
+        <Style TargetType="DataGridColumnHeader">
+            <Setter Property="Background" Value="{DynamicResource SqlHeaderBgBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource SqlHeaderFgBrush}"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Padding" Value="10,6"/>
+            <Setter Property="BorderThickness" Value="0,0,1,1"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource SqlHeaderBorderBrush}"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="DataGridColumnHeader">
+                        <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter SnapsToDevicePixels="True" VerticalAlignment="Center" HorizontalAlignment="Left"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#334155"/>
+                    <Setter Property="Foreground" Value="#00F0FF"/>
                 </Trigger>
             </Style.Triggers>
         </Style>
@@ -3595,10 +3623,26 @@ try {
                                     <Style TargetType="DataGridColumnHeader">
                                         <Setter Property="Background" Value="{DynamicResource SqlHeaderBgBrush}"/>
                                         <Setter Property="Foreground" Value="{DynamicResource SqlHeaderFgBrush}"/>
-                                        <Setter Property="Padding" Value="8,5"/>
-                                        <Setter Property="FontWeight" Value="SemiBold"/>
+                                        <Setter Property="Padding" Value="10,6"/>
+                                        <Setter Property="FontWeight" Value="Bold"/>
+                                        <Setter Property="FontSize" Value="12"/>
                                         <Setter Property="BorderThickness" Value="0,0,1,1"/>
                                         <Setter Property="BorderBrush" Value="{DynamicResource SqlHeaderBorderBrush}"/>
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="DataGridColumnHeader">
+                                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Padding="{TemplateBinding Padding}">
+                                                        <ContentPresenter SnapsToDevicePixels="True" VerticalAlignment="Center" HorizontalAlignment="Left"/>
+                                                    </Border>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                        <Style.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter Property="Background" Value="#334155"/>
+                                                <Setter Property="Foreground" Value="#00F0FF"/>
+                                            </Trigger>
+                                        </Style.Triggers>
                                     </Style>
                                 </DataGrid.ColumnHeaderStyle>
                                 <DataGrid.CellStyle>
@@ -4258,9 +4302,9 @@ function Set-ApplicationTheme([bool]$isDark) {
         $window.Resources["SqlBtnFgBrush"]        = $bc.ConvertFromString("#DCDCDC")
         $window.Resources["SqlEditorBgBrush"]     = $bc.ConvertFromString("#1E1E1E")
         $window.Resources["SqlEditorFgBrush"]     = $bc.ConvertFromString("#4ADE80")
-        $window.Resources["SqlHeaderBgBrush"]     = $bc.ConvertFromString("#2D2D30")
-        $window.Resources["SqlHeaderFgBrush"]     = $bc.ConvertFromString("#DCDCDC")
-        $window.Resources["SqlHeaderBorderBrush"] = $bc.ConvertFromString("#3F3F46")
+        $window.Resources["SqlHeaderBgBrush"]     = $bc.ConvertFromString("#1E293B")
+        $window.Resources["SqlHeaderFgBrush"]     = $bc.ConvertFromString("#38BDF8")
+        $window.Resources["SqlHeaderBorderBrush"] = $bc.ConvertFromString("#334155")
         
         # Toggle Button & Arc Reactor Capsule
         if ($txtThemeIcon)  { $txtThemeIcon.Text = "MODE"; $txtThemeIcon.Foreground = $bc.ConvertFromString("#38BDF8") }
@@ -4342,9 +4386,9 @@ function Set-ApplicationTheme([bool]$isDark) {
         $window.Resources["SqlBtnFgBrush"]        = $bc.ConvertFromString("#0F172A")
         $window.Resources["SqlEditorBgBrush"]     = $bc.ConvertFromString("#FFFFFF")
         $window.Resources["SqlEditorFgBrush"]     = $bc.ConvertFromString("#0F172A")
-        $window.Resources["SqlHeaderBgBrush"]     = $bc.ConvertFromString("#F1F5F9")
-        $window.Resources["SqlHeaderFgBrush"]     = $bc.ConvertFromString("#1E293B")
-        $window.Resources["SqlHeaderBorderBrush"] = $bc.ConvertFromString("#CBD5E1")
+        $window.Resources["SqlHeaderBgBrush"]     = $bc.ConvertFromString("#E2E8F0")
+        $window.Resources["SqlHeaderFgBrush"]     = $bc.ConvertFromString("#0F172A")
+        $window.Resources["SqlHeaderBorderBrush"] = $bc.ConvertFromString("#94A3B8")
         
         # Toggle Button & Arc Reactor Capsule
         if ($txtThemeIcon)  { $txtThemeIcon.Text = "MODE"; $txtThemeIcon.Foreground = $bc.ConvertFromString("#0284C7") }
@@ -10408,12 +10452,67 @@ function Show-JarvisAssistantWindow {
         $dgResults.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#0A101E")
         $dgResults.RowBackground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#0A101E")
         $dgResults.AlternatingRowBackground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#0F172A")
-        $dgResults.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#E2E8F0")
+        $dgResults.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#F8FAFC")
+        $dgResults.FontFamily = New-Object System.Windows.Media.FontFamily("Consolas, Segoe UI")
+        $dgResults.FontSize = 12
         $dgResults.GridLinesVisibility = [System.Windows.Controls.DataGridGridLinesVisibility]::All
         $dgResults.HorizontalGridLinesBrush = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#1E293B")
         $dgResults.VerticalGridLinesBrush = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#1E293B")
         $dgResults.BorderThickness = New-Object System.Windows.Thickness(0)
         $dgResults.Margin = New-Object System.Windows.Thickness(4)
+
+        # High-Contrast Column Header Style for AI Data Grid
+        $hdrStyleXaml = @"
+<Style xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" TargetType="DataGridColumnHeader">
+    <Setter Property="Background" Value="#1E293B"/>
+    <Setter Property="Foreground" Value="#38BDF8"/>
+    <Setter Property="FontWeight" Value="Bold"/>
+    <Setter Property="FontSize" Value="12.5"/>
+    <Setter Property="Padding" Value="10,7"/>
+    <Setter Property="BorderThickness" Value="0,0,1,1"/>
+    <Setter Property="BorderBrush" Value="#334155"/>
+    <Setter Property="Template">
+        <Setter.Value>
+            <ControlTemplate TargetType="DataGridColumnHeader">
+                <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Padding="{TemplateBinding Padding}">
+                    <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Left" SnapsToDevicePixels="True"/>
+                </Border>
+            </ControlTemplate>
+        </Setter.Value>
+    </Setter>
+    <Style.Triggers>
+        <Trigger Property="IsMouseOver" Value="True">
+            <Setter Property="Background" Value="#334155"/>
+            <Setter Property="Foreground" Value="#00F0FF"/>
+        </Trigger>
+    </Style.Triggers>
+</Style>
+"@
+        try { $dgResults.ColumnHeaderStyle = [System.Windows.Markup.XamlReader]::Parse($hdrStyleXaml) } catch {}
+
+        # High-Contrast Cell Selection Style
+        $cellStyleXaml = @"
+<Style xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" TargetType="DataGridCell">
+    <Setter Property="Padding" Value="8,5"/>
+    <Setter Property="Template">
+        <Setter.Value>
+            <ControlTemplate TargetType="DataGridCell">
+                <Border Padding="{TemplateBinding Padding}" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                    <ContentPresenter SnapsToDevicePixels="True"/>
+                </Border>
+            </ControlTemplate>
+        </Setter.Value>
+    </Setter>
+    <Style.Triggers>
+        <Trigger Property="IsSelected" Value="True">
+            <Setter Property="Background" Value="#0284C7"/>
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+        </Trigger>
+    </Style.Triggers>
+</Style>
+"@
+        try { $dgResults.CellStyle = [System.Windows.Markup.XamlReader]::Parse($cellStyleXaml) } catch {}
+
         [System.Windows.Controls.Grid]::SetRow($dgResults, 1)
         $tDataGrid.Children.Add($dgResults) | Out-Null
         $tabData.Content = $tDataGrid
