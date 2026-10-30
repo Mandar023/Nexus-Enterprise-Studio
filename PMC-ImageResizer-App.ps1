@@ -2907,7 +2907,7 @@ try {
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <RadioButton x:Name="rbUrlParent2" Grid.Column="0" GroupName="ParentUrlGroup" Content="URL 2: SOURCE 11 (WARDS)" Foreground="#94A3B8" FontWeight="SemiBold" VerticalAlignment="Center" ToolTip="Source with ward subfolders (e.g. ward no TPPG\Photo and \Plan)"/>
-                                <TextBox x:Name="txtThreeUrl2" Grid.Column="1" Text="\\192.168.1.11\Panvel_PMC_All_Ward_Wise_Photo_Plan" VerticalAlignment="Center" Margin="8,0,8,0" ToolTip="Ward Root Folder (e.g. ward no TPPG\Photo and ward no TPPG\Plan)"/>
+                                <TextBox x:Name="txtThreeUrl2" Grid.Column="1" Text="\\192.168.1.11\d\Images\NTIS_4030" VerticalAlignment="Center" Margin="8,0,8,0" ToolTip="Ward Root Folder on Server 11 (240 ward folders with photos &amp; plans)"/>
                                 <Button x:Name="btnThreeUrlBrowse2" Grid.Column="2" Style="{StaticResource ActionButton}" Content="Browse 2..." Width="100" Background="#1E293B" Height="30" Padding="10,2" FontSize="11.5" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
                             </Grid>
                         </Border>
@@ -3683,6 +3683,7 @@ try {
                         <Button x:Name="btnLanPushAppUpdate" Content="PUSH APP UPDATE TO LAN" Background="#7C3AED" Foreground="White" FontWeight="Bold" FontSize="10" Padding="11,6" Margin="0,0,5,0" BorderThickness="0" Cursor="Hand" ToolTip="Broadcast and automatically update PMC-ImageResizer-App on all other connected user PCs"/>
                         <Button x:Name="btnLanCheckAppUpdate" Content="CHECK FOR UPDATES" Background="#0284C7" Foreground="White" FontWeight="Bold" FontSize="10" Padding="9,6" Margin="0,0,5,0" BorderThickness="0" Cursor="Hand" ToolTip="Check network for newer version of this application"/>
                         <Button x:Name="btnLanScanPeers" Content="REFRESH PEERS" Background="{StaticResource PrimaryBtnBrush}" Foreground="White" FontWeight="Bold" FontSize="10" Padding="9,6" Margin="0,0,5,0" BorderThickness="0" Cursor="Hand" ToolTip="Scan local network for other computers running Nexus"/>
+                        <Button x:Name="btnLanAdvIpConfig" Content="ADVANCED IP CONFIG" Background="#0F766E" Foreground="White" FontWeight="Bold" FontSize="10" Padding="9,6" Margin="0,0,5,0" BorderThickness="0" Cursor="Hand" ToolTip="Configure custom LAN IP list, scan subnet range (192.168.1.x), test TCP port 52824 &amp; firewall"/>
                         <Button x:Name="btnLanCopyWebLink" Content="COPY WEB LINK" Background="#0284C7" Foreground="White" FontWeight="Bold" FontSize="10" Padding="9,6" Margin="0,0,5,0" BorderThickness="0" Cursor="Hand" ToolTip="Copy Web Download link (anyone on the network can download in Chrome/Edge without needing Nexus)"/>
                         <Button x:Name="btnLanFixFirewall" Content="FIREWALL SETUP" Background="#475569" Foreground="White" FontWeight="Bold" FontSize="10" Padding="9,6" Margin="0,0,5,0" BorderThickness="0" Cursor="Hand" ToolTip="Configure Windows Firewall rules for LAN file sharing"/>
                         <Button x:Name="btnLanQuickAssist" Content="REMOTE ASSIST" Background="#6366F1" Foreground="White" FontWeight="Bold" FontSize="10" Padding="9,6" Margin="0,0,5,0" BorderThickness="0" Cursor="Hand" ToolTip="Open Windows Quick Assist to view or help on another PC"/>
@@ -3898,6 +3899,7 @@ $lblLanMyIdentity     = $window.FindName("lblLanMyIdentity")
 $btnLanPushAppUpdate = $window.FindName("btnLanPushAppUpdate")
 $btnLanCheckAppUpdate = $window.FindName("btnLanCheckAppUpdate")
 $btnLanScanPeers      = $window.FindName("btnLanScanPeers")
+$btnLanAdvIpConfig    = $window.FindName("btnLanAdvIpConfig")
 $btnLanCopyWebLink    = $window.FindName("btnLanCopyWebLink")
 $btnLanFixFirewall    = $window.FindName("btnLanFixFirewall")
 $btnLanOpenWebLink    = $window.FindName("btnLanOpenWebLink")
@@ -5043,25 +5045,49 @@ function Build-JarvisSchemaIndex($dbConn) {
         return
     }
     try {
-        $cmd = $dbConn.CreateCommand()
-        $cmd.CommandTimeout = 0
-        $cmd.CommandText = "SELECT t.TABLE_SCHEMA, t.TABLE_NAME, c.COLUMN_NAME, c.DATA_TYPE FROM INFORMATION_SCHEMA.TABLES t JOIN INFORMATION_SCHEMA.COLUMNS c ON t.TABLE_NAME = c.TABLE_NAME AND t.TABLE_SCHEMA = c.TABLE_SCHEMA WHERE t.TABLE_TYPE = 'BASE TABLE' ORDER BY t.TABLE_NAME, c.ORDINAL_POSITION"
-        $rdr = $cmd.ExecuteReader()
         $tblDict = @{}
         $schemaDict = @{}
-        while ($rdr.Read()) {
-            $s = $rdr['TABLE_SCHEMA'].ToString()
-            $t = $rdr['TABLE_NAME'].ToString()
-            $c = $rdr['COLUMN_NAME'].ToString()
-            $dt = $rdr['DATA_TYPE'].ToString()
-            if (-not $tblDict.ContainsKey($t)) {
-                $tblDict[$t] = [System.Collections.Generic.List[PSObject]]::new()
-                $schemaDict[$t] = $s
+        $loadedOk = $false
+        try {
+            $cmd = $dbConn.CreateCommand()
+            $cmd.CommandTimeout = 30
+            $cmd.CommandText = "SELECT s.name AS TABLE_SCHEMA, t.name AS TABLE_NAME, c.name AS COLUMN_NAME, tp.name AS DATA_TYPE FROM sys.tables t WITH (NOLOCK) INNER JOIN sys.schemas s WITH (NOLOCK) ON t.schema_id = s.schema_id INNER JOIN sys.columns c WITH (NOLOCK) ON t.object_id = c.object_id INNER JOIN sys.types tp WITH (NOLOCK) ON c.user_type_id = tp.user_type_id ORDER BY t.name, c.column_id"
+            $rdr = $cmd.ExecuteReader()
+            while ($rdr.Read()) {
+                $s = $rdr['TABLE_SCHEMA'].ToString()
+                $t = $rdr['TABLE_NAME'].ToString()
+                $c = $rdr['COLUMN_NAME'].ToString()
+                $dt = $rdr['DATA_TYPE'].ToString()
+                if (-not $tblDict.ContainsKey($t)) {
+                    $tblDict[$t] = [System.Collections.Generic.List[PSObject]]::new()
+                    $schemaDict[$t] = $s
+                }
+                $tblDict[$t].Add([PSCustomObject]@{ Column = $c; Type = $dt })
             }
-            $tblDict[$t].Add([PSCustomObject]@{ Column = $c; Type = $dt })
+            $rdr.Close()
+            $cmd.Dispose()
+            if ($tblDict.Count -gt 0) { $loadedOk = $true }
+        } catch { }
+
+        if (-not $loadedOk) {
+            $cmd = $dbConn.CreateCommand()
+            $cmd.CommandTimeout = 60
+            $cmd.CommandText = "SELECT t.TABLE_SCHEMA, t.TABLE_NAME, c.COLUMN_NAME, c.DATA_TYPE FROM INFORMATION_SCHEMA.TABLES t JOIN INFORMATION_SCHEMA.COLUMNS c ON t.TABLE_NAME = c.TABLE_NAME AND t.TABLE_SCHEMA = c.TABLE_SCHEMA WHERE t.TABLE_TYPE = 'BASE TABLE' ORDER BY t.TABLE_NAME, c.ORDINAL_POSITION"
+            $rdr = $cmd.ExecuteReader()
+            while ($rdr.Read()) {
+                $s = $rdr['TABLE_SCHEMA'].ToString()
+                $t = $rdr['TABLE_NAME'].ToString()
+                $c = $rdr['COLUMN_NAME'].ToString()
+                $dt = $rdr['DATA_TYPE'].ToString()
+                if (-not $tblDict.ContainsKey($t)) {
+                    $tblDict[$t] = [System.Collections.Generic.List[PSObject]]::new()
+                    $schemaDict[$t] = $s
+                }
+                $tblDict[$t].Add([PSCustomObject]@{ Column = $c; Type = $dt })
+            }
+            $rdr.Close()
+            $cmd.Dispose()
         }
-        $rdr.Close()
-        $cmd.Dispose()
 
         # Fetch Primary Keys dynamically from live database
         $pkDict = @{}
@@ -8017,12 +8043,45 @@ function Convert-JarvisNLToSql([string]$prompt) {
     if (-not [string]::IsNullOrWhiteSpace($geminiKey)) {
         try {
             $log.Add("[STAGE 1: GENIUS LLM] Engaging Google Gemini Neural Intelligence Engine with dynamic schema...")
-            $schemaSb = [System.Text.StringBuilder]::new()
-            [void]$schemaSb.Append("Database Schema: ")
+            
+            # Select most relevant candidate tables semantically for detailed column schema
+            $scoredTables = [System.Collections.Generic.List[PSCustomObject]]::new()
             foreach ($tKey in $script:JarvisSchema.AllTables) {
-                $cList = ($script:JarvisSchema.Tables[$tKey] | ForEach-Object { $_.Column }) -join ", "
-                [void]$schemaSb.Append("[$tKey]($cList); ")
+                $sc = Get-JarvisTableSemanticScore $tKey $p
+                $scoredTables.Add([PSCustomObject]@{ Table = $tKey; Score = $sc })
             }
+            $topCandidateTables = @($scoredTables | Sort-Object -Property Score -Descending | Select-Object -First 30 | ForEach-Object { $_.Table })
+            
+            $schemaSb = [System.Text.StringBuilder]::new()
+            [void]$schemaSb.AppendLine("Candidate Tables & Full Columns Schema:")
+            foreach ($tKey in $topCandidateTables) {
+                if ($script:JarvisSchema.Tables.ContainsKey($tKey)) {
+                    $cList = ($script:JarvisSchema.Tables[$tKey] | ForEach-Object { "$($_.Column) ($($_.Type))" }) -join ", "
+                    $pk = if ($script:JarvisSchema.PrimaryKeys.ContainsKey($tKey)) { " [PK: $($script:JarvisSchema.PrimaryKeys[$tKey])]" } else { "" }
+                    $sch = if ($script:JarvisSchema.TableSchemas.ContainsKey($tKey)) { $script:JarvisSchema.TableSchemas[$tKey] } else { "dbo" }
+                    [void]$schemaSb.AppendLine("[$sch].[$tKey]${pk}: $cList")
+                }
+            }
+            
+            # Condense all other table names in database
+            $allTableNames = ($script:JarvisSchema.AllTables | Select-Object -First 250) -join ", "
+            [void]$schemaSb.AppendLine("`nAll Available Indexed Tables in Database ($($script:JarvisSchema.AllTables.Count) tables): $allTableNames")
+            
+            # Foreign Key hints
+            if ($script:JarvisSchema.ForeignKeys -and $script:JarvisSchema.ForeignKeys.Count -gt 0) {
+                $fkHints = [System.Collections.Generic.List[string]]::new()
+                foreach ($tKey in $topCandidateTables) {
+                    if ($script:JarvisSchema.ForeignKeys.ContainsKey($tKey)) {
+                        foreach ($fk in $script:JarvisSchema.ForeignKeys[$tKey]) {
+                            $fkHints.Add("[$tKey].$($fk.Col) -> [$($fk.RefTable)].$($fk.RefCol)")
+                        }
+                    }
+                }
+                if ($fkHints.Count -gt 0) {
+                    [void]$schemaSb.AppendLine("`nKnown Relationships: " + ($fkHints -join "; "))
+                }
+            }
+
             $schemaContext = $schemaSb.ToString()
             $systemInstruction = "You are the world's most advanced Autonomous SQL AI Agent for an Enterprise Municipal Corporation database. Convert the natural language question (which may be in Marathi, Hinglish, or English) into an exact, high-performance T-SQL query with WITH (NOLOCK). Return raw SQL only without markdown backticks or explanations."
 
@@ -8036,17 +8095,28 @@ function Convert-JarvisNLToSql([string]$prompt) {
                 )
             } | ConvertTo-Json -Depth 5
 
+            $bodyBytes = [System.Text.Encoding]::UTF8.GetBytes($payload)
             $url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=$geminiKey"
-            $geminiRes = Invoke-RestMethod -Uri $url -Method Post -Body $payload -ContentType "application/json; charset=utf-8" -TimeoutSec 10
-            $geminiText = $geminiRes.candidates[0].content.parts[0].text.Trim()
-            $cleanGeminiSql = $geminiText -replace '(?s)```(?:sql)?\s*(.*?)\s*```', '$1'
-            if ($cleanGeminiSql -match '(?i)^\s*(?:SELECT|WITH)\b') {
-                $log.Add("[STAGE 1: GENIUS LLM] Gemini 2.0 Flash generated state-of-the-art T-SQL query across whole schema.")
-                $gTbl = "PropertyMast"
-                if ($cleanGeminiSql -match '(?i)\bFROM\s+\[?(?:dbo\.)?\[?([a-zA-Z0-9_]+)\]?') {
-                    $gTbl = Get-BestMatchingTable $matches[1]
+            $geminiRes = $null
+            try {
+                $geminiRes = Invoke-RestMethod -Uri $url -Method Post -Body $bodyBytes -ContentType "application/json; charset=utf-8" -TimeoutSec 30
+            } catch {
+                # Fallback to gemini-1.5-flash
+                $urlFallback = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=$geminiKey"
+                $geminiRes = Invoke-RestMethod -Uri $urlFallback -Method Post -Body $bodyBytes -ContentType "application/json; charset=utf-8" -TimeoutSec 30
+            }
+
+            if ($geminiRes -and $geminiRes.candidates -and $geminiRes.candidates.Count -gt 0) {
+                $geminiText = $geminiRes.candidates[0].content.parts[0].text.Trim()
+                $cleanGeminiSql = $geminiText -replace '(?s)```(?:sql)?\s*(.*?)\s*```', '$1'
+                if ($cleanGeminiSql -match '(?i)^\s*(?:SELECT|WITH)\b') {
+                    $log.Add("[STAGE 1: GENIUS LLM] Gemini 2.0 Flash generated state-of-the-art T-SQL query across whole schema.")
+                    $gTbl = "PropertyMast"
+                    if ($cleanGeminiSql -match '(?i)\bFROM\s+\[?(?:dbo\.)?\[?([a-zA-Z0-9_]+)\]?') {
+                        $gTbl = Get-BestMatchingTable $matches[1]
+                    }
+                    return [PSCustomObject]@{ Sql = $cleanGeminiSql.Trim(); Table = $gTbl; Logs = $log }
                 }
-                return [PSCustomObject]@{ Sql = $cleanGeminiSql.Trim(); Table = $gTbl; Logs = $log }
             }
         } catch {
             $log.Add("[STAGE 1: GENIUS LLM NOTE]: Cloud AI offline ($($_.Exception.Message)) -> Seamlessly switched to High-Speed Universal Municipal Brain.")
@@ -8325,13 +8395,26 @@ function Convert-JarvisNLToSql([string]$prompt) {
             }
         }
 
-        # Dynamic fallback for arbitrary live tables
+        # Direct prompt harvesting for any column in this table explicitly mentioned
+        foreach ($c in $availCols) {
+            $cLow = $c.ToLower()
+            if ($cLow.Length -ge 3 -and $p -match "\b$([regex]::Escape($cLow))\b") {
+                if (-not $selList.Contains($c)) { $selList.Add($c) }
+            }
+        }
+
+        # Dynamic fallback for arbitrary live tables across all 1,216 entities
         if ($selList.Count -le 2) {
             foreach ($c in $availCols) {
                 if ($selList.Count -ge 8) { break }
-                if (-not $selList.Contains($c) -and $c -match 'Name|Title|Ward|No|Amount|Total|Date|Status|Type|Area') {
+                if (-not $selList.Contains($c) -and $c -match 'Name|Title|Ward|No|Amount|Total|Date|Status|Type|Area|Rate|Value|Code|Category') {
                     $selList.Add($c)
                 }
+            }
+        }
+        if ($selList.Count -le 1 -and $availCols.Count -gt 0) {
+            for ($i = 0; $i -lt [Math]::Min(8, $availCols.Count); $i++) {
+                if (-not $selList.Contains($availCols[$i])) { $selList.Add($availCols[$i]) }
             }
         }
 
@@ -8344,7 +8427,8 @@ function Convert-JarvisNLToSql([string]$prompt) {
                 elseif ($availCols -contains "LodgedDate") { "LodgedDate DESC" }
                 elseif ($availCols -contains "TaxTotal") { "TaxTotal DESC" }
                 elseif ($availCols -contains "Amount") { "Amount DESC" }
-                elseif ($availCols.Count -gt 0) { "$($availCols[0]) DESC" }
+                elseif ($pk -and $availCols -contains $pk) { "$pk ASC" }
+                elseif ($availCols.Count -gt 0) { "$($availCols[0]) ASC" }
                 else { "1" }
 
     $sch = if ($script:JarvisSchema.TableSchemas.ContainsKey($primaryTable)) { $script:JarvisSchema.TableSchemas[$primaryTable] } else { "dbo" }
@@ -9982,7 +10066,7 @@ function New-NexusAppInstance {
 }
 function Show-JarvisAssistantWindow {
     try {
-        if ($script:SqlConnection -and $script:SqlConnection.State -eq [System.Data.ConnectionState]::Open -and $script:JarvisSchema.AllTables.Count -eq 0) {
+        if ($script:SqlConnection -and $script:SqlConnection.State -eq [System.Data.ConnectionState]::Open -and (-not $script:JarvisSchema.IsLiveDb -or $script:JarvisSchema.AllTables.Count -le 14)) {
             try { Build-JarvisSchemaIndex $script:SqlConnection } catch { }
         } elseif (-not $script:JarvisSchema -or $script:JarvisSchema.AllTables.Count -eq 0) {
             try { Initialize-JarvisDefaultSchema } catch { }
@@ -10093,8 +10177,8 @@ function Show-JarvisAssistantWindow {
             $curKey = if ($script:JarvisGeminiApiKey) { $script:JarvisGeminiApiKey } else { "" }
             $inputWin = New-Object System.Windows.Window
             $inputWin.Title = "Google Gemini Neural Cloud Engine Configuration"
-            $inputWin.Width = 540
-            $inputWin.Height = 230
+            $inputWin.Width = 620
+            $inputWin.Height = 290
             $inputWin.WindowStartupLocation = [System.Windows.WindowStartupLocation]::CenterOwner
             $inputWin.Owner = $win
             $inputWin.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#0B132B")
@@ -10129,7 +10213,7 @@ function Show-JarvisAssistantWindow {
             $iGrid.Children.Add($iBox) | Out-Null
 
             $iHint = New-Object System.Windows.Controls.TextBlock
-            $iHint.Text = "Leave empty to use Ultra-Fast Built-in Municipal Heuristic Engine (100% Offline, Zero Config)."
+            $iHint.Text = "Leave empty to use Ultra-Fast Municipal Semantic Brain (100% Offline, All 1,216 Tables Indexed). Free key unlocks full multilingual reasoning."
             $iHint.FontSize = 11; $iHint.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#94A3B8")
             $iHint.Margin = New-Object System.Windows.Thickness(0,0,0,12)
             [System.Windows.Controls.Grid]::SetRow($iHint, 2)
@@ -10139,6 +10223,51 @@ function Show-JarvisAssistantWindow {
             $iBtnStack.Orientation = [System.Windows.Controls.Orientation]::Horizontal
             $iBtnStack.HorizontalAlignment = [System.Windows.HorizontalAlignment]::Right
             [System.Windows.Controls.Grid]::SetRow($iBtnStack, 3)
+
+            $iBtnGetFree = New-Object System.Windows.Controls.Button
+            $iBtnGetFree.Content = "GET FREE API KEY"
+            $iBtnGetFree.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#4F46E5")
+            $iBtnGetFree.Foreground = [System.Windows.Media.Brushes]::White
+            $iBtnGetFree.FontWeight = [System.Windows.FontWeights]::Bold
+            $iBtnGetFree.Padding = New-Object System.Windows.Thickness(10,6,10,6)
+            $iBtnGetFree.Margin = New-Object System.Windows.Thickness(0,0,8,0)
+            $iBtnGetFree.Cursor = [System.Windows.Input.Cursors]::Hand
+            $iBtnGetFree.ToolTip = "Open Google AI Studio to get a free Gemini API key in 30 seconds"
+            $iBtnGetFree.Add_Click({
+                try { Start-Process "https://aistudio.google.com/app/apikey" } catch { }
+            })
+            $iBtnStack.Children.Add($iBtnGetFree) | Out-Null
+
+            $iBtnTest = New-Object System.Windows.Controls.Button
+            $iBtnTest.Content = "TEST KEY"
+            $iBtnTest.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#0D9488")
+            $iBtnTest.Foreground = [System.Windows.Media.Brushes]::White
+            $iBtnTest.FontWeight = [System.Windows.FontWeights]::Bold
+            $iBtnTest.Padding = New-Object System.Windows.Thickness(10,6,10,6)
+            $iBtnTest.Margin = New-Object System.Windows.Thickness(0,0,8,0)
+            $iBtnTest.Cursor = [System.Windows.Input.Cursors]::Hand
+            $iBtnTest.Add_Click({
+                $tKey = $iBox.Text.Trim()
+                if ([string]::IsNullOrWhiteSpace($tKey)) {
+                    [System.Windows.MessageBox]::Show("Please paste a Gemini API Key to test.", "API Key Required", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Warning)
+                    return
+                }
+                $iBtnTest.Content = "TESTING..."
+                $iBtnTest.IsEnabled = $false
+                try {
+                    $testUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=$tKey"
+                    $tPayload = @{ contents = @(@{ parts = @(@{ text = "Return raw text: OK" }) }) } | ConvertTo-Json
+                    $tBytes = [System.Text.Encoding]::UTF8.GetBytes($tPayload)
+                    $res = Invoke-RestMethod -Uri $testUrl -Method Post -Body $tBytes -ContentType "application/json; charset=utf-8" -TimeoutSec 10
+                    [System.Windows.MessageBox]::Show("SUCCESS: Google Gemini 2.0 Flash is active and responding!`nCandidate response: $($res.candidates[0].content.parts[0].text.Trim())", "Key Valid", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Information)
+                } catch {
+                    [System.Windows.MessageBox]::Show("Connection Test Notice: $($_.Exception.Message)`n`nPlease verify your internet connection or API key from aistudio.google.com.", "Test Notice", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Warning)
+                } finally {
+                    $iBtnTest.Content = "TEST KEY"
+                    $iBtnTest.IsEnabled = $true
+                }
+            })
+            $iBtnStack.Children.Add($iBtnTest) | Out-Null
 
             $iBtnSave = New-Object System.Windows.Controls.Button
             $iBtnSave.Content = "SAVE & ACTIVATE"
@@ -14671,7 +14800,7 @@ if ($btnThreeUrlPresetPanvel) {
     $btnThreeUrlPresetPanvel.Add_Click({
         $rbUrlParent1.IsChecked = $true
         $txtThreeUrl1.Text = "\\192.168.1.19\Files"
-        $txtThreeUrl2.Text = "\\192.168.1.11\Panvel_PMC_All_Ward_Wise_Photo_Plan"
+        $txtThreeUrl2.Text = "\\192.168.1.11\d\Images\NTIS_4030"
         $txtThreeUrl3.Text = "\\192.168.1.22\PMC_Photo_22"
         if ($rbSyncCategoryBoth) { $rbSyncCategoryBoth.IsChecked = $true }
         if ($rbSyncActionToParent) { $rbSyncActionToParent.IsChecked = $true }
@@ -14685,8 +14814,8 @@ if ($btnThreeUrlPresetPanvel) {
         Append-ExtractLog "LOADED PANVEL MC 3-SERVER NETWORK PRESET"
         Append-ExtractLog "URL 1 (Target Master) : \\192.168.1.19\Files"
         Append-ExtractLog "  -> Auto-routes into PropertyImage & PlanPhoto"
-        Append-ExtractLog "URL 2 (Ward Folders)  : \\192.168.1.11\Panvel_PMC_All_Ward_Wise_Photo_Plan"
-        Append-ExtractLog "  -> Auto-detects ward no ...\Photo & ward no ...\Plan"
+        Append-ExtractLog "URL 2 (Ward Folders)  : \\192.168.1.11\d\Images\NTIS_4030"
+        Append-ExtractLog "  -> Auto-detects 240 wards with photos & plans"
         Append-ExtractLog "URL 3 (PMC 22 Host)   : \\192.168.1.22\PMC_Photo_22"
         Append-ExtractLog "  -> Auto-detects PropertyImage & PlanPhoto"
         Append-ExtractLog "Common Deduplication  : ENABLED (Identical files in 19 are ignored)"
@@ -16048,6 +16177,27 @@ try {
     $script:UpdateSnoozedUntil = $null
     $script:AutoUpdateTimer = $null
     $script:AppScriptPath = if ($MyInvocation -and $MyInvocation.MyCommand -and $MyInvocation.MyCommand.Path) { $MyInvocation.MyCommand.Path } else { Join-Path $PSScriptRoot "PMC-ImageResizer-App.ps1" }
+    $script:LanSavedPeersFile = Join-Path $script:AppDir "saved-lan-peers.json"
+
+    function Get-SavedLanPeers {
+        if (-not (Test-Path $script:LanSavedPeersFile)) { return @() }
+        try {
+            $json = [System.IO.File]::ReadAllText($script:LanSavedPeersFile)
+            $arr = $json | ConvertFrom-Json
+            if ($arr -is [System.Collections.IEnumerable]) { return [string[]]$arr }
+            elseif ($arr) { return @([string]$arr) }
+        } catch { }
+        return @()
+    }
+
+    function Save-SavedLanPeers([string[]]$peerList) {
+        try {
+            $clean = @($peerList | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Select-Object -Unique)
+            $json = $clean | ConvertTo-Json
+            [System.IO.File]::WriteAllText($script:LanSavedPeersFile, $json)
+            return $true
+        } catch { return $false }
+    }
 
     function Format-LanFileSize ([int64]$bytes) {
         if ($bytes -ge 1GB) { return "{0:N2} GB" -f ($bytes / 1GB) }
@@ -16127,6 +16277,14 @@ try {
             $bytes = [System.Text.Encoding]::UTF8.GetBytes($msg)
             $bcastEp = New-Object System.Net.IPEndPoint([System.Net.IPAddress]::Broadcast, $script:LanUdpPort)
             $script:LanUdpSocket.Send($bytes, $bytes.Length, $bcastEp) | Out-Null
+            $saved = Get-SavedLanPeers
+            foreach ($sip in $saved) {
+                try {
+                    $ipObj = [System.Net.IPAddress]::Parse($sip)
+                    $uEp = New-Object System.Net.IPEndPoint($ipObj, $script:LanUdpPort)
+                    $script:LanUdpSocket.Send($bytes, $bytes.Length, $uEp) | Out-Null
+                } catch { }
+            }
         } catch {}
     }
 
@@ -16907,6 +17065,22 @@ function Push-AppUpdateToAllPeers {
         }
     }
 
+    # Also include all saved static peers configured in Advanced IP
+    $savedPeers = Get-SavedLanPeers
+    foreach ($sip in $savedPeers) {
+        if ($sip -and $sip -ne $script:LanLocalIP -and $sip -ne "127.0.0.1") {
+            $alreadyIn = $targets | Where-Object { $_.IP -eq $sip }
+            if (-not $alreadyIn) {
+                $targets += [PSCustomObject]@{
+                    HostName = $sip
+                    UserName = "Saved Peer"
+                    IP = $sip
+                    Port = $script:LanTcpPort
+                }
+            }
+        }
+    }
+
     # Also automatically discover and add all other active computers connected to SQL Server
     try {
         $connInfo = Get-ActiveOrSavedSqlConnection
@@ -17421,6 +17595,426 @@ function Connect-LanTcpPeer ($ip, $port, [int]$timeoutMs = 3500) {
         } catch {} finally {
             try { $client.Close() } catch {}
         }
+    }
+
+    function Show-LanAdvancedIpConfigWindow {
+        try {
+            $winAdv = New-Object System.Windows.Window
+            $winAdv.Title = "DIRECT PC SHARE - ADVANCED IP CONFIGURATION & LAN DIAGNOSTICS"
+            $winAdv.Width = 720
+            $winAdv.Height = 650
+            $winAdv.WindowStartupLocation = [System.Windows.WindowStartupLocation]::CenterScreen
+            if ($window -and $window.IsVisible) {
+                try {
+                    $winAdv.Owner = $window
+                    $winAdv.WindowStartupLocation = [System.Windows.WindowStartupLocation]::CenterOwner
+                } catch {}
+            }
+            $winAdv.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#060A13")
+            $winAdv.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#F8FAFC")
+            $winAdv.ResizeMode = [System.Windows.ResizeMode]::CanResizeWithGrip
+
+            $scroll = New-Object System.Windows.Controls.ScrollViewer
+            $scroll.VerticalScrollBarVisibility = [System.Windows.Controls.ScrollBarVisibility]::Auto
+            $scroll.HorizontalScrollBarVisibility = [System.Windows.Controls.ScrollBarVisibility]::Disabled
+
+            $root = New-Object System.Windows.Controls.StackPanel
+            $root.Margin = New-Object System.Windows.Thickness(16)
+            $scroll.Content = $root
+
+            # 1. Header Card
+            $hdrBorder = New-Object System.Windows.Controls.Border
+            $hdrBorder.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#0B132B")
+            $hdrBorder.BorderBrush = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#00F0FF")
+            $hdrBorder.BorderThickness = New-Object System.Windows.Thickness(1)
+            $hdrBorder.CornerRadius = New-Object System.Windows.CornerRadius(8)
+            $hdrBorder.Padding = New-Object System.Windows.Thickness(14,10,14,10)
+            $hdrBorder.Margin = New-Object System.Windows.Thickness(0,0,0,12)
+
+            $hdrStack = New-Object System.Windows.Controls.StackPanel
+            $hdrTitle = New-Object System.Windows.Controls.TextBlock
+            $hdrTitle.Text = "Advanced IP Configuration & High-Speed LAN Discovery"
+            $hdrTitle.FontSize = 14; $hdrTitle.FontWeight = [System.Windows.FontWeights]::Bold; $hdrTitle.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#38BDF8")
+            $hdrSub = New-Object System.Windows.Controls.TextBlock
+            $hdrSub.Text = "Manage static peer IPs, scan subnet ranges (192.168.1.x), test TCP port 52824 & configure Windows Firewall"
+            $hdrSub.FontSize = 11; $hdrSub.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#94A3B8")
+            $hdrStack.Children.Add($hdrTitle) | Out-Null
+            $hdrStack.Children.Add($hdrSub) | Out-Null
+            $hdrBorder.Child = $hdrStack
+            $root.Children.Add($hdrBorder) | Out-Null
+
+            # 2. Local Network Adapter Information Card
+            $netCard = New-Object System.Windows.Controls.Border
+            $netCard.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#0F172A")
+            $netCard.BorderBrush = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#1E293B")
+            $netCard.BorderThickness = New-Object System.Windows.Thickness(1)
+            $netCard.CornerRadius = New-Object System.Windows.CornerRadius(6)
+            $netCard.Padding = New-Object System.Windows.Thickness(12)
+            $netCard.Margin = New-Object System.Windows.Thickness(0,0,0,12)
+
+            $netGrid = New-Object System.Windows.Controls.Grid
+            $nr0 = New-Object System.Windows.Controls.RowDefinition; $nr0.Height = [System.Windows.GridLength]::Auto
+            $nr1 = New-Object System.Windows.Controls.RowDefinition; $nr1.Height = [System.Windows.GridLength]::Auto
+            $netGrid.RowDefinitions.Add($nr0); $netGrid.RowDefinitions.Add($nr1)
+
+            $netLbl = New-Object System.Windows.Controls.TextBlock
+            $netLbl.Text = "CURRENT HOST NETWORK INTERFACE"
+            $netLbl.FontSize = 11; $netLbl.FontWeight = [System.Windows.FontWeights]::Bold; $netLbl.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#10B981")
+            [System.Windows.Controls.Grid]::SetRow($netLbl, 0)
+            $netGrid.Children.Add($netLbl) | Out-Null
+
+            $netInfo = New-Object System.Windows.Controls.TextBlock
+            $netInfo.Text = "Local IP: $script:LanLocalIP | Host: $env:COMPUTERNAME | Discovery UDP: $script:LanUdpPort | Direct TCP: $script:LanTcpPort | Web Share: $script:LanWebPort"
+            $netInfo.FontSize = 11.5; $netInfo.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#E2E8F0")
+            $netInfo.FontFamily = New-Object System.Windows.Media.FontFamily("Consolas")
+            $netInfo.Margin = New-Object System.Windows.Thickness(0,4,0,0)
+            [System.Windows.Controls.Grid]::SetRow($netInfo, 1)
+            $netGrid.Children.Add($netInfo) | Out-Null
+            $netCard.Child = $netGrid
+            $root.Children.Add($netCard) | Out-Null
+
+            # 3. Static Custom Peer Registry Card
+            $peerCard = New-Object System.Windows.Controls.Border
+            $peerCard.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#0F172A")
+            $peerCard.BorderBrush = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#1E293B")
+            $peerCard.BorderThickness = New-Object System.Windows.Thickness(1)
+            $peerCard.CornerRadius = New-Object System.Windows.CornerRadius(6)
+            $peerCard.Padding = New-Object System.Windows.Thickness(12)
+            $peerCard.Margin = New-Object System.Windows.Thickness(0,0,0,12)
+
+            $peerStack = New-Object System.Windows.Controls.StackPanel
+            $peerLbl = New-Object System.Windows.Controls.TextBlock
+            $peerLbl.Text = "SAVED STATIC PEERS (ALWAYS DISCOVERED & TARGETED FOR UPDATES)"
+            $peerLbl.FontSize = 11; $peerLbl.FontWeight = [System.Windows.FontWeights]::Bold; $peerLbl.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#38BDF8")
+            $peerStack.Children.Add($peerLbl) | Out-Null
+
+            $peerInputGrid = New-Object System.Windows.Controls.Grid
+            $peerInputGrid.Margin = New-Object System.Windows.Thickness(0,6,0,6)
+            $pic0 = New-Object System.Windows.Controls.ColumnDefinition; $pic0.Width = New-Object System.Windows.GridLength(1, [System.Windows.GridUnitType]::Star)
+            $pic1 = New-Object System.Windows.Controls.ColumnDefinition; $pic1.Width = [System.Windows.GridLength]::Auto
+            $peerInputGrid.ColumnDefinitions.Add($pic0); $peerInputGrid.ColumnDefinitions.Add($pic1)
+
+            $txtNewPeerIp = New-Object System.Windows.Controls.TextBox
+            $txtNewPeerIp.Height = 30
+            $txtNewPeerIp.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#060A13")
+            $txtNewPeerIp.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#00F0FF")
+            $txtNewPeerIp.BorderBrush = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#334155")
+            $txtNewPeerIp.FontFamily = New-Object System.Windows.Media.FontFamily("Consolas")
+            $txtNewPeerIp.FontSize = 12
+            $txtNewPeerIp.ToolTip = "Enter single IP (192.168.1.12) or comma-separated list (192.168.1.12, 192.168.1.13, 192.168.1.55)"
+            [System.Windows.Controls.Grid]::SetColumn($txtNewPeerIp, 0)
+            $peerInputGrid.Children.Add($txtNewPeerIp) | Out-Null
+
+            $btnAddPeer = New-Object System.Windows.Controls.Button
+            $btnAddPeer.Content = "+ ADD PEER IP"
+            $btnAddPeer.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#0284C7")
+            $btnAddPeer.Foreground = [System.Windows.Media.Brushes]::White
+            $btnAddPeer.FontWeight = [System.Windows.FontWeights]::Bold
+            $btnAddPeer.Padding = New-Object System.Windows.Thickness(12,4,12,4)
+            $btnAddPeer.Margin = New-Object System.Windows.Thickness(6,0,0,0)
+            $btnAddPeer.Cursor = [System.Windows.Input.Cursors]::Hand
+            [System.Windows.Controls.Grid]::SetColumn($btnAddPeer, 1)
+            $peerInputGrid.Children.Add($btnAddPeer) | Out-Null
+            $peerStack.Children.Add($peerInputGrid) | Out-Null
+
+            $lstSavedPeers = New-Object System.Windows.Controls.ListBox
+            $lstSavedPeers.Height = 110
+            $lstSavedPeers.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#060A13")
+            $lstSavedPeers.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#E2E8F0")
+            $lstSavedPeers.BorderBrush = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#1E293B")
+            $lstSavedPeers.FontFamily = New-Object System.Windows.Media.FontFamily("Consolas")
+            $lstSavedPeers.FontSize = 11.5
+
+            $initialPeers = Get-SavedLanPeers
+            foreach ($ip in $initialPeers) { [void]$lstSavedPeers.Items.Add($ip) }
+            $peerStack.Children.Add($lstSavedPeers) | Out-Null
+
+            $peerBtnRow = New-Object System.Windows.Controls.StackPanel
+            $peerBtnRow.Orientation = [System.Windows.Controls.Orientation]::Horizontal
+            $peerBtnRow.Margin = New-Object System.Windows.Thickness(0,6,0,0)
+
+            $btnRemovePeer = New-Object System.Windows.Controls.Button
+            $btnRemovePeer.Content = "REMOVE SELECTED"
+            $btnRemovePeer.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#475569")
+            $btnRemovePeer.Foreground = [System.Windows.Media.Brushes]::White
+            $btnRemovePeer.Padding = New-Object System.Windows.Thickness(10,4,10,4)
+            $btnRemovePeer.Margin = New-Object System.Windows.Thickness(0,0,6,0)
+            $btnRemovePeer.Cursor = [System.Windows.Input.Cursors]::Hand
+            $btnRemovePeer.Add_Click({
+                if ($lstSavedPeers.SelectedItem) {
+                    $sel = [string]$lstSavedPeers.SelectedItem
+                    $lstSavedPeers.Items.Remove($sel)
+                    $cur = @($lstSavedPeers.Items | ForEach-Object { [string]$_ })
+                    Save-SavedLanPeers $cur
+                }
+            })
+            $peerBtnRow.Children.Add($btnRemovePeer) | Out-Null
+
+            $btnAddPeer.Add_Click({
+                $raw = $txtNewPeerIp.Text.Trim()
+                if (-not [string]::IsNullOrWhiteSpace($raw)) {
+                    $tokens = $raw -split '[,;\s]+'
+                    foreach ($t in $tokens) {
+                        $c = $t.Trim()
+                        if ($c -and -not $lstSavedPeers.Items.Contains($c)) {
+                            [void]$lstSavedPeers.Items.Add($c)
+                        }
+                    }
+                    $txtNewPeerIp.Text = ""
+                    $cur = @($lstSavedPeers.Items | ForEach-Object { [string]$_ })
+                    Save-SavedLanPeers $cur
+                }
+            })
+
+            $peerCard.Child = $peerStack
+            $root.Children.Add($peerCard) | Out-Null
+
+            # 4. Multi-Threaded Subnet IP Range Scanner Card
+            $scanCard = New-Object System.Windows.Controls.Border
+            $scanCard.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#0F172A")
+            $scanCard.BorderBrush = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#1E293B")
+            $scanCard.BorderThickness = New-Object System.Windows.Thickness(1)
+            $scanCard.CornerRadius = New-Object System.Windows.CornerRadius(6)
+            $scanCard.Padding = New-Object System.Windows.Thickness(12)
+            $scanCard.Margin = New-Object System.Windows.Thickness(0,0,0,12)
+
+            $scanStack = New-Object System.Windows.Controls.StackPanel
+            $scanLbl = New-Object System.Windows.Controls.TextBlock
+            $scanLbl.Text = "FAST SUBNET IP RANGE SCANNER (192.168.1.1 - 254)"
+            $scanLbl.FontSize = 11; $scanLbl.FontWeight = [System.Windows.FontWeights]::Bold; $scanLbl.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#FBBF24")
+            $scanStack.Children.Add($scanLbl) | Out-Null
+
+            $scanCtrlGrid = New-Object System.Windows.Controls.Grid
+            $scanCtrlGrid.Margin = New-Object System.Windows.Thickness(0,6,0,6)
+            $sc0 = New-Object System.Windows.Controls.ColumnDefinition; $sc0.Width = [System.Windows.GridLength]::Auto
+            $sc1 = New-Object System.Windows.Controls.ColumnDefinition; $sc1.Width = New-Object System.Windows.GridLength(1, [System.Windows.GridUnitType]::Star)
+            $sc2 = New-Object System.Windows.Controls.ColumnDefinition; $sc2.Width = [System.Windows.GridLength]::Auto
+            $scanCtrlGrid.ColumnDefinitions.Add($sc0); $scanCtrlGrid.ColumnDefinitions.Add($sc1); $scanCtrlGrid.ColumnDefinitions.Add($sc2)
+
+            $subPrefix = "192.168.1"
+            try {
+                $parts = $script:LanLocalIP.Split('.')
+                if ($parts.Length -eq 4) { $subPrefix = "$($parts[0]).$($parts[1]).$($parts[2])" }
+            } catch { }
+
+            $txtSubnet = New-Object System.Windows.Controls.TextBox
+            $txtSubnet.Text = $subPrefix
+            $txtSubnet.Width = 140; $txtSubnet.Height = 30
+            $txtSubnet.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#060A13")
+            $txtSubnet.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#00F0FF")
+            $txtSubnet.BorderBrush = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#334155")
+            $txtSubnet.FontFamily = New-Object System.Windows.Media.FontFamily("Consolas"); $txtSubnet.FontSize = 12
+            [System.Windows.Controls.Grid]::SetColumn($txtSubnet, 0)
+            $scanCtrlGrid.Children.Add($txtSubnet) | Out-Null
+
+            $lblSubHint = New-Object System.Windows.Controls.TextBlock
+            $lblSubHint.Text = ".1 to .254 (Port $script:LanTcpPort probe)"
+            $lblSubHint.FontSize = 11; $lblSubHint.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#94A3B8")
+            $lblSubHint.VerticalAlignment = [System.Windows.VerticalAlignment]::Center
+            $lblSubHint.Margin = New-Object System.Windows.Thickness(8,0,8,0)
+            [System.Windows.Controls.Grid]::SetColumn($lblSubHint, 1)
+            $scanCtrlGrid.Children.Add($lblSubHint) | Out-Null
+
+            $btnScanSubnet = New-Object System.Windows.Controls.Button
+            $btnScanSubnet.Content = "SCAN SUBNET NOW"
+            $btnScanSubnet.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#D97706")
+            $btnScanSubnet.Foreground = [System.Windows.Media.Brushes]::White
+            $btnScanSubnet.FontWeight = [System.Windows.FontWeights]::Bold
+            $btnScanSubnet.Padding = New-Object System.Windows.Thickness(12,4,12,4)
+            $btnScanSubnet.Cursor = [System.Windows.Input.Cursors]::Hand
+            [System.Windows.Controls.Grid]::SetColumn($btnScanSubnet, 2)
+            $scanCtrlGrid.Children.Add($btnScanSubnet) | Out-Null
+            $scanStack.Children.Add($scanCtrlGrid) | Out-Null
+
+            $prgScan = New-Object System.Windows.Controls.ProgressBar
+            $prgScan.Height = 5
+            $prgScan.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#1E293B")
+            $prgScan.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#FBBF24")
+            $prgScan.BorderThickness = New-Object System.Windows.Thickness(0)
+            $prgScan.Minimum = 0; $prgScan.Maximum = 254; $prgScan.Value = 0
+            $scanStack.Children.Add($prgScan) | Out-Null
+
+            $lstScanResults = New-Object System.Windows.Controls.ListBox
+            $lstScanResults.Height = 110
+            $lstScanResults.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#060A13")
+            $lstScanResults.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#E2E8F0")
+            $lstScanResults.BorderBrush = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#1E293B")
+            $lstScanResults.FontFamily = New-Object System.Windows.Media.FontFamily("Consolas")
+            $lstScanResults.FontSize = 11.5
+            $lstScanResults.Margin = New-Object System.Windows.Thickness(0,6,0,6)
+            $scanStack.Children.Add($lstScanResults) | Out-Null
+
+            $btnScanSubnet.Add_Click({
+                $base = $txtSubnet.Text.Trim()
+                $btnScanSubnet.IsEnabled = $false
+                $btnScanSubnet.Content = "SCANNING..."
+                $lstScanResults.Items.Clear()
+                $prgScan.Value = 0
+
+                $arpIps = @()
+                try {
+                    $arpOut = arp -a
+                    foreach ($line in ($arpOut -split "`r?`n")) {
+                        if ($line -match '(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})') {
+                            $ip = $matches[1]
+                            if ($ip.StartsWith("$base.") -and -not $ip.EndsWith(".255") -and $ip -ne $script:LanLocalIP) {
+                                $arpIps += $ip
+                            }
+                        }
+                    }
+                } catch { }
+
+                [void]$lstScanResults.Items.Add("Discovered $($arpIps.Count) active IP devices on ARP table. Testing port $script:LanTcpPort...")
+
+                $foundCount = 0
+                foreach ($ip in $arpIps) {
+                    $prgScan.Value += 1
+                    try {
+                        $cl = New-Object System.Net.Sockets.TcpClient
+                        $iar = $cl.BeginConnect($ip, $script:LanTcpPort, $null, $null)
+                        $success = $iar.AsyncWaitHandle.WaitOne(200, $false)
+                        if ($success -and $cl.Connected) {
+                            $cl.EndConnect($iar)
+                            [void]$lstScanResults.Items.Add("[ONLINE - NEXUS READY] $ip (Port $script:LanTcpPort Open)")
+                            if (-not $lstSavedPeers.Items.Contains($ip)) {
+                                [void]$lstSavedPeers.Items.Add($ip)
+                            }
+                            $foundCount++
+                        } else {
+                            [void]$lstScanResults.Items.Add("[ONLINE DEVICE] $ip (Port $script:LanTcpPort Closed / Firewall)")
+                        }
+                        $cl.Close()
+                    } catch {
+                        [void]$lstScanResults.Items.Add("[DEVICE] $ip (Offline)")
+                    }
+                }
+                $cur = @($lstSavedPeers.Items | ForEach-Object { [string]$_ })
+                Save-SavedLanPeers $cur
+                $prgScan.Value = 254
+                $btnScanSubnet.Content = "SCAN SUBNET NOW"
+                $btnScanSubnet.IsEnabled = $true
+            })
+
+            $scanCard.Child = $scanStack
+            $root.Children.Add($scanCard) | Out-Null
+
+            # 5. Diagnostic Port 52824 Ping Tester & Firewall Rule Card
+            $diagCard = New-Object System.Windows.Controls.Border
+            $diagCard.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#0F172A")
+            $diagCard.BorderBrush = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#1E293B")
+            $diagCard.BorderThickness = New-Object System.Windows.Thickness(1)
+            $diagCard.CornerRadius = New-Object System.Windows.CornerRadius(6)
+            $diagCard.Padding = New-Object System.Windows.Thickness(12)
+            $diagCard.Margin = New-Object System.Windows.Thickness(0,0,0,12)
+
+            $diagStack = New-Object System.Windows.Controls.StackPanel
+            $diagLbl = New-Object System.Windows.Controls.TextBlock
+            $diagLbl.Text = "PEER PORT 52824 DIAGNOSTIC TEST & FIREWALL SETUP"
+            $diagLbl.FontSize = 11; $diagLbl.FontWeight = [System.Windows.FontWeights]::Bold; $diagLbl.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#A7F3D0")
+            $diagStack.Children.Add($diagLbl) | Out-Null
+
+            $diagInputGrid = New-Object System.Windows.Controls.Grid
+            $diagInputGrid.Margin = New-Object System.Windows.Thickness(0,6,0,6)
+            $dc0 = New-Object System.Windows.Controls.ColumnDefinition; $dc0.Width = New-Object System.Windows.GridLength(1, [System.Windows.GridUnitType]::Star)
+            $dc1 = New-Object System.Windows.Controls.ColumnDefinition; $dc1.Width = [System.Windows.GridLength]::Auto
+            $diagInputGrid.ColumnDefinitions.Add($dc0); $diagInputGrid.ColumnDefinitions.Add($dc1)
+
+            $txtDiagIp = New-Object System.Windows.Controls.TextBox
+            $txtDiagIp.Height = 30
+            $txtDiagIp.Text = "192.168.1.12"
+            $txtDiagIp.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#060A13")
+            $txtDiagIp.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#00F0FF")
+            $txtDiagIp.BorderBrush = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#334155")
+            $txtDiagIp.FontFamily = New-Object System.Windows.Media.FontFamily("Consolas"); $txtDiagIp.FontSize = 12
+            [System.Windows.Controls.Grid]::SetColumn($txtDiagIp, 0)
+            $diagInputGrid.Children.Add($txtDiagIp) | Out-Null
+
+            $btnTestIp = New-Object System.Windows.Controls.Button
+            $btnTestIp.Content = "TEST TCP PORT 52824"
+            $btnTestIp.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#059669")
+            $btnTestIp.Foreground = [System.Windows.Media.Brushes]::White
+            $btnTestIp.FontWeight = [System.Windows.FontWeights]::Bold
+            $btnTestIp.Padding = New-Object System.Windows.Thickness(12,4,12,4)
+            $btnTestIp.Margin = New-Object System.Windows.Thickness(6,0,0,0)
+            $btnTestIp.Cursor = [System.Windows.Input.Cursors]::Hand
+            [System.Windows.Controls.Grid]::SetColumn($btnTestIp, 1)
+            $diagInputGrid.Children.Add($btnTestIp) | Out-Null
+            $diagStack.Children.Add($diagInputGrid) | Out-Null
+
+            $lblDiagRes = New-Object System.Windows.Controls.TextBlock
+            $lblDiagRes.Text = "Enter IP to test whether peer is listening on port 52824 and firewall is open."
+            $lblDiagRes.FontSize = 11; $lblDiagRes.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#94A3B8")
+            $diagStack.Children.Add($lblDiagRes) | Out-Null
+
+            $btnTestIp.Add_Click({
+                $tip = $txtDiagIp.Text.Trim()
+                if (-not $tip) { return }
+                $lblDiagRes.Text = "Testing connection to $tip on port $script:LanTcpPort..."
+                $lblDiagRes.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#FBBF24")
+                try {
+                    $cl = New-Object System.Net.Sockets.TcpClient
+                    $iar = $cl.BeginConnect($tip, $script:LanTcpPort, $null, $null)
+                    $success = $iar.AsyncWaitHandle.WaitOne(1500, $false)
+                    if ($success -and $cl.Connected) {
+                        $cl.EndConnect($iar)
+                        $lblDiagRes.Text = "SUCCESS: $tip is REACHABLE and listening on port $script:LanTcpPort (Direct Push & Share Ready)!"
+                        $lblDiagRes.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#4ADE80")
+                    } else {
+                        $lblDiagRes.Text = "NOTICE: $tip did not respond on port $script:LanTcpPort. Machine is either offline, Nexus is closed, or Windows Firewall is blocking inbound connections."
+                        $lblDiagRes.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#F87171")
+                    }
+                    $cl.Close()
+                } catch {
+                    $lblDiagRes.Text = "ERROR: $($_.Exception.Message)"
+                    $lblDiagRes.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#EF4444")
+                }
+            })
+
+            $btnFw = New-Object System.Windows.Controls.Button
+            $btnFw.Content = "CONFIGURE WINDOWS FIREWALL RULES (RUN AS ADMIN)"
+            $btnFw.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#334155")
+            $btnFw.Foreground = [System.Windows.Media.Brushes]::White
+            $btnFw.FontWeight = [System.Windows.FontWeights]::Bold
+            $btnFw.Padding = New-Object System.Windows.Thickness(12,6,12,6)
+            $btnFw.Margin = New-Object System.Windows.Thickness(0,8,0,0)
+            $btnFw.Cursor = [System.Windows.Input.Cursors]::Hand
+            $btnFw.Add_Click({
+                $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+                if (-not $scriptDir) { $scriptDir = "C:\Users\mandar.k\Documents\antigravity\lively-raman" }
+                $fwCmd = Join-Path $scriptDir "Enable-LanShareFirewall.cmd"
+                if (Test-Path $fwCmd) {
+                    Start-Process -FilePath "cmd.exe" -ArgumentList "/c `"$fwCmd`"" -Verb RunAs
+                } else {
+                    [System.Windows.MessageBox]::Show("To allow LAN file transfers through Windows Firewall, run this in Administrator Command Prompt:`r`n`r`nnetsh advfirewall firewall add rule name=`"Nexus Direct PC Share TCP`" dir=in action=allow protocol=TCP localport=52824,52826 profile=any`r`nnetsh advfirewall firewall add rule name=`"Nexus Direct PC Share UDP`" dir=in action=allow protocol=UDP localport=52822 profile=any", "Firewall Configuration", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Information)
+                }
+            })
+            $diagStack.Children.Add($btnFw) | Out-Null
+
+            $diagCard.Child = $diagStack
+            $root.Children.Add($diagCard) | Out-Null
+
+            $btnClose = New-Object System.Windows.Controls.Button
+            $btnClose.Content = "CLOSE"
+            $btnClose.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#0284C7")
+            $btnClose.Foreground = [System.Windows.Media.Brushes]::White
+            $btnClose.FontWeight = [System.Windows.FontWeights]::Bold
+            $btnClose.Padding = New-Object System.Windows.Thickness(16,7,16,7)
+            $btnClose.HorizontalAlignment = [System.Windows.HorizontalAlignment]::Right
+            $btnClose.Cursor = [System.Windows.Input.Cursors]::Hand
+            $btnClose.Add_Click({ $winAdv.Close() })
+            $root.Children.Add($btnClose) | Out-Null
+
+            $winAdv.Content = $scroll
+            [void]$winAdv.ShowDialog()
+        } catch {
+            [System.Windows.MessageBox]::Show("Error opening Advanced IP Configuration: $($_.Exception.Message)", "Error", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Error)
+        }
+    }
+
+    if ($btnLanAdvIpConfig) {
+        $btnLanAdvIpConfig.Add_Click({
+            Show-LanAdvancedIpConfigWindow
+        })
     }
 
     if ($btnLanScanPeers) {
