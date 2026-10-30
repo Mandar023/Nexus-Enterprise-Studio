@@ -2835,15 +2835,19 @@ try {
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <Border Grid.Column="0" Background="{DynamicResource CardBgDarkBrush}" CornerRadius="8" Padding="12,10" Margin="0,0,6,0" BorderBrush="#1C2D4A" BorderThickness="1">
-                                <RadioButton x:Name="rbExtractModePhotos" GroupName="ExtractModeGroup" Content="Property Photos (JPG/JPEG - &lt;25KB)" IsChecked="True"/>
+                            <Border Grid.Column="0" Background="{DynamicResource CardBgDarkBrush}" CornerRadius="8" Padding="10,10" Margin="0,0,4,0" BorderBrush="#1C2D4A" BorderThickness="1">
+                                <RadioButton x:Name="rbExtractModePhotos" GroupName="ExtractModeGroup" Content="Photos (JPG - &lt;25KB)" IsChecked="True"/>
                             </Border>
-                            <Border Grid.Column="1" Background="{DynamicResource CardBgDarkBrush}" CornerRadius="8" Padding="12,10" Margin="3,0,3,0" BorderBrush="#1C2D4A" BorderThickness="1">
-                                <RadioButton x:Name="rbExtractModeWmf" GroupName="ExtractModeGroup" Content="PlanPhoto Vector (WMF / EMF Solid White)"/>
+                            <Border Grid.Column="1" Background="{DynamicResource CardBgDarkBrush}" CornerRadius="8" Padding="10,10" Margin="2,0,2,0" BorderBrush="#1C2D4A" BorderThickness="1">
+                                <RadioButton x:Name="rbExtractModeWmf" GroupName="ExtractModeGroup" Content="PlanPhoto Vector (WMF)"/>
                             </Border>
-                            <Border Grid.Column="2" Background="{DynamicResource CardBgDarkBrush}" CornerRadius="8" Padding="12,10" Margin="6,0,0,0" BorderBrush="#1C2D4A" BorderThickness="1">
-                                <RadioButton x:Name="rbExtractModeBoth" GroupName="ExtractModeGroup" Content="Both Photos &amp; PlanPhoto WMFs"/>
+                            <Border Grid.Column="2" Background="{DynamicResource CardBgDarkBrush}" CornerRadius="8" Padding="10,10" Margin="2,0,2,0" BorderBrush="#1C2D4A" BorderThickness="1">
+                                <RadioButton x:Name="rbExtractModePdf" GroupName="ExtractModeGroup" Content="PDF Documents (*.pdf)" Foreground="#A78BFA" FontWeight="SemiBold"/>
+                            </Border>
+                            <Border Grid.Column="3" Background="{DynamicResource CardBgDarkBrush}" CornerRadius="8" Padding="10,10" Margin="4,0,0,0" BorderBrush="#1C2D4A" BorderThickness="1">
+                                <RadioButton x:Name="rbExtractModeBoth" GroupName="ExtractModeGroup" Content="All Assets (Photos+Plans+PDF)"/>
                             </Border>
                         </Grid>
 
@@ -2981,6 +2985,7 @@ try {
                                 <RadioButton x:Name="rbSyncCategoryBoth" GroupName="SyncCategoryGroup" Content="Both Whole Images &amp; Plans (Consolidate All to 19)" IsChecked="True" Foreground="#34D399" FontWeight="SemiBold" Margin="0,0,18,4"/>
                                 <RadioButton x:Name="rbSyncCategoryPhotosOnly" GroupName="SyncCategoryGroup" Content="Whole Images Only (Photos -> PropertyImage)" Foreground="#38BDF8" FontWeight="SemiBold" Margin="0,0,18,4"/>
                                 <RadioButton x:Name="rbSyncCategoryPlansOnly" GroupName="SyncCategoryGroup" Content="Plans Only (Plans -> PlanPhoto)" Foreground="#FBBF24" FontWeight="SemiBold" Margin="0,0,18,4"/>
+                                <RadioButton x:Name="rbSyncCategoryPdfOnly" GroupName="SyncCategoryGroup" Content="PDFs Only (*.pdf from URLs)" Foreground="#A78BFA" FontWeight="SemiBold" Margin="0,0,18,4" ToolTip="Extract only PDF documents from URL 1, URL 2, or URL 3"/>
                             </WrapPanel>
                         </Grid>
 
@@ -3022,14 +3027,22 @@ try {
                                 <TextBlock Text="Extract all PDFs matching Application Numbers from an Excel sheet into a target folder with 1-click audit." FontSize="11" Foreground="#94A3B8" Margin="0,2,0,0"/>
                             </StackPanel>
                             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                                <Button x:Name="btnAppPdfPreset11" Style="{StaticResource ActionButton}" Content="Server 11 (NTIS_4030)" Background="#0D9488" FontSize="11" Padding="10,4" Height="30" Margin="0,0,6,0" ToolTip="Set Source to \\192.168.1.11\d\Images\NTIS_4030"/>
-                                <Button x:Name="btnAppPdfPreset19" Style="{StaticResource ActionButton}" Content="Server 19 (Files)" Background="#0284C7" FontSize="11" Padding="10,4" Height="30" Margin="0,0,6,0" ToolTip="Set Source to \\192.168.1.19\Files"/>
-                                <Button x:Name="btnAppPdfPresetDesktop" Style="{StaticResource ActionButton}" Content="Desktop Folder" Background="#1E293B" FontSize="11" Padding="10,4" Height="30" ToolTip="Set Source to Desktop"/>
+                                <Button x:Name="btnAppPdfPreset11" Style="{StaticResource ActionButton}" Content="Server 11 (Wards URL)" Background="#0D9488" FontSize="11" Padding="8,4" Height="30" Margin="0,0,4,0" ToolTip="Set Source to \\192.168.1.11\Panvel_PMC_All_Ward_Wise_Photo_Plan"/>
+                                <Button x:Name="btnAppPdfPreset19" Style="{StaticResource ActionButton}" Content="Server 19 (Files URL)" Background="#0284C7" FontSize="11" Padding="8,4" Height="30" Margin="0,0,4,0" ToolTip="Set Source to \\192.168.1.19\Files"/>
+                                <Button x:Name="btnAppPdfPreset22" Style="{StaticResource ActionButton}" Content="Server 22 (PMC URL)" Background="#10B981" FontSize="11" Padding="8,4" Height="30" Margin="0,0,4,0" ToolTip="Set Source to \\192.168.1.22\PMC_Photo_22"/>
+                                <Button x:Name="btnAppPdfPresetDesktop" Style="{StaticResource ActionButton}" Content="Desktop" Background="#1E293B" FontSize="11" Padding="8,4" Height="30" ToolTip="Set Source to Desktop"/>
                             </StackPanel>
                         </Grid>
 
-                        <!-- STEP 1: EXCEL FILE SELECTION -->
-                        <TextBlock Text="STEP 1: SELECT EXCEL / CSV FILE WITH APPLICATION NUMBERS" FontWeight="Bold" FontSize="12" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                        <!-- STEP 1: EXCEL FILE SELECTION & DIRECT URL MODE -->
+                        <Grid Margin="0,0,0,4">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="STEP 1: SELECT EXCEL / CSV FILE OR ENABLE DIRECT URL MODE" FontWeight="Bold" FontSize="12" Foreground="#38BDF8" VerticalAlignment="Center"/>
+                            <CheckBox x:Name="chkAppPdfDirectUrl" Grid.Column="1" Content="Direct URL Mode (No Excel needed - Extract all PDFs from URL)" FontWeight="Bold" Foreground="#A78BFA" VerticalAlignment="Center" ToolTip="Extract all PDFs directly from any Web URL or Server Share URL without an Excel file"/>
+                        </Grid>
                         <Grid Margin="0,0,0,6">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
@@ -3055,14 +3068,14 @@ try {
                             </Grid>
                         </Border>
 
-                        <!-- STEP 2: SOURCE PDF DIRECTORY -->
-                        <TextBlock Text="STEP 2: SELECT SOURCE FOLDER CONTAINING PDFs (LOCAL, NETWORK OR SERVER)" FontWeight="Bold" FontSize="12" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                        <!-- STEP 2: SOURCE PDF URL OR DIRECTORY -->
+                        <TextBlock Text="STEP 2: SOURCE PDF URL (WEB / SERVER UNC) OR LOCAL FOLDER" FontWeight="Bold" FontSize="12" Foreground="#38BDF8" Margin="0,0,0,4"/>
                         <Grid Margin="0,0,0,8">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <TextBox x:Name="txtAppPdfSource" Grid.Column="0" Text="\\192.168.1.11\d\Images\NTIS_4030" ToolTip="Folder containing PDF files. Can be local folder, external drive, or server path like \\192.168.1.11\..."/>
+                            <TextBox x:Name="txtAppPdfSource" Grid.Column="0" Text="\\192.168.1.11\Panvel_PMC_All_Ward_Wise_Photo_Plan" ToolTip="Enter Server UNC URL (\\192.168.1.11\...), Web URL (http://... or https://...), or URL Template (http://server/{AppNo}.pdf)"/>
                             <Button x:Name="btnAppPdfBrowseSource" Grid.Column="1" Style="{StaticResource ActionButton}" Content="Browse Folder..." Margin="10,0,0,0" Width="140" Background="{StaticResource CyanBadgeBrush}" FontWeight="Bold"/>
                         </Grid>
 
@@ -4265,6 +4278,8 @@ $txtExtractLogs            = $window.FindName("txtExtractLogs")
 $extractProgressBar        = $window.FindName("extractProgressBar")
 $lblExtractStatus          = $window.FindName("lblExtractStatus")
 $btnExtractOpenDesktop     = $window.FindName("btnExtractOpenDesktop")
+$rbExtractModePdf          = $window.FindName("rbExtractModePdf")
+$rbSyncCategoryPdfOnly     = $window.FindName("rbSyncCategoryPdfOnly")
 $btnExtractOpenReport      = $window.FindName("btnExtractOpenReport")
 $btnExtractStart           = $window.FindName("btnExtractStart")
 $btnExtractPresetPanvel    = $window.FindName("btnExtractPresetPanvel")
@@ -4288,7 +4303,9 @@ $gridFooterAppPdf          = $window.FindName("gridFooterAppPdf")
 
 $btnAppPdfPreset11         = $window.FindName("btnAppPdfPreset11")
 $btnAppPdfPreset19         = $window.FindName("btnAppPdfPreset19")
+$btnAppPdfPreset22         = $window.FindName("btnAppPdfPreset22")
 $btnAppPdfPresetDesktop    = $window.FindName("btnAppPdfPresetDesktop")
+$chkAppPdfDirectUrl        = $window.FindName("chkAppPdfDirectUrl")
 $txtAppPdfExcel            = $window.FindName("txtAppPdfExcel")
 $btnAppPdfBrowseExcel      = $window.FindName("btnAppPdfBrowseExcel")
 $cmbAppPdfColumn           = $window.FindName("cmbAppPdfColumn")
@@ -15038,10 +15055,12 @@ $btnExtractStart.Add_Click({
     $lblExtractStatus.Text = "Status: Scanning server files across $($validSources.Count) location(s)..."
     [System.Windows.Forms.Application]::DoEvents()
 
-    $imgExts = if ($mode -eq "WMF") {
+    $imgExts = if ($rbExtractModePdf -and $rbExtractModePdf.IsChecked -eq $true) {
+        @('.pdf')
+    } elseif ($mode -eq "WMF") {
         @('.wmf', '.emf')
     } elseif ($mode -eq "Both") {
-        @('.jpg', '.jpeg', '.png', '.bmp', '.tif', '.tiff', '.gif', '.wmf', '.emf', '.webp')
+        @('.jpg', '.jpeg', '.png', '.bmp', '.tif', '.tiff', '.gif', '.wmf', '.emf', '.webp', '.pdf')
     } else {
         @('.jpg', '.jpeg', '.png', '.bmp', '.tif', '.tiff', '.gif', '.webp')
     }
@@ -15648,19 +15667,28 @@ function Get-ApplicationNumbersFromSpreadsheet($excelPath, $targetCol = "") {
 # CORE APPLICATION PDF EXTRACTION ENGINE
 # =====================================================================
 function Invoke-ApplicationPdfExtraction($isAuditOnly = $false) {
+    [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]"Tls, Tls11, Tls12, Tls13"
+    Add-Type -AssemblyName System.Net.Http -ErrorAction SilentlyContinue
+
     $excelPath = $txtAppPdfExcel.Text.Trim()
     $sourceDir = $txtAppPdfSource.Text.Trim()
     $destDir   = $txtAppPdfDest.Text.Trim()
     $chosenCol = if ($cmbAppPdfColumn.SelectedItem) { [string]$cmbAppPdfColumn.SelectedItem } else { "" }
+    $isDirectUrlMode = ($chkAppPdfDirectUrl -and $chkAppPdfDirectUrl.IsChecked -eq $true)
 
-    if (-not (Test-Path -LiteralPath $excelPath)) {
-        [System.Windows.MessageBox]::Show("Please select a valid Excel or CSV file containing Application Numbers.", "Excel File Not Found", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Warning)
+    $isHttpSource = ($sourceDir.StartsWith("http://", [System.StringComparison]::OrdinalIgnoreCase) -or $sourceDir.StartsWith("https://", [System.StringComparison]::OrdinalIgnoreCase))
+    $isUncSource  = ($sourceDir.StartsWith("\\"))
+
+    if (-not $isDirectUrlMode -and -not (Test-Path -LiteralPath $excelPath)) {
+        [System.Windows.MessageBox]::Show("Please select a valid Excel or CSV file containing Application Numbers, or check 'Direct URL Mode'.", "Excel File Not Found", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Warning)
         return
     }
-    if (-not (Test-Path -LiteralPath $sourceDir)) {
-        [System.Windows.MessageBox]::Show("Source folder not found or unreachable:`n$sourceDir`n`nPlease verify network connection or select a valid folder.", "Source Folder Unreachable", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Warning)
+
+    if (-not $isHttpSource -and -not (Test-Path -LiteralPath $sourceDir)) {
+        [System.Windows.MessageBox]::Show("Source URL / folder not found or unreachable:`n$sourceDir`n`nPlease verify network connection or URL.", "Source Unreachable", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Warning)
         return
     }
+
     if (-not $isAuditOnly) {
         if (-not (Test-Path -LiteralPath $destDir)) {
             try { [System.IO.Directory]::CreateDirectory($destDir) | Out-Null }
@@ -15677,75 +15705,149 @@ function Invoke-ApplicationPdfExtraction($isAuditOnly = $false) {
     $btnAppPdfStop.Visibility = "Visible"
     $btnAppPdfOpenReport.IsEnabled = $false
 
-    $lblExtractStatus.Text = "Status: Reading Excel Application Numbers..."
+    $lblExtractStatus.Text = if ($isDirectUrlMode) { "Status: Connecting to Source URL..." } else { "Status: Reading Excel Application Numbers..." }
     $extractProgressBar.Value = 5
     Append-ExtractLog "======================================================="
     Append-ExtractLog if ($isAuditOnly) { "STARTING APPLICATION PDF FAST AUDIT" } else { "STARTING APPLICATION PDF EXTRACTION ENGINE" }
-    Append-ExtractLog "Excel File           : $excelPath"
-    Append-ExtractLog "Column Name          : $(if ($chosenCol) {$chosenCol} else {'Auto/First'})"
-    Append-ExtractLog "Source PDF Folder    : $sourceDir"
+    Append-ExtractLog "Source PDF URL/Folder: $sourceDir"
+    Append-ExtractLog "Execution Mode       : $(if ($isDirectUrlMode) {'DIRECT URL EXTRACTION (No Excel)'} else {'EXCEL APPLICATION MATCHER'})"
+    if (-not $isDirectUrlMode) {
+        Append-ExtractLog "Excel File           : $excelPath"
+        Append-ExtractLog "Column Name          : $(if ($chosenCol) {$chosenCol} else {'Auto/First'})"
+    }
     Append-ExtractLog "Destination Folder   : $destDir"
     Append-ExtractLog "======================================================="
     [System.Windows.Forms.Application]::DoEvents()
 
-    $parsed = Get-ApplicationNumbersFromSpreadsheet -excelPath $excelPath -targetCol $chosenCol
-    $appNumbers = $parsed.AppNumbers
-    $lblAppPdfTotalAppNo.Text = $appNumbers.Count.ToString()
-    Append-ExtractLog "Loaded $($appNumbers.Count) unique Application Numbers from Excel (Column: '$($parsed.SelectedColumn)')."
+    # Step 1: Read Excel if not in Direct URL mode
+    $appNumbers = [System.Collections.Generic.List[string]]::new()
+    $hasDirectUrlsInExcel = $false
+    if (-not $isDirectUrlMode) {
+        $parsed = Get-ApplicationNumbersFromSpreadsheet -excelPath $excelPath -targetCol $chosenCol
+        $appNumbers = $parsed.AppNumbers
+        $lblAppPdfTotalAppNo.Text = $appNumbers.Count.ToString()
+        Append-ExtractLog "Loaded $($appNumbers.Count) items from Excel (Column: '$($parsed.SelectedColumn)')."
 
-    if ($appNumbers.Count -eq 0) {
-        [System.Windows.MessageBox]::Show("No application numbers found in the selected Excel file/column.", "No Numbers Found", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Warning)
-        $btnAppPdfStart.IsEnabled = $true
-        $btnAppPdfScanAudit.IsEnabled = $true
-        $btnAppPdfStop.Visibility = "Collapsed"
-        return
+        if ($appNumbers.Count -eq 0) {
+            [System.Windows.MessageBox]::Show("No application numbers found in the selected Excel file/column.", "No Numbers Found", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Warning)
+            $btnAppPdfStart.IsEnabled = $true
+            $btnAppPdfScanAudit.IsEnabled = $true
+            $btnAppPdfStop.Visibility = "Collapsed"
+            return
+        }
+
+        # Check if Excel values are direct URLs
+        $urlSampleCount = 0
+        foreach ($an in ($appNumbers | Select-Object -First 10)) {
+            if ($an.StartsWith("http://", [System.StringComparison]::OrdinalIgnoreCase) -or $an.StartsWith("https://", [System.StringComparison]::OrdinalIgnoreCase) -or $an.StartsWith("\\")) {
+                $urlSampleCount++
+            }
+        }
+        if ($urlSampleCount -ge 2) {
+            $hasDirectUrlsInExcel = $true
+            Append-ExtractLog "[NOTICE] Excel column contains Direct URLs/Paths! Extracting directly from listed URLs."
+        }
     }
 
-    $lblExtractStatus.Text = "Status: Scanning source directory for PDF files..."
+    # Step 2: Index Source PDF files or Scrape Web URL
+    $lblExtractStatus.Text = "Status: Scanning source URL / folder for PDF files..."
     $extractProgressBar.Value = 15
     [System.Windows.Forms.Application]::DoEvents()
 
-    $searchOption = if ($chkAppPdfRecursive.IsChecked) { [System.IO.SearchOption]::AllDirectories } else { [System.IO.SearchOption]::TopDirectoryOnly }
-    
     $sw = [System.Diagnostics.Stopwatch]::StartNew()
     $pdfList = [System.Collections.Generic.List[PSCustomObject]]::new()
     $exactMap = [System.Collections.Generic.Dictionary[string, System.Collections.Generic.List[string]]]::new([System.StringComparer]::OrdinalIgnoreCase)
 
-    try {
-        $enumerator = [System.IO.Directory]::EnumerateFiles($sourceDir, "*.pdf", $searchOption)
-        foreach ($filePath in $enumerator) {
-            $baseName = [System.IO.Path]::GetFileNameWithoutExtension($filePath)
-            $fName = [System.IO.Path]::GetFileName($filePath)
-            $parentDirName = [System.IO.Path]::GetFileName([System.IO.Path]::GetDirectoryName($filePath))
-            
-            $item = [PSCustomObject]@{
-                FullPath = $filePath
-                FileName = $fName
-                BaseName = $baseName
-                ParentDir = $parentDirName
-            }
-            $pdfList.Add($item)
+    if (-not $hasDirectUrlsInExcel) {
+        if ($isHttpSource) {
+            Append-ExtractLog "Connecting to Web URL: $sourceDir..."
+            try {
+                $client = [System.Net.Http.HttpClient]::new()
+                $client.Timeout = [System.TimeSpan]::FromSeconds(30)
+                
+                # Direct PDF URL check
+                if ($sourceDir.EndsWith(".pdf", [System.StringComparison]::OrdinalIgnoreCase)) {
+                    $fName = [System.IO.Path]::GetFileName($sourceDir)
+                    $bName = [System.IO.Path]::GetFileNameWithoutExtension($sourceDir)
+                    $pdfList.Add([PSCustomObject]@{ FullPath = $sourceDir; FileName = $fName; BaseName = $bName; ParentDir = "WebRoot"; IsHttp = $true })
+                    $exactMap[$bName] = [System.Collections.Generic.List[string]]::new()
+                    $exactMap[$bName].Add($sourceDir)
+                } else {
+                    # Scrape HTML page or directory listing for .pdf links
+                    $html = $client.GetStringAsync($sourceDir).GetAwaiter().GetResult()
+                    $regex = [System.Text.RegularExpressions.Regex]::new('href=["'']([^"'']+\.pdf)(\?[^"'']*)?["'']', [System.Text.RegularExpressions.RegexOptions]::IgnoreCase)
+                    $matches = $regex.Matches($html)
+                    $baseUri = [System.Uri]::new($sourceDir)
+                    $seenHrefs = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
 
-            if (-not $exactMap.ContainsKey($baseName)) {
-                $exactMap[$baseName] = [System.Collections.Generic.List[string]]::new()
+                    foreach ($m in $matches) {
+                        $relUrl = $m.Groups[1].Value
+                        if ($seenHrefs.Contains($relUrl)) { continue }
+                        $seenHrefs.Add($relUrl) | Out-Null
+
+                        try {
+                            $fullUri = [System.Uri]::new($baseUri, $relUrl)
+                            $fn = [System.IO.Path]::GetFileName($fullUri.LocalPath)
+                            $bn = [System.IO.Path]::GetFileNameWithoutExtension($fullUri.LocalPath)
+                            $item = [PSCustomObject]@{ FullPath = $fullUri.AbsoluteUri; FileName = $fn; BaseName = $bn; ParentDir = "WebFolder"; IsHttp = $true }
+                            $pdfList.Add($item)
+                            if (-not $exactMap.ContainsKey($bn)) { $exactMap[$bn] = [System.Collections.Generic.List[string]]::new() }
+                            $exactMap[$bn].Add($fullUri.AbsoluteUri)
+                        } catch {}
+                    }
+                }
+            } catch {
+                Append-ExtractLog "[WARNING] Web URL connection notice: $($_.Exception.Message)"
             }
-            $exactMap[$baseName].Add($filePath)
+        } else {
+            # File System or UNC Network Share (e.g. \\192.168.1.11\...)
+            $searchOption = if ($chkAppPdfRecursive.IsChecked) { [System.IO.SearchOption]::AllDirectories } else { [System.IO.SearchOption]::TopDirectoryOnly }
+            try {
+                $enumerator = [System.IO.Directory]::EnumerateFiles($sourceDir, "*.pdf", $searchOption)
+                foreach ($filePath in $enumerator) {
+                    $baseName = [System.IO.Path]::GetFileNameWithoutExtension($filePath)
+                    $fName = [System.IO.Path]::GetFileName($filePath)
+                    $parentDirName = [System.IO.Path]::GetFileName([System.IO.Path]::GetDirectoryName($filePath))
+                    
+                    $item = [PSCustomObject]@{
+                        FullPath = $filePath
+                        FileName = $fName
+                        BaseName = $baseName
+                        ParentDir = $parentDirName
+                        IsHttp = $false
+                    }
+                    $pdfList.Add($item)
+
+                    if (-not $exactMap.ContainsKey($baseName)) {
+                        $exactMap[$baseName] = [System.Collections.Generic.List[string]]::new()
+                    }
+                    $exactMap[$baseName].Add($filePath)
+                }
+            } catch {
+                Append-ExtractLog "[WARNING] Enumeration issue in source: $($_.Exception.Message)"
+            }
         }
-    } catch {
-        Append-ExtractLog "[WARNING] Enumeration issue in source: $($_.Exception.Message)"
     }
     $sw.Stop()
 
-    Append-ExtractLog "Discovered $($pdfList.Count) total PDF files in source folder in $($sw.ElapsedMilliseconds) ms."
+    Append-ExtractLog "Discovered $($pdfList.Count) total PDF files from URL / folder in $($sw.ElapsedMilliseconds) ms."
 
-    if ($pdfList.Count -eq 0) {
-        [System.Windows.MessageBox]::Show("Zero PDF files found in source folder:`n$sourceDir", "No PDFs Found", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Warning)
+    # If in Direct URL Mode without Excel, all discovered PDFs are extracted
+    if ($isDirectUrlMode) {
+        $appNumbers.Clear()
+        foreach ($p in $pdfList) { $appNumbers.Add($p.BaseName) }
+        $lblAppPdfTotalAppNo.Text = $pdfList.Count.ToString()
+    }
+
+    if ($pdfList.Count -eq 0 -and -not $hasDirectUrlsInExcel) {
+        [System.Windows.MessageBox]::Show("Zero PDF files found at URL / folder:`n$sourceDir", "No PDFs Found", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Warning)
         $btnAppPdfStart.IsEnabled = $true
         $btnAppPdfScanAudit.IsEnabled = $true
         $btnAppPdfStop.Visibility = "Collapsed"
         return
     }
 
+    # Step 3: Match and Extract
     $isMatchExact = ($rbAppPdfMatchExact.IsChecked -eq $true)
     $isMatchSubfolder = ($rbAppPdfMatchSubfolder.IsChecked -eq $true)
     $isNormalize = ($chkAppPdfNumericNormalize.IsChecked -eq $true)
@@ -15759,9 +15861,12 @@ function Invoke-ApplicationPdfExtraction($isAuditOnly = $false) {
     $auditRecords = [System.Collections.Generic.List[PSCustomObject]]::new()
 
     $totalApps = $appNumbers.Count
-    $lblExtractStatus.Text = "Status: Matching Application Numbers against PDFs..."
+    $lblExtractStatus.Text = "Status: Extracting PDFs from URL / folder..."
     $extractProgressBar.Value = 20
     [System.Windows.Forms.Application]::DoEvents()
+
+    $httpClient = [System.Net.Http.HttpClient]::new()
+    $httpClient.Timeout = [System.TimeSpan]::FromSeconds(45)
 
     for ($i = 0; $i -lt $totalApps; $i++) {
         if ($script:cancelAppPdfExtract) {
@@ -15772,72 +15877,93 @@ function Invoke-ApplicationPdfExtraction($isAuditOnly = $false) {
         $appNo = $appNumbers[$i]
         $matchedPaths = [System.Collections.Generic.List[string]]::new()
 
-        $appVariants = [System.Collections.Generic.List[string]]::new()
-        $appVariants.Add($appNo)
-        if ($isNormalize -and $appNo -match '^\d+$') {
-            $numVal = [int64]$appNo
-            $numStr = $numVal.ToString()
-            if (-not $appVariants.Contains($numStr)) { $appVariants.Add($numStr) }
-        }
-
-        if ($isMatchExact) {
-            foreach ($v in $appVariants) {
-                if ($exactMap.ContainsKey($v)) {
-                    foreach ($p in $exactMap[$v]) {
-                        if (-not $matchedPaths.Contains($p)) { $matchedPaths.Add($p) }
-                    }
-                }
-            }
-        } elseif ($isMatchSubfolder) {
-            foreach ($pItem in $pdfList) {
-                $matched = $false
-                foreach ($v in $appVariants) {
-                    if ($pItem.FileName.IndexOf($v, [System.StringComparison]::OrdinalIgnoreCase) -ge 0 -or
-                        $pItem.ParentDir.IndexOf($v, [System.StringComparison]::OrdinalIgnoreCase) -ge 0) {
-                        $matched = $true
-                        break
-                    }
-                }
-                if ($matched) { $matchedPaths.Add($pItem.FullPath) }
-            }
+        if ($hasDirectUrlsInExcel) {
+            # Each item in Excel is literally a URL or file path
+            $matchedPaths.Add($appNo)
+        } elseif ($isDirectUrlMode) {
+            # Each item in $appNumbers is the BaseName of $pdfList[$i]
+            $matchedPaths.Add($pdfList[$i].FullPath)
         } else {
-            # Contains Match (Default)
-            foreach ($pItem in $pdfList) {
-                $matched = $false
+            # Match Application Number against indexed PDFs
+            $appVariants = [System.Collections.Generic.List[string]]::new()
+            $appVariants.Add($appNo)
+            if ($isNormalize -and $appNo -match '^\d+$') {
+                $numVal = [int64]$appNo
+                $numStr = $numVal.ToString()
+                if (-not $appVariants.Contains($numStr)) { $appVariants.Add($numStr) }
+            }
+
+            if ($isMatchExact) {
                 foreach ($v in $appVariants) {
-                    if ($pItem.FileName.IndexOf($v, [System.StringComparison]::OrdinalIgnoreCase) -ge 0) {
-                        $matched = $true
-                        break
+                    if ($exactMap.ContainsKey($v)) {
+                        foreach ($p in $exactMap[$v]) {
+                            if (-not $matchedPaths.Contains($p)) { $matchedPaths.Add($p) }
+                        }
                     }
                 }
-                if ($matched) { $matchedPaths.Add($pItem.FullPath) }
+            } elseif ($isMatchSubfolder) {
+                foreach ($pItem in $pdfList) {
+                    $matched = $false
+                    foreach ($v in $appVariants) {
+                        if ($pItem.FileName.IndexOf($v, [System.StringComparison]::OrdinalIgnoreCase) -ge 0 -or
+                            $pItem.ParentDir.IndexOf($v, [System.StringComparison]::OrdinalIgnoreCase) -ge 0) {
+                            $matched = $true
+                            break
+                        }
+                    }
+                    if ($matched) { $matchedPaths.Add($pItem.FullPath) }
+                }
+            } else {
+                # Contains Match (Default)
+                foreach ($pItem in $pdfList) {
+                    $matched = $false
+                    foreach ($v in $appVariants) {
+                        if ($pItem.FileName.IndexOf($v, [System.StringComparison]::OrdinalIgnoreCase) -ge 0) {
+                            $matched = $true
+                            break
+                        }
+                    }
+                    if ($matched) { $matchedPaths.Add($pItem.FullPath) }
+                }
             }
         }
 
+        # Handle Match / Missing
         if ($matchedPaths.Count -gt 0) {
             $foundAppCount++
             $destFileNames = [System.Collections.Generic.List[string]]::new()
             
             foreach ($srcPath in $matchedPaths) {
                 $fName = [System.IO.Path]::GetFileName($srcPath)
+                if ($fName.Contains("?")) { $fName = $fName.Substring(0, $fName.IndexOf("?")) }
+                if (-not $fName.EndsWith(".pdf", [System.StringComparison]::OrdinalIgnoreCase)) { $fName = "$appNo.pdf" }
                 $destFileNames.Add($fName)
                 
                 if (-not $isAuditOnly) {
                     $targetFolder = $destDir
                     if ($isSubfolderOrg) {
-                        $targetFolder = Join-Path $destDir $appNo
+                        $cleanFolder = $appNo -replace '[\\/:*?"<>|]', '_'
+                        $targetFolder = Join-Path $destDir $cleanFolder
                         if (-not (Test-Path -LiteralPath $targetFolder)) {
                             [System.IO.Directory]::CreateDirectory($targetFolder) | Out-Null
                         }
                     }
                     $destFilePath = Join-Path $targetFolder $fName
+
                     try {
-                        [System.IO.File]::Copy($srcPath, $destFilePath, $isOverwrite)
-                        $copiedFilesCount++
-                        $fLen = (New-Object System.IO.FileInfo($srcPath)).Length
-                        $totalBytesCopied += $fLen
+                        if ($srcPath.StartsWith("http://", [System.StringComparison]::OrdinalIgnoreCase) -or $srcPath.StartsWith("https://", [System.StringComparison]::OrdinalIgnoreCase)) {
+                            $bytes = $httpClient.GetByteArrayAsync($srcPath).GetAwaiter().GetResult()
+                            [System.IO.File]::WriteAllBytes($destFilePath, $bytes)
+                            $copiedFilesCount++
+                            $totalBytesCopied += $bytes.Length
+                        } else {
+                            [System.IO.File]::Copy($srcPath, $destFilePath, $isOverwrite)
+                            $copiedFilesCount++
+                            $fLen = (New-Object System.IO.FileInfo($srcPath)).Length
+                            $totalBytesCopied += $fLen
+                        }
                     } catch {
-                        Append-ExtractLog "[ERROR] Copying '$fName': $($_.Exception.Message)"
+                        Append-ExtractLog "[ERROR] Copying/Downloading '$fName': $($_.Exception.Message)"
                     }
                 } else {
                     $copiedFilesCount++
@@ -15854,9 +15980,9 @@ function Invoke-ApplicationPdfExtraction($isAuditOnly = $false) {
             })
 
             if ($matchedPaths.Count -eq 1) {
-                Append-ExtractLog "[FOUND] AppNo: $appNo -> $($destFileNames[0])"
+                Append-ExtractLog "[FOUND] $appNo -> $($destFileNames[0])"
             } else {
-                Append-ExtractLog "[FOUND] AppNo: $appNo -> $($matchedPaths.Count) PDFs ($($destFileNames -join ', '))"
+                Append-ExtractLog "[FOUND] $appNo -> $($matchedPaths.Count) PDFs ($($destFileNames -join ', '))"
             }
         } else {
             $missingAppCount++
@@ -15868,9 +15994,10 @@ function Invoke-ApplicationPdfExtraction($isAuditOnly = $false) {
                 MatchedFiles = ""
                 SourcePaths = ""
             })
-            Append-ExtractLog "[MISSING] AppNo: $appNo (No matching PDF)"
+            Append-ExtractLog "[MISSING] $appNo (No matching PDF at URL/folder)"
         }
 
+        # Live stats update
         $lblAppPdfFoundAppNo.Text = $foundAppCount.ToString()
         $lblAppPdfMissingAppNo.Text = $missingAppCount.ToString()
         $lblAppPdfCopiedFiles.Text = $copiedFilesCount.ToString()
@@ -15879,7 +16006,7 @@ function Invoke-ApplicationPdfExtraction($isAuditOnly = $false) {
             $pct = [int](20 + (($i + 1) / $totalApps * 80))
             $extractProgressBar.Value = [Math]::Min(100, $pct)
             $actionLabel = if ($isAuditOnly) { "Audited" } else { "Extracted" }
-            $lblExtractStatus.Text = "Status: $actionLabel $($i + 1) / $totalApps applications ($foundAppCount found, $missingAppCount missing)..."
+            $lblExtractStatus.Text = "Status: $actionLabel $($i + 1) / $totalApps ($foundAppCount found, $missingAppCount missing)..."
             [System.Windows.Forms.Application]::DoEvents()
         }
     }
@@ -15916,15 +16043,15 @@ function Invoke-ApplicationPdfExtraction($isAuditOnly = $false) {
         [System.Windows.MessageBox]::Show("Audit Verification Complete!`n`nTotal Applications: $totalApps`nFound with PDFs: $foundAppCount`nMissing: $missingAppCount`nMatched PDF Files: $copiedFilesCount`n`nAudit Report: $reportFilePath", "Audit Complete", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Information)
     } else {
         Append-ExtractLog "APPLICATION PDF EXTRACTION COMPLETED!"
-        Append-ExtractLog "Total Applications   : $totalApps"
-        Append-ExtractLog "Applications Found   : $foundAppCount"
-        Append-ExtractLog "Applications Missing : $missingAppCount"
+        Append-ExtractLog "Total Processed      : $totalApps"
+        Append-ExtractLog "Found & Extracted    : $foundAppCount"
+        Append-ExtractLog "Missing / Unmatched  : $missingAppCount"
         Append-ExtractLog "PDF Files Extracted  : $copiedFilesCount ($mbCopied MB)"
         Append-ExtractLog "Output Destination   : $destDir"
         Append-ExtractLog "======================================================="
         $lblExtractStatus.Text = "Status: Successfully extracted $copiedFilesCount PDFs ($mbCopied MB) to Desktop!"
         try { Start-Process "explorer.exe" -ArgumentList "`"$destDir`"" } catch {}
-        [System.Windows.MessageBox]::Show("PDF Extraction Complete!`n`nApplications Processed: $totalApps`nApplications Found: $foundAppCount`nApplications Missing: $missingAppCount`nTotal PDFs Copied: $copiedFilesCount ($mbCopied MB)`n`nSaved to: $destDir", "Extraction Successful", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Information)
+        [System.Windows.MessageBox]::Show("PDF Extraction Complete!`n`nProcessed: $totalApps`nFound: $foundAppCount`nMissing: $missingAppCount`nTotal PDFs Copied: $copiedFilesCount ($mbCopied MB)`n`nSaved to: $destDir", "Extraction Successful", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Information)
     }
 
     $btnAppPdfOpenFolder.Tag = $destDir
@@ -15986,8 +16113,8 @@ if ($btnAppPdfReloadExcel) {
 
 if ($btnAppPdfPreset11) {
     $btnAppPdfPreset11.Add_Click({
-        $txtAppPdfSource.Text = "\\192.168.1.11\d\Images\NTIS_4030"
-        Append-ExtractLog "Loaded Server 11 source preset: \\192.168.1.11\d\Images\NTIS_4030"
+        $txtAppPdfSource.Text = "\\192.168.1.11\Panvel_PMC_All_Ward_Wise_Photo_Plan"
+        Append-ExtractLog "Loaded Server 11 source preset: \\192.168.1.11\Panvel_PMC_All_Ward_Wise_Photo_Plan"
     })
 }
 
@@ -15995,6 +16122,13 @@ if ($btnAppPdfPreset19) {
     $btnAppPdfPreset19.Add_Click({
         $txtAppPdfSource.Text = "\\192.168.1.19\Files"
         Append-ExtractLog "Loaded Server 19 source preset: \\192.168.1.19\Files"
+    })
+}
+
+if ($btnAppPdfPreset22) {
+    $btnAppPdfPreset22.Add_Click({
+        $txtAppPdfSource.Text = "\\192.168.1.22\PMC_Photo_22"
+        Append-ExtractLog "Loaded Server 22 source preset: \\192.168.1.22\PMC_Photo_22"
     })
 }
 
@@ -16257,8 +16391,9 @@ function Invoke-ThreeUrlPlanSharingCore([bool]$isDryRunOnly) {
     $txtExtractLogs.Clear()
     $extractProgressBar.Value = 5
 
-    $migratePhotos = ($rbSyncCategoryBoth -and $rbSyncCategoryBoth.IsChecked -eq $true) -or ($rbSyncCategoryPhotosOnly -and $rbSyncCategoryPhotosOnly.IsChecked -eq $true) -or (-not $rbSyncCategoryBoth -and -not $rbSyncCategoryPhotosOnly)
-    $migratePlans  = ($rbSyncCategoryBoth -and $rbSyncCategoryBoth.IsChecked -eq $true) -or ($rbSyncCategoryPlansOnly -and $rbSyncCategoryPlansOnly.IsChecked -eq $true) -or (-not $rbSyncCategoryBoth -and -not $rbSyncCategoryPlansOnly)
+    $migratePdfsOnly = ($rbSyncCategoryPdfOnly -and $rbSyncCategoryPdfOnly.IsChecked -eq $true)
+    $migratePhotos = (-not $migratePdfsOnly) -and (($rbSyncCategoryBoth -and $rbSyncCategoryBoth.IsChecked -eq $true) -or ($rbSyncCategoryPhotosOnly -and $rbSyncCategoryPhotosOnly.IsChecked -eq $true) -or (-not $rbSyncCategoryBoth -and -not $rbSyncCategoryPhotosOnly))
+    $migratePlans  = (-not $migratePdfsOnly) -and (($rbSyncCategoryBoth -and $rbSyncCategoryBoth.IsChecked -eq $true) -or ($rbSyncCategoryPlansOnly -and $rbSyncCategoryPlansOnly.IsChecked -eq $true) -or (-not $rbSyncCategoryBoth -and -not $rbSyncCategoryPlansOnly))
 
     $lblExtractStatus.Text = if ($isDryRunOnly) { "Status: Analyzing sources for common and new images & plans..." } elseif ($isExtractDesktop) { "Status: Extracting all matching assets to Desktop..." } else { "Status: Consolidating images & plans to Target Master..." }
 
@@ -16334,12 +16469,17 @@ function Invoke-ThreeUrlPlanSharingCore([bool]$isDryRunOnly) {
                     $ext = [System.IO.Path]::GetExtension($fl).ToLower()
                     $fn = [System.IO.Path]::GetFileName($fl)
 
+                    $isPdf = ($ext -eq ".pdf")
                     $isPlan = ($isPlanFolder -or $ext -eq ".wmf" -or $ext -eq ".emf" -or $ext -eq ".dwg" -or $ext -eq ".dxf")
-                    $category = if ($isPlan) { "Plan" } else { "Image" }
+                    $category = if ($isPdf) { "PDF" } elseif ($isPlan) { "Plan" } else { "Image" }
 
-                    if ($category -eq "Image" -and -not $migratePhotos) { continue }
-                    if ($category -eq "Plan" -and -not $migratePlans) { continue }
-                    if (-not ($imgExts -contains $ext) -and -not ($planExts -contains $ext)) { continue }
+                    if ($migratePdfsOnly) {
+                        if (-not $isPdf) { continue }
+                    } else {
+                        if ($category -eq "Image" -and -not $migratePhotos) { continue }
+                        if ($category -eq "Plan" -and -not $migratePlans) { continue }
+                        if (-not ($imgExts -contains $ext) -and -not ($planExts -contains $ext)) { continue }
+                    }
 
                     # Deduplication across URLs
                     if ($seenFiles.Contains($fn)) { continue }
