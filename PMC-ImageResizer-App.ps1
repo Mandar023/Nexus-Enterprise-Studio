@@ -2137,16 +2137,16 @@ try {
             <Setter Property="Background" Value="{DynamicResource SqlHeaderBgBrush}"/>
             <Setter Property="Foreground" Value="{DynamicResource SqlHeaderFgBrush}"/>
             <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="FontSize" Value="12"/>
-            <Setter Property="Padding" Value="10,6"/>
-            <Setter Property="BorderThickness" Value="0,0,1,1"/>
+            <Setter Property="FontSize" Value="12.5"/>
+            <Setter Property="Padding" Value="12,8"/>
+            <Setter Property="BorderThickness" Value="0,0,1,2"/>
             <Setter Property="BorderBrush" Value="{DynamicResource SqlHeaderBorderBrush}"/>
             <Setter Property="HorizontalContentAlignment" Value="Left"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="DataGridColumnHeader">
-                        <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Padding="{TemplateBinding Padding}">
+                        <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Padding="{TemplateBinding Padding}" TextBlock.Foreground="{TemplateBinding Foreground}" TextElement.Foreground="{TemplateBinding Foreground}">
                             <ContentPresenter SnapsToDevicePixels="True" VerticalAlignment="Center" HorizontalAlignment="Left"/>
                         </Border>
                     </ControlTemplate>
@@ -2154,7 +2154,7 @@ try {
             </Setter>
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#334155"/>
+                    <Setter Property="Background" Value="#1E293B"/>
                     <Setter Property="Foreground" Value="#00F0FF"/>
                 </Trigger>
             </Style.Triggers>
@@ -3963,15 +3963,15 @@ try {
                                     <Style TargetType="DataGridColumnHeader">
                                         <Setter Property="Background" Value="{DynamicResource SqlHeaderBgBrush}"/>
                                         <Setter Property="Foreground" Value="{DynamicResource SqlHeaderFgBrush}"/>
-                                        <Setter Property="Padding" Value="10,6"/>
+                                        <Setter Property="Padding" Value="12,8"/>
                                         <Setter Property="FontWeight" Value="Bold"/>
-                                        <Setter Property="FontSize" Value="12"/>
-                                        <Setter Property="BorderThickness" Value="0,0,1,1"/>
+                                        <Setter Property="FontSize" Value="12.5"/>
+                                        <Setter Property="BorderThickness" Value="0,0,1,2"/>
                                         <Setter Property="BorderBrush" Value="{DynamicResource SqlHeaderBorderBrush}"/>
                                         <Setter Property="Template">
                                             <Setter.Value>
                                                 <ControlTemplate TargetType="DataGridColumnHeader">
-                                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Padding="{TemplateBinding Padding}">
+                                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Padding="{TemplateBinding Padding}" TextBlock.Foreground="{TemplateBinding Foreground}" TextElement.Foreground="{TemplateBinding Foreground}">
                                                         <ContentPresenter SnapsToDevicePixels="True" VerticalAlignment="Center" HorizontalAlignment="Left"/>
                                                     </Border>
                                                 </ControlTemplate>
@@ -3979,7 +3979,7 @@ try {
                                         </Setter>
                                         <Style.Triggers>
                                             <Trigger Property="IsMouseOver" Value="True">
-                                                <Setter Property="Background" Value="#334155"/>
+                                                <Setter Property="Background" Value="#1E293B"/>
                                                 <Setter Property="Foreground" Value="#00F0FF"/>
                                             </Trigger>
                                         </Style.Triggers>
@@ -4710,6 +4710,36 @@ function Set-ApplicationTheme([bool]$isDark) {
             $dgSqlResults.BorderBrush = $bc.ConvertFromString("#3F3F46")
             $dgSqlResults.HorizontalGridLinesBrush = $bc.ConvertFromString("#3F3F46")
             $dgSqlResults.VerticalGridLinesBrush = $bc.ConvertFromString("#3F3F46")
+            try {
+                $darkHeaderXaml = @"
+<Style xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" TargetType="DataGridColumnHeader">
+    <Setter Property="Background" Value="#0B132B"/>
+    <Setter Property="Foreground" Value="#38BDF8"/>
+    <Setter Property="FontWeight" Value="Bold"/>
+    <Setter Property="FontSize" Value="12.5"/>
+    <Setter Property="Padding" Value="12,8"/>
+    <Setter Property="BorderThickness" Value="0,0,1,2"/>
+    <Setter Property="BorderBrush" Value="#0284C7"/>
+    <Setter Property="Template">
+        <Setter.Value>
+            <ControlTemplate TargetType="DataGridColumnHeader">
+                <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Padding="{TemplateBinding Padding}" TextBlock.Foreground="{TemplateBinding Foreground}" TextElement.Foreground="{TemplateBinding Foreground}">
+                    <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Left" SnapsToDevicePixels="True"/>
+                </Border>
+            </ControlTemplate>
+        </Setter.Value>
+    </Setter>
+    <Style.Triggers>
+        <Trigger Property="IsMouseOver" Value="True">
+            <Setter Property="Background" Value="#1E293B"/>
+            <Setter Property="Foreground" Value="#00F0FF"/>
+        </Trigger>
+    </Style.Triggers>
+</Style>
+"@
+                $dgSqlResults.ColumnHeaderStyle = [System.Windows.Markup.XamlReader]::Parse($darkHeaderXaml)
+                foreach ($col in $dgSqlResults.Columns) { $col.HeaderStyle = $dgSqlResults.ColumnHeaderStyle }
+            } catch {}
         }
 
         # SQL Query Editor
@@ -4794,6 +4824,36 @@ function Set-ApplicationTheme([bool]$isDark) {
             $dgSqlResults.BorderBrush = $bc.ConvertFromString("#CBD5E1")
             $dgSqlResults.HorizontalGridLinesBrush = $bc.ConvertFromString("#E2E8F0")
             $dgSqlResults.VerticalGridLinesBrush = $bc.ConvertFromString("#E2E8F0")
+            try {
+                $lightHeaderXaml = @"
+<Style xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" TargetType="DataGridColumnHeader">
+    <Setter Property="Background" Value="#1E293B"/>
+    <Setter Property="Foreground" Value="#FFFFFF"/>
+    <Setter Property="FontWeight" Value="Bold"/>
+    <Setter Property="FontSize" Value="12.5"/>
+    <Setter Property="Padding" Value="12,8"/>
+    <Setter Property="BorderThickness" Value="0,0,1,2"/>
+    <Setter Property="BorderBrush" Value="#0284C7"/>
+    <Setter Property="Template">
+        <Setter.Value>
+            <ControlTemplate TargetType="DataGridColumnHeader">
+                <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Padding="{TemplateBinding Padding}" TextBlock.Foreground="{TemplateBinding Foreground}" TextElement.Foreground="{TemplateBinding Foreground}">
+                    <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Left" SnapsToDevicePixels="True"/>
+                </Border>
+            </ControlTemplate>
+        </Setter.Value>
+    </Setter>
+    <Style.Triggers>
+        <Trigger Property="IsMouseOver" Value="True">
+            <Setter Property="Background" Value="#0284C7"/>
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+        </Trigger>
+    </Style.Triggers>
+</Style>
+"@
+                $dgSqlResults.ColumnHeaderStyle = [System.Windows.Markup.XamlReader]::Parse($lightHeaderXaml)
+                foreach ($col in $dgSqlResults.Columns) { $col.HeaderStyle = $dgSqlResults.ColumnHeaderStyle }
+            } catch {}
         }
 
         # SQL Query Editor
@@ -10555,25 +10615,34 @@ function Update-AgentWindowVisuals($ctx) {
             $ctx.DgResults.VerticalGridLinesBrush = $bc.ConvertFromString("#E2E8F0")
             $whiteHdrXaml = @"
 <Style xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" TargetType="DataGridColumnHeader">
-    <Setter Property="Background" Value="#E2E8F0"/>
-    <Setter Property="Foreground" Value="#0F172A"/>
+    <Setter Property="Background" Value="#1E293B"/>
+    <Setter Property="Foreground" Value="#FFFFFF"/>
     <Setter Property="FontWeight" Value="Bold"/>
     <Setter Property="FontSize" Value="12.5"/>
-    <Setter Property="Padding" Value="10,7"/>
-    <Setter Property="BorderThickness" Value="0,0,1,1"/>
-    <Setter Property="BorderBrush" Value="#CBD5E1"/>
+    <Setter Property="Padding" Value="12,8"/>
+    <Setter Property="BorderThickness" Value="0,0,1,2"/>
+    <Setter Property="BorderBrush" Value="#0284C7"/>
     <Setter Property="Template">
         <Setter.Value>
             <ControlTemplate TargetType="DataGridColumnHeader">
-                <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Padding="{TemplateBinding Padding}">
+                <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Padding="{TemplateBinding Padding}" TextBlock.Foreground="{TemplateBinding Foreground}" TextElement.Foreground="{TemplateBinding Foreground}">
                     <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Left" SnapsToDevicePixels="True"/>
                 </Border>
             </ControlTemplate>
         </Setter.Value>
     </Setter>
+    <Style.Triggers>
+        <Trigger Property="IsMouseOver" Value="True">
+            <Setter Property="Background" Value="#0284C7"/>
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+        </Trigger>
+    </Style.Triggers>
 </Style>
 "@
-            try { $ctx.DgResults.ColumnHeaderStyle = [System.Windows.Markup.XamlReader]::Parse($whiteHdrXaml) } catch {}
+            try {
+                $ctx.DgResults.ColumnHeaderStyle = [System.Windows.Markup.XamlReader]::Parse($whiteHdrXaml)
+                foreach ($col in $ctx.DgResults.Columns) { $col.HeaderStyle = $ctx.DgResults.ColumnHeaderStyle }
+            } catch {}
         }
         if ($ctx.TxtLogs) { $ctx.TxtLogs.Background = $bc.ConvertFromString("#FFFFFF"); $ctx.TxtLogs.Foreground = $bc.ConvertFromString("#0F172A") }
         if ($ctx.BtnFormatQuery) { $ctx.BtnFormatQuery.Background = $bc.ConvertFromString("#E2E8F0"); $ctx.BtnFormatQuery.Foreground = $bc.ConvertFromString("#0F172A") }
@@ -10620,25 +10689,34 @@ function Update-AgentWindowVisuals($ctx) {
             $ctx.DgResults.VerticalGridLinesBrush = $bc.ConvertFromString("#1E293B")
             $darkHdrXaml = @"
 <Style xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" TargetType="DataGridColumnHeader">
-    <Setter Property="Background" Value="#1E293B"/>
+    <Setter Property="Background" Value="#0B132B"/>
     <Setter Property="Foreground" Value="#38BDF8"/>
     <Setter Property="FontWeight" Value="Bold"/>
     <Setter Property="FontSize" Value="12.5"/>
-    <Setter Property="Padding" Value="10,7"/>
-    <Setter Property="BorderThickness" Value="0,0,1,1"/>
-    <Setter Property="BorderBrush" Value="#334155"/>
+    <Setter Property="Padding" Value="12,8"/>
+    <Setter Property="BorderThickness" Value="0,0,1,2"/>
+    <Setter Property="BorderBrush" Value="#0284C7"/>
     <Setter Property="Template">
         <Setter.Value>
             <ControlTemplate TargetType="DataGridColumnHeader">
-                <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Padding="{TemplateBinding Padding}">
+                <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Padding="{TemplateBinding Padding}" TextBlock.Foreground="{TemplateBinding Foreground}" TextElement.Foreground="{TemplateBinding Foreground}">
                     <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Left" SnapsToDevicePixels="True"/>
                 </Border>
             </ControlTemplate>
         </Setter.Value>
     </Setter>
+    <Style.Triggers>
+        <Trigger Property="IsMouseOver" Value="True">
+            <Setter Property="Background" Value="#1E293B"/>
+            <Setter Property="Foreground" Value="#00F0FF"/>
+        </Trigger>
+    </Style.Triggers>
 </Style>
 "@
-            try { $ctx.DgResults.ColumnHeaderStyle = [System.Windows.Markup.XamlReader]::Parse($darkHdrXaml) } catch {}
+            try {
+                $ctx.DgResults.ColumnHeaderStyle = [System.Windows.Markup.XamlReader]::Parse($darkHdrXaml)
+                foreach ($col in $ctx.DgResults.Columns) { $col.HeaderStyle = $ctx.DgResults.ColumnHeaderStyle }
+            } catch {}
         }
         if ($ctx.TxtLogs) { $ctx.TxtLogs.Background = $bc.ConvertFromString("#030712"); $ctx.TxtLogs.Foreground = $bc.ConvertFromString("#38BDF8") }
         if ($ctx.BtnFormatQuery) { $ctx.BtnFormatQuery.Background = $bc.ConvertFromString("#334155"); $ctx.BtnFormatQuery.Foreground = $bc.ConvertFromString("#7DD3FC") }
@@ -11046,17 +11124,17 @@ function Show-JarvisAssistantWindow {
         # High-Contrast Column Header Style for AI Data Grid
         $hdrStyleXaml = @"
 <Style xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" TargetType="DataGridColumnHeader">
-    <Setter Property="Background" Value="#1E293B"/>
+    <Setter Property="Background" Value="#0B132B"/>
     <Setter Property="Foreground" Value="#38BDF8"/>
     <Setter Property="FontWeight" Value="Bold"/>
     <Setter Property="FontSize" Value="12.5"/>
-    <Setter Property="Padding" Value="10,7"/>
-    <Setter Property="BorderThickness" Value="0,0,1,1"/>
-    <Setter Property="BorderBrush" Value="#334155"/>
+    <Setter Property="Padding" Value="12,8"/>
+    <Setter Property="BorderThickness" Value="0,0,1,2"/>
+    <Setter Property="BorderBrush" Value="#0284C7"/>
     <Setter Property="Template">
         <Setter.Value>
             <ControlTemplate TargetType="DataGridColumnHeader">
-                <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Padding="{TemplateBinding Padding}">
+                <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Padding="{TemplateBinding Padding}" TextBlock.Foreground="{TemplateBinding Foreground}" TextElement.Foreground="{TemplateBinding Foreground}">
                     <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Left" SnapsToDevicePixels="True"/>
                 </Border>
             </ControlTemplate>
@@ -11064,13 +11142,19 @@ function Show-JarvisAssistantWindow {
     </Setter>
     <Style.Triggers>
         <Trigger Property="IsMouseOver" Value="True">
-            <Setter Property="Background" Value="#334155"/>
+            <Setter Property="Background" Value="#1E293B"/>
             <Setter Property="Foreground" Value="#00F0FF"/>
         </Trigger>
     </Style.Triggers>
 </Style>
 "@
         try { $dgResults.ColumnHeaderStyle = [System.Windows.Markup.XamlReader]::Parse($hdrStyleXaml) } catch {}
+        $dgResults.Add_AutoGeneratingColumn({
+            param($s, $e)
+            if ($s.ColumnHeaderStyle) {
+                $e.Column.HeaderStyle = $s.ColumnHeaderStyle
+            }
+        })
 
         # High-Contrast Cell Selection Style
         $cellStyleXaml = @"
@@ -12927,6 +13011,12 @@ if ($btnSqlUserAccessManager) { $btnSqlUserAccessManager.Add_Click({ Show-UserAc
 if ($btnSqlTableDdlWizard) { $btnSqlTableDdlWizard.Add_Click({ Show-TableDdlWizardWindow }) }
 
 if ($dgSqlResults) {
+    $dgSqlResults.Add_AutoGeneratingColumn({
+        param($s, $e)
+        if ($s.ColumnHeaderStyle) {
+            $e.Column.HeaderStyle = $s.ColumnHeaderStyle
+        }
+    })
     $ctxMenu = New-Object System.Windows.Controls.ContextMenu
     $ctxMenu.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#0F172A")
     $ctxMenu.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#E2E8F0")
@@ -16450,21 +16540,32 @@ function Invoke-NexusGeoRadarMap {
 <head>
     <meta charset="UTF-8">
     <title>PMC Municipal GIS Geo-Radar &amp; Asset Visualizer</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
-        body { margin: 0; padding: 0; background: #0B132B; color: #F8FAFC; font-family: 'Segoe UI', Tahoma, sans-serif; }
-        #header { padding: 12px 20px; background: #0A1128; border-bottom: 2px solid #00F0FF; display: flex; justify-content: space-between; align-items: center; }
-        #title { font-size: 18px; font-weight: bold; color: #00F0FF; }
-        #subtitle { font-size: 12px; color: #94A3B8; }
-        #map { height: calc(100vh - 65px); width: 100%; }
-        .leaflet-popup-content-wrapper { background: #0F172A; color: #F8FAFC; border: 1px solid #38BDF8; border-radius: 8px; }
+        * { box-sizing: border-box; }
+        body { margin: 0; padding: 0; background: #0B132B; color: #F8FAFC; font-family: 'Segoe UI', Tahoma, sans-serif; overflow: hidden; }
+        #header { height: 60px; padding: 10px 20px; background: #0A1128; border-bottom: 2px solid #00F0FF; display: flex; justify-content: space-between; align-items: center; z-index: 1000; position: relative; }
+        #title { font-size: 17px; font-weight: bold; color: #00F0FF; letter-spacing: 0.5px; }
+        #subtitle { font-size: 11px; color: #94A3B8; }
+        #controls { display: flex; gap: 8px; align-items: center; }
+        .filter-btn { background: #1E293B; color: #E2E8F0; border: 1px solid #334155; padding: 5px 12px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: 600; transition: all 0.2s; }
+        .filter-btn:hover, .filter-btn.active { background: #0284C7; border-color: #38BDF8; color: white; }
+        #searchBox { background: #0F172A; color: #E2E8F0; border: 1px solid #38BDF8; border-radius: 6px; padding: 5px 12px; font-size: 11.5px; width: 220px; outline: none; }
+        #map { height: calc(100vh - 60px); width: 100%; }
+        
+        .leaflet-popup-content-wrapper { background: #0F172A; color: #F8FAFC; border: 1.5px solid #00F0FF; border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.7); }
         .leaflet-popup-tip { background: #0F172A; }
-        .prop-title { font-size: 14px; font-weight: bold; color: #38BDF8; border-bottom: 1px solid #334155; padding-bottom: 4px; margin-bottom: 6px; }
-        .prop-info { font-size: 12px; margin: 3px 0; }
-        .badge-danger { background: #EF4444; color: white; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 10px; }
-        .badge-ok { background: #10B981; color: white; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 10px; }
-        .badge-warn { background: #F59E0B; color: black; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 10px; }
+        .prop-card { width: 260px; }
+        .prop-title { font-size: 13.5px; font-weight: bold; color: #38BDF8; border-bottom: 1px solid #334155; padding-bottom: 6px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .prop-row { font-size: 11.5px; margin: 4px 0; color: #CBD5E1; }
+        .prop-row b { color: #94A3B8; }
+        .badge { padding: 2px 7px; border-radius: 4px; font-weight: bold; font-size: 9.5px; text-transform: uppercase; }
+        .badge-ok { background: #065F46; color: #34D399; border: 1px solid #10B981; }
+        .badge-danger { background: #7F1D1D; color: #FCA5A5; border: 1px solid #EF4444; }
+        .badge-warn { background: #78350F; color: #FDE047; border: 1px solid #F59E0B; }
+        .leaflet-control-layers { background: #0F172A !important; color: #E2E8F0 !important; border: 1px solid #38BDF8 !important; border-radius: 8px !important; }
+        .leaflet-control-layers-expanded { padding: 8px 12px; }
     </style>
 </head>
 <body>
@@ -16473,38 +16574,112 @@ function Invoke-NexusGeoRadarMap {
             <div id="title">PANVEL MUNICIPAL CORPORATION - GIS GEO-RADAR</div>
             <div id="subtitle">Smart GPS Property Visualizer, Plan Inspector &amp; Revenue Leakage Radar</div>
         </div>
-        <div style="font-size: 12px; color: #34D399; font-weight: bold;">TOTAL PINS: $($pins.Count)</div>
+        <div id="controls">
+            <input type="text" id="searchBox" placeholder="Search Property No / Owner..." onkeyup="filterSearch()">
+            <button class="filter-btn active" onclick="setFilter('ALL', this)">ALL (<span id="countAll">0</span>)</button>
+            <button class="filter-btn" onclick="setFilter('OK', this)">VERIFIED (<span id="countOk">0</span>)</button>
+            <button class="filter-btn" onclick="setFilter('COMM', this)">COMMERCIAL (<span id="countComm">0</span>)</button>
+            <button class="filter-btn" onclick="setFilter('MISSING', this)">MISSING (<span id="countMissing">0</span>)</button>
+        </div>
     </div>
     <div id="map"></div>
 
     <script>
         var pins = $pinsJson;
-        var map = L.map('map').setView([18.9894, 73.1175], 15);
-        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        document.getElementById('countAll').innerText = pins.length;
+        document.getElementById('countOk').innerText = pins.filter(p => p.Status === 'OK').length;
+        document.getElementById('countComm').innerText = pins.filter(p => p.Status === 'Commercial_On_Residential').length;
+        document.getElementById('countMissing').innerText = pins.filter(p => p.Status === 'Missing_Plan').length;
+
+        // Base Layer 1: Esri World Imagery (High-Resolution Satellite Aerial View)
+        var esriSat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
             maxZoom: 19,
-            attribution: '&copy; Panvel Municipal Corporation GIS'
-        }).addTo(map);
-
-        pins.forEach(function(p) {
-            var markerColor = p.Status === 'OK' ? '#10B981' : (p.Status === 'Commercial_On_Residential' ? '#EF4444' : '#F59E0B');
-            var circle = L.circleMarker([p.Lat, p.Lon], {
-                color: markerColor,
-                fillColor: markerColor,
-                fillOpacity: 0.85,
-                radius: 8
-            }).addTo(map);
-
-            var badge = p.Status === 'OK' ? '<span class=\"badge-ok\">VERIFIED OK</span>' : 
-                        (p.Status === 'Commercial_On_Residential' ? '<span class=\"badge-danger\">COMMERCIAL ON RESIDENTIAL</span>' : '<span class=\"badge-warn\">MISSING PLAN</span>');
-
-            var content = '<div class=\"prop-title\">' + p.PropNo + ' ' + badge + '</div>' +
-                          '<div class=\"prop-info\"><b>Owner:</b> ' + p.Owner + '</div>' +
-                          '<div class=\"prop-info\"><b>Use Type:</b> ' + p.UseType + '</div>' +
-                          '<div class=\"prop-info\"><b>Tax Total:</b> &#8377;' + p.Tax + '</div>' +
-                          '<div class=\"prop-info\"><b>Photo:</b> ' + p.Photo + '</div>' +
-                          '<div class=\"prop-info\"><b>Plan PDF:</b> ' + (p.Plan ? p.Plan : '<span style=\"color:#EF4444;\">Not Uploaded</span>') + '</div>';
-            circle.bindPopup(content);
+            attribution: 'Esri World Imagery &copy; Panvel MC GIS'
         });
+
+        // Base Layer 2: CartoDB Dark Matter (Matches Nexus Cyber Dark Theme)
+        var cartoDark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            maxZoom: 19,
+            subdomains: 'abcd',
+            attribution: '&copy; CartoDB Dark Matter &copy; OpenStreetMap'
+        });
+
+        // Base Layer 3: CartoDB Voyager (Clean Street and Road Map)
+        var cartoVoyager = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+            maxZoom: 19,
+            subdomains: 'abcd',
+            attribution: '&copy; CartoDB Voyager &copy; OpenStreetMap'
+        });
+
+        // Initialize Map with Satellite aerial imagery by default
+        var map = L.map('map', {
+            center: [18.9894, 73.1175],
+            zoom: 15,
+            layers: [esriSat]
+        });
+
+        var baseMaps = {
+            "Satellite Aerial (Esri)": esriSat,
+            "Dark Cyber Map (Carto)": cartoDark,
+            "Street &amp; Ward Map (Carto)": cartoVoyager
+        };
+        L.control.layers(baseMaps, null, { position: 'topright' }).addTo(map);
+
+        var markersGroup = L.layerGroup().addTo(map);
+        var currentFilter = 'ALL';
+
+        function renderMarkers() {
+            markersGroup.clearLayers();
+            var searchTxt = document.getElementById('searchBox').value.toLowerCase().trim();
+
+            pins.forEach(function(p) {
+                if (currentFilter === 'OK' && p.Status !== 'OK') return;
+                if (currentFilter === 'COMM' && p.Status !== 'Commercial_On_Residential') return;
+                if (currentFilter === 'MISSING' && p.Status !== 'Missing_Plan') return;
+
+                if (searchTxt) {
+                    var matchText = (p.PropNo + ' ' + p.Owner + ' ' + p.UseType).toLowerCase();
+                    if (matchText.indexOf(searchTxt) === -1) return;
+                }
+
+                var color = p.Status === 'OK' ? '#10B981' : (p.Status === 'Commercial_On_Residential' ? '#EF4444' : '#F59E0B');
+                var marker = L.circleMarker([p.Lat, p.Lon], {
+                    color: '#FFFFFF',
+                    weight: 2,
+                    fillColor: color,
+                    fillOpacity: 0.9,
+                    radius: 9
+                });
+
+                var badgeClass = p.Status === 'OK' ? 'badge-ok' : (p.Status === 'Commercial_On_Residential' ? 'badge-danger' : 'badge-warn');
+                var badgeLabel = p.Status === 'OK' ? 'VERIFIED' : (p.Status === 'Commercial_On_Residential' ? 'COMMERCIAL' : 'MISSING PLAN');
+
+                var popupHtml = '<div class=\"prop-card\">' +
+                    '<div class=\"prop-title\"><span>' + p.PropNo + '</span><span class=\"badge ' + badgeClass + '\">' + badgeLabel + '</span></div>' +
+                    '<div class=\"prop-row\"><b>Owner:</b> ' + p.Owner + '</div>' +
+                    '<div class=\"prop-row\"><b>Use Type:</b> ' + p.UseType + '</div>' +
+                    '<div class=\"prop-row\"><b>Tax Total:</b> &#8377;' + p.Tax + '</div>' +
+                    '<div class=\"prop-row\"><b>Photo:</b> ' + p.Photo + '</div>' +
+                    '<div class=\"prop-row\"><b>Plan PDF:</b> ' + (p.Plan ? '<span style=\"color:#38BDF8; font-weight:bold;\">' + p.Plan + '</span>' : '<span style=\"color:#EF4444;\">Not Uploaded</span>') + '</div>' +
+                    '</div>';
+
+                marker.bindPopup(popupHtml);
+                markersGroup.addLayer(marker);
+            });
+        }
+
+        function setFilter(filt, btn) {
+            currentFilter = filt;
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderMarkers();
+        }
+
+        function filterSearch() {
+            renderMarkers();
+        }
+
+        renderMarkers();
     </script>
 </body>
 </html>
