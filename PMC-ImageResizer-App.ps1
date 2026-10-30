@@ -1,4 +1,4 @@
-SUCCESS: Block 3: Animated execAction with stopwatch SUCCESS: Block 2: pbAgentExtracting in cmdGrid SUCCESS: Block 1: btnAgentTheme in Header # ================================================================================
+# ================================================================================
 # NEXUS PHOTO & DOCUMENT OPTIMIZER (ENTERPRISE EDITION)
 # Startup Initialization: SmartScreen Unblock, Admin Privilege Detection & Config
 # ================================================================================
@@ -4447,6 +4447,28 @@ function Set-ApplicationTheme([bool]$isDark) {
     }
     if ($lblSqlSsmsStatusText) { $lblSqlSsmsStatusText.Foreground = $bc.ConvertFromString("#FFFFFF") }
     if ($lblSqlSsmsStatusDetails) { $lblSqlSsmsStatusDetails.Foreground = $bc.ConvertFromString("#FFFFFF") }
+
+    # Mascot HUD Theme Polish
+    if ($mascotContainer) {
+        $mascotContainer.Background = if ($isDark) { $bc.ConvertFromString("#0B132B") } else { $bc.ConvertFromString("#FFFFFF") }
+        $mascotContainer.BorderBrush = if ($isDark) { $bc.ConvertFromString("#0284C7") } else { $bc.ConvertFromString("#CBD5E1") }
+    }
+    if ($mascotTitle) {
+        $mascotTitle.Foreground = if ($isDark) { $bc.ConvertFromString("#38BDF8") } else { $bc.ConvertFromString("#0284C7") }
+    }
+    if ($mascotSub) {
+        $mascotSub.Foreground = if ($isDark) { $bc.ConvertFromString("#94A3B8") } else { $bc.ConvertFromString("#64748B") }
+    }
+
+    # Real-Time Theme Sync for AI Agent Window
+    if ($script:ActiveAgentWindow -and $script:ActiveAgentWindow.Tag) {
+        try {
+            if ($script:ActiveAgentWindow.IsVisible) {
+                $script:ActiveAgentWindow.Tag.IsWhite = (-not $isDark)
+                Update-AgentWindowVisuals $script:ActiveAgentWindow.Tag
+            }
+        } catch { }
+    }
 
     # Synchronize TextBoxes with theme
     if ($txtSqlConnStr) {
@@ -10108,6 +10130,144 @@ function New-NexusAppInstance {
         }
     } catch {}
 }
+function Update-AgentWindowVisuals($ctx) {
+    if (-not $ctx) { return }
+    $isWhite = [bool]$ctx.IsWhite
+    $bc = [System.Windows.Media.BrushConverter]::new()
+
+    if ($isWhite) {
+        if ($ctx.Win) { $ctx.Win.Background = $bc.ConvertFromString("#F8FAFC"); $ctx.Win.Foreground = $bc.ConvertFromString("#0F172A") }
+        if ($ctx.HdrBorder) { $ctx.HdrBorder.Background = $bc.ConvertFromString("#FFFFFF"); $ctx.HdrBorder.BorderBrush = $bc.ConvertFromString("#CBD5E1") }
+        if ($ctx.HdrTitle) { $ctx.HdrTitle.Foreground = $bc.ConvertFromString("#0F172A") }
+        if ($ctx.HdrSub) { $ctx.HdrSub.Foreground = $bc.ConvertFromString("#475569") }
+        if ($ctx.Badge) { $ctx.Badge.Background = if ($ctx.IsLiveSql) { $bc.ConvertFromString("#DCFCE7") } else { $bc.ConvertFromString("#E0F2FE") } }
+        if ($ctx.BadgeTxt) { $ctx.BadgeTxt.Foreground = if ($ctx.IsLiveSql) { $bc.ConvertFromString("#15803D") } else { $bc.ConvertFromString("#0369A1") } }
+        if ($ctx.BtnAgentTheme) {
+            $ctx.BtnAgentTheme.Content = "DARK MODE"
+            $ctx.BtnAgentTheme.Background = $bc.ConvertFromString("#0F172A")
+            $ctx.BtnAgentTheme.Foreground = $bc.ConvertFromString("#F8FAFC")
+            $ctx.BtnAgentTheme.BorderBrush = $bc.ConvertFromString("#38BDF8")
+        }
+        if ($ctx.BtnGeminiKey) { $ctx.BtnGeminiKey.Background = $bc.ConvertFromString("#F1F5F9"); $ctx.BtnGeminiKey.Foreground = $bc.ConvertFromString("#0F172A"); $ctx.BtnGeminiKey.BorderBrush = $bc.ConvertFromString("#CBD5E1") }
+        if ($ctx.BtnReindex) { $ctx.BtnReindex.Background = $bc.ConvertFromString("#F1F5F9"); $ctx.BtnReindex.Foreground = $bc.ConvertFromString("#0284C7"); $ctx.BtnReindex.BorderBrush = $bc.ConvertFromString("#0284C7") }
+        if ($ctx.TxtPrompt) { $ctx.TxtPrompt.Background = $bc.ConvertFromString("#FFFFFF"); $ctx.TxtPrompt.Foreground = $bc.ConvertFromString("#0F172A"); $ctx.TxtPrompt.BorderBrush = $bc.ConvertFromString("#94A3B8") }
+        if ($ctx.PbAgent) { $ctx.PbAgent.Background = $bc.ConvertFromString("#E2E8F0"); $ctx.PbAgent.Foreground = $bc.ConvertFromString("#0284C7") }
+        if ($ctx.TabCtrl) { $ctx.TabCtrl.Background = $bc.ConvertFromString("#F8FAFC"); $ctx.TabCtrl.BorderBrush = $bc.ConvertFromString("#CBD5E1") }
+        if ($ctx.TabData) { $ctx.TabData.Background = $bc.ConvertFromString("#FFFFFF") }
+        if ($ctx.TabTest) { $ctx.TabTest.Background = $bc.ConvertFromString("#FFFFFF") }
+        if ($ctx.TabSql) { $ctx.TabSql.Background = $bc.ConvertFromString("#FFFFFF") }
+        if ($ctx.LblDataStatus) { $ctx.LblDataStatus.Foreground = $bc.ConvertFromString("#0369A1") }
+        if ($ctx.DgResults) {
+            $ctx.DgResults.Background = $bc.ConvertFromString("#FFFFFF")
+            $ctx.DgResults.RowBackground = $bc.ConvertFromString("#FFFFFF")
+            $ctx.DgResults.AlternatingRowBackground = $bc.ConvertFromString("#F1F5F9")
+            $ctx.DgResults.Foreground = $bc.ConvertFromString("#0F172A")
+            $ctx.DgResults.HorizontalGridLinesBrush = $bc.ConvertFromString("#E2E8F0")
+            $ctx.DgResults.VerticalGridLinesBrush = $bc.ConvertFromString("#E2E8F0")
+            $whiteHdrXaml = @"
+<Style xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" TargetType="DataGridColumnHeader">
+    <Setter Property="Background" Value="#E2E8F0"/>
+    <Setter Property="Foreground" Value="#0F172A"/>
+    <Setter Property="FontWeight" Value="Bold"/>
+    <Setter Property="FontSize" Value="12.5"/>
+    <Setter Property="Padding" Value="10,7"/>
+    <Setter Property="BorderThickness" Value="0,0,1,1"/>
+    <Setter Property="BorderBrush" Value="#CBD5E1"/>
+    <Setter Property="Template">
+        <Setter.Value>
+            <ControlTemplate TargetType="DataGridColumnHeader">
+                <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Padding="{TemplateBinding Padding}">
+                    <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Left" SnapsToDevicePixels="True"/>
+                </Border>
+            </ControlTemplate>
+        </Setter.Value>
+    </Setter>
+</Style>
+"@
+            try { $ctx.DgResults.ColumnHeaderStyle = [System.Windows.Markup.XamlReader]::Parse($whiteHdrXaml) } catch {}
+        }
+        if ($ctx.TxtLogs) { $ctx.TxtLogs.Background = $bc.ConvertFromString("#FFFFFF"); $ctx.TxtLogs.Foreground = $bc.ConvertFromString("#0F172A") }
+        if ($ctx.BtnFormatQuery) { $ctx.BtnFormatQuery.Background = $bc.ConvertFromString("#E2E8F0"); $ctx.BtnFormatQuery.Foreground = $bc.ConvertFromString("#0F172A") }
+        if ($ctx.TxtGeneratedSql) { $ctx.TxtGeneratedSql.Background = $bc.ConvertFromString("#FFFFFF"); $ctx.TxtGeneratedSql.Foreground = $bc.ConvertFromString("#0369A1") }
+        if ($ctx.BtnClear) { $ctx.BtnClear.Background = $bc.ConvertFromString("#E2E8F0"); $ctx.BtnClear.Foreground = $bc.ConvertFromString("#0F172A") }
+        if ($ctx.BtnClose) { $ctx.BtnClose.Background = $bc.ConvertFromString("#CBD5E1"); $ctx.BtnClose.Foreground = $bc.ConvertFromString("#0F172A") }
+        if ($ctx.ChipsList) {
+            foreach ($cBtn in $ctx.ChipsList) {
+                if ($cBtn) {
+                    $cBtn.Background = $bc.ConvertFromString("#FFFFFF")
+                    $cBtn.Foreground = $bc.ConvertFromString("#0F172A")
+                    $cBtn.BorderBrush = $bc.ConvertFromString("#CBD5E1")
+                }
+            }
+        }
+    } else {
+        if ($ctx.Win) { $ctx.Win.Background = $bc.ConvertFromString("#060A13"); $ctx.Win.Foreground = $bc.ConvertFromString("#F8FAFC") }
+        if ($ctx.HdrBorder) { $ctx.HdrBorder.Background = $bc.ConvertFromString("#0B132B"); $ctx.HdrBorder.BorderBrush = if ($ctx.IsLiveSql) { $bc.ConvertFromString("#10B981") } else { $bc.ConvertFromString("#00F0FF") } }
+        if ($ctx.HdrTitle) { $ctx.HdrTitle.Foreground = $bc.ConvertFromString("#F8FAFC") }
+        if ($ctx.HdrSub) { $ctx.HdrSub.Foreground = if ($ctx.IsLiveSql) { $bc.ConvertFromString("#34D399") } else { $bc.ConvertFromString("#38BDF8") } }
+        if ($ctx.Badge) { $ctx.Badge.Background = if ($ctx.IsLiveSql) { $bc.ConvertFromString("#10B981") } else { $bc.ConvertFromString("#00F0FF") } }
+        if ($ctx.BadgeTxt) { $ctx.BadgeTxt.Foreground = $bc.ConvertFromString("#060A13") }
+        if ($ctx.BtnAgentTheme) {
+            $ctx.BtnAgentTheme.Content = "WHITE MODE"
+            $ctx.BtnAgentTheme.Background = $bc.ConvertFromString("#1E293B")
+            $ctx.BtnAgentTheme.Foreground = $bc.ConvertFromString("#F8FAFC")
+            $ctx.BtnAgentTheme.BorderBrush = $bc.ConvertFromString("#0284C7")
+        }
+        if ($ctx.BtnGeminiKey) { $ctx.BtnGeminiKey.Background = $bc.ConvertFromString("#1E293B"); $ctx.BtnGeminiKey.Foreground = $bc.ConvertFromString("#34D399"); $ctx.BtnGeminiKey.BorderBrush = $bc.ConvertFromString("#10B981") }
+        if ($ctx.BtnReindex) { $ctx.BtnReindex.Background = $bc.ConvertFromString("#1E293B"); $ctx.BtnReindex.Foreground = $bc.ConvertFromString("#00F0FF"); $ctx.BtnReindex.BorderBrush = $bc.ConvertFromString("#00F0FF") }
+        if ($ctx.TxtPrompt) { $ctx.TxtPrompt.Background = $bc.ConvertFromString("#0A0F1D"); $ctx.TxtPrompt.Foreground = $bc.ConvertFromString("#00F0FF"); $ctx.TxtPrompt.BorderBrush = $bc.ConvertFromString("#1E3A8A") }
+        if ($ctx.PbAgent) { $ctx.PbAgent.Background = $bc.ConvertFromString("#0B132B"); $ctx.PbAgent.Foreground = $bc.ConvertFromString("#00F0FF") }
+        if ($ctx.TabCtrl) { $ctx.TabCtrl.Background = $bc.ConvertFromString("#0A101E"); $ctx.TabCtrl.BorderBrush = $bc.ConvertFromString("#1E293B") }
+        if ($ctx.TabData) { $ctx.TabData.Background = $bc.ConvertFromString("#0A101E") }
+        if ($ctx.TabTest) { $ctx.TabTest.Background = $bc.ConvertFromString("#0A101E") }
+        if ($ctx.TabSql) { $ctx.TabSql.Background = $bc.ConvertFromString("#0A101E") }
+        if ($ctx.LblDataStatus) { $ctx.LblDataStatus.Foreground = $bc.ConvertFromString("#38BDF8") }
+        if ($ctx.DgResults) {
+            $ctx.DgResults.Background = $bc.ConvertFromString("#0A101E")
+            $ctx.DgResults.RowBackground = $bc.ConvertFromString("#0A101E")
+            $ctx.DgResults.AlternatingRowBackground = $bc.ConvertFromString("#0F172A")
+            $ctx.DgResults.Foreground = $bc.ConvertFromString("#F8FAFC")
+            $ctx.DgResults.HorizontalGridLinesBrush = $bc.ConvertFromString("#1E293B")
+            $ctx.DgResults.VerticalGridLinesBrush = $bc.ConvertFromString("#1E293B")
+            $darkHdrXaml = @"
+<Style xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" TargetType="DataGridColumnHeader">
+    <Setter Property="Background" Value="#1E293B"/>
+    <Setter Property="Foreground" Value="#38BDF8"/>
+    <Setter Property="FontWeight" Value="Bold"/>
+    <Setter Property="FontSize" Value="12.5"/>
+    <Setter Property="Padding" Value="10,7"/>
+    <Setter Property="BorderThickness" Value="0,0,1,1"/>
+    <Setter Property="BorderBrush" Value="#334155"/>
+    <Setter Property="Template">
+        <Setter.Value>
+            <ControlTemplate TargetType="DataGridColumnHeader">
+                <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Padding="{TemplateBinding Padding}">
+                    <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Left" SnapsToDevicePixels="True"/>
+                </Border>
+            </ControlTemplate>
+        </Setter.Value>
+    </Setter>
+</Style>
+"@
+            try { $ctx.DgResults.ColumnHeaderStyle = [System.Windows.Markup.XamlReader]::Parse($darkHdrXaml) } catch {}
+        }
+        if ($ctx.TxtLogs) { $ctx.TxtLogs.Background = $bc.ConvertFromString("#030712"); $ctx.TxtLogs.Foreground = $bc.ConvertFromString("#38BDF8") }
+        if ($ctx.BtnFormatQuery) { $ctx.BtnFormatQuery.Background = $bc.ConvertFromString("#334155"); $ctx.BtnFormatQuery.Foreground = $bc.ConvertFromString("#7DD3FC") }
+        if ($ctx.TxtGeneratedSql) { $ctx.TxtGeneratedSql.Background = $bc.ConvertFromString("#030712"); $ctx.TxtGeneratedSql.Foreground = $bc.ConvertFromString("#4ADE80") }
+        if ($ctx.BtnClear) { $ctx.BtnClear.Background = $bc.ConvertFromString("#334155"); $ctx.BtnClear.Foreground = $bc.ConvertFromString("#FFFFFF") }
+        if ($ctx.BtnClose) { $ctx.BtnClose.Background = $bc.ConvertFromString("#475569"); $ctx.BtnClose.Foreground = $bc.ConvertFromString("#FFFFFF") }
+        if ($ctx.ChipsList) {
+            foreach ($cBtn in $ctx.ChipsList) {
+                if ($cBtn) {
+                    $cBtn.Background = $bc.ConvertFromString("#131E33")
+                    $cBtn.Foreground = $bc.ConvertFromString("#7DD3FC")
+                    $cBtn.BorderBrush = $bc.ConvertFromString("#1E3A8A")
+                }
+            }
+        }
+    }
+}
+
 function Show-JarvisAssistantWindow {
     try {
         if ($script:SqlConnection -and $script:SqlConnection.State -eq [System.Data.ConnectionState]::Open -and (-not $script:JarvisSchema.IsLiveDb -or $script:JarvisSchema.AllTables.Count -le 14)) {
@@ -10119,6 +10279,8 @@ function Show-JarvisAssistantWindow {
         $isLiveSql = ($script:SqlConnected -and $script:SqlConnection -and $script:SqlConnection.State -eq [System.Data.ConnectionState]::Open)
 
         $win = New-Object System.Windows.Window
+        $script:ActiveAgentWindow = $win
+        $win.Add_Closed({ $script:ActiveAgentWindow = $null })
         $win.Title = "JARVIS - WORLD-CLASS AUTONOMOUS SQL AI AGENT & SELF-HEALING TESTER v5.5"
         $win.Width = 1140
         $win.Height = 760
@@ -10819,141 +10981,46 @@ function Show-JarvisAssistantWindow {
             $agentChipsList.Add($btnChip)
         }
 
-        # --- Dynamic White Mode / Dark Mode Theme Engine for Agent Screen ---
-        $updateAgentTheme = {
-            $isWhite = $script:isAgentWhiteMode
-            $bc = [System.Windows.Media.BrushConverter]::new()
-            if ($isWhite) {
-                $win.Background = $bc.ConvertFromString("#F8FAFC")
-                $win.Foreground = $bc.ConvertFromString("#0F172A")
-                $hdrBorder.Background = $bc.ConvertFromString("#FFFFFF")
-                $hdrBorder.BorderBrush = $bc.ConvertFromString("#CBD5E1")
-                $hdrTitle.Foreground = $bc.ConvertFromString("#0F172A")
-                $hdrSub.Foreground = $bc.ConvertFromString("#475569")
-                $btnAgentTheme.Content = "DARK MODE"
-                $btnAgentTheme.Background = $bc.ConvertFromString("#0F172A")
-                $btnAgentTheme.Foreground = $bc.ConvertFromString("#F8FAFC")
-                $btnAgentTheme.BorderBrush = $bc.ConvertFromString("#38BDF8")
-                $txtPrompt.Background = $bc.ConvertFromString("#FFFFFF")
-                $txtPrompt.Foreground = $bc.ConvertFromString("#0F172A")
-                $txtPrompt.BorderBrush = $bc.ConvertFromString("#94A3B8")
-                $pbAgentExtracting.Background = $bc.ConvertFromString("#E2E8F0")
-                $pbAgentExtracting.Foreground = $bc.ConvertFromString("#0284C7")
-                $tabCtrl.Background = $bc.ConvertFromString("#F8FAFC")
-                $tabCtrl.BorderBrush = $bc.ConvertFromString("#CBD5E1")
-                $tabData.Background = $bc.ConvertFromString("#FFFFFF")
-                $dgResults.Background = $bc.ConvertFromString("#FFFFFF")
-                $dgResults.RowBackground = $bc.ConvertFromString("#FFFFFF")
-                $dgResults.AlternatingRowBackground = $bc.ConvertFromString("#F1F5F9")
-                $dgResults.Foreground = $bc.ConvertFromString("#0F172A")
-                $dgResults.HorizontalGridLinesBrush = $bc.ConvertFromString("#E2E8F0")
-                $dgResults.VerticalGridLinesBrush = $bc.ConvertFromString("#E2E8F0")
-                try {
-                    $whiteHdrXaml = @"
-<Style xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" TargetType="DataGridColumnHeader">
-    <Setter Property="Background" Value="#E2E8F0"/>
-    <Setter Property="Foreground" Value="#0F172A"/>
-    <Setter Property="FontWeight" Value="Bold"/>
-    <Setter Property="FontSize" Value="12.5"/>
-    <Setter Property="Padding" Value="10,7"/>
-    <Setter Property="BorderThickness" Value="0,0,1,1"/>
-    <Setter Property="BorderBrush" Value="#CBD5E1"/>
-    <Setter Property="Template">
-        <Setter.Value>
-            <ControlTemplate TargetType="DataGridColumnHeader">
-                <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Padding="{TemplateBinding Padding}">
-                    <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Left" SnapsToDevicePixels="True"/>
-                </Border>
-            </ControlTemplate>
-        </Setter.Value>
-    </Setter>
-</Style>
-"@
-                    $dgResults.ColumnHeaderStyle = [System.Windows.Markup.XamlReader]::Parse($whiteHdrXaml)
-                } catch {}
-                $txtLogs.Background = $bc.ConvertFromString("#FFFFFF")
-                $txtLogs.Foreground = $bc.ConvertFromString("#0F172A")
-                $txtGeneratedSql.Background = $bc.ConvertFromString("#FFFFFF")
-                $txtGeneratedSql.Foreground = $bc.ConvertFromString("#0369A1")
-                $btnClear.Background = $bc.ConvertFromString("#E2E8F0")
-                $btnClear.Foreground = $bc.ConvertFromString("#0F172A")
-                $btnClose.Background = $bc.ConvertFromString("#CBD5E1")
-                $btnClose.Foreground = $bc.ConvertFromString("#0F172A")
-                foreach ($cBtn in $agentChipsList) {
-                    $cBtn.Background = $bc.ConvertFromString("#FFFFFF")
-                    $cBtn.Foreground = $bc.ConvertFromString("#0F172A")
-                    $cBtn.BorderBrush = $bc.ConvertFromString("#CBD5E1")
-                }
-            } else {
-                $win.Background = $bc.ConvertFromString("#060A13")
-                $win.Foreground = $bc.ConvertFromString("#F8FAFC")
-                $hdrBorder.Background = $bc.ConvertFromString("#0B132B")
-                $hdrBorder.BorderBrush = if ($isLiveSql) { $bc.ConvertFromString("#10B981") } else { $bc.ConvertFromString("#00F0FF") }
-                $hdrTitle.Foreground = $bc.ConvertFromString("#F8FAFC")
-                $hdrSub.Foreground = if ($isLiveSql) { $bc.ConvertFromString("#34D399") } else { $bc.ConvertFromString("#38BDF8") }
-                $btnAgentTheme.Content = "WHITE MODE"
-                $btnAgentTheme.Background = $bc.ConvertFromString("#1E293B")
-                $btnAgentTheme.Foreground = $bc.ConvertFromString("#F8FAFC")
-                $btnAgentTheme.BorderBrush = $bc.ConvertFromString("#0284C7")
-                $txtPrompt.Background = $bc.ConvertFromString("#0A0F1D")
-                $txtPrompt.Foreground = $bc.ConvertFromString("#00F0FF")
-                $txtPrompt.BorderBrush = $bc.ConvertFromString("#1E3A8A")
-                $pbAgentExtracting.Background = $bc.ConvertFromString("#0B132B")
-                $pbAgentExtracting.Foreground = $bc.ConvertFromString("#00F0FF")
-                $tabCtrl.Background = $bc.ConvertFromString("#0A101E")
-                $tabCtrl.BorderBrush = $bc.ConvertFromString("#1E293B")
-                $dgResults.Background = $bc.ConvertFromString("#0A101E")
-                $dgResults.RowBackground = $bc.ConvertFromString("#0A101E")
-                $dgResults.AlternatingRowBackground = $bc.ConvertFromString("#0F172A")
-                $dgResults.Foreground = $bc.ConvertFromString("#F8FAFC")
-                $dgResults.HorizontalGridLinesBrush = $bc.ConvertFromString("#1E293B")
-                $dgResults.VerticalGridLinesBrush = $bc.ConvertFromString("#1E293B")
-                try {
-                    $darkHdrXaml = @"
-<Style xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" TargetType="DataGridColumnHeader">
-    <Setter Property="Background" Value="#1E293B"/>
-    <Setter Property="Foreground" Value="#38BDF8"/>
-    <Setter Property="FontWeight" Value="Bold"/>
-    <Setter Property="FontSize" Value="12.5"/>
-    <Setter Property="Padding" Value="10,7"/>
-    <Setter Property="BorderThickness" Value="0,0,1,1"/>
-    <Setter Property="BorderBrush" Value="#334155"/>
-    <Setter Property="Template">
-        <Setter.Value>
-            <ControlTemplate TargetType="DataGridColumnHeader">
-                <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Padding="{TemplateBinding Padding}">
-                    <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Left" SnapsToDevicePixels="True"/>
-                </Border>
-            </ControlTemplate>
-        </Setter.Value>
-    </Setter>
-</Style>
-"@
-                    $dgResults.ColumnHeaderStyle = [System.Windows.Markup.XamlReader]::Parse($darkHdrXaml)
-                } catch {}
-                $txtLogs.Background = $bc.ConvertFromString("#030712")
-                $txtLogs.Foreground = $bc.ConvertFromString("#38BDF8")
-                $txtGeneratedSql.Background = $bc.ConvertFromString("#030712")
-                $txtGeneratedSql.Foreground = $bc.ConvertFromString("#4ADE80")
-                $btnClear.Background = $bc.ConvertFromString("#334155")
-                $btnClear.Foreground = $bc.ConvertFromString("#FFFFFF")
-                $btnClose.Background = $bc.ConvertFromString("#475569")
-                $btnClose.Foreground = $bc.ConvertFromString("#FFFFFF")
-                foreach ($cBtn in $agentChipsList) {
-                    $cBtn.Background = $bc.ConvertFromString("#131E33")
-                    $cBtn.Foreground = $bc.ConvertFromString("#7DD3FC")
-                    $cBtn.BorderBrush = $bc.ConvertFromString("#1E3A8A")
-                }
-            }
+        # Package Agent UI context for instant theme switching
+        $win.Tag = [PSCustomObject]@{
+            IsWhite = (-not $global:isDarkMode)
+            Win = $win
+            HdrBorder = $hdrBorder
+            Badge = $badge
+            BadgeTxt = $badgeTxt
+            HdrTitle = $hdrTitle
+            HdrSub = $hdrSub
+            BtnAgentTheme = $btnAgentTheme
+            BtnGeminiKey = $btnGeminiKey
+            BtnReindex = $btnReindex
+            TxtPrompt = $txtPrompt
+            BtnRun = $btnRun
+            PbAgent = $pbAgentExtracting
+            TabCtrl = $tabCtrl
+            TabData = $tabData
+            TabTest = $tabTest
+            TabSql = $tabSql
+            LblDataStatus = $lblDataStatus
+            DgResults = $dgResults
+            TxtLogs = $txtLogs
+            BtnFormatQuery = $btnFormatQuery
+            TxtGeneratedSql = $txtGeneratedSql
+            BtnClear = $btnClear
+            BtnClose = $btnClose
+            ChipsList = $agentChipsList
+            IsLiveSql = $isLiveSql
         }
 
         $btnAgentTheme.Add_Click({
-            $script:isAgentWhiteMode = -not $script:isAgentWhiteMode
-            & $updateAgentTheme
-        })
+            param($s, $e)
+            if ($win -and $win.Tag) {
+                $win.Tag.IsWhite = -not $win.Tag.IsWhite
+                Update-AgentWindowVisuals $win.Tag
+            }
+        }.GetNewClosure())
 
         # Apply initial theme to Agent screen matching global state
-        & $updateAgentTheme
+        Update-AgentWindowVisuals $win.Tag
 
         $btnCopyQuery.Add_Click({
             if (-not [string]::IsNullOrWhiteSpace($txtGeneratedSql.Text)) {
