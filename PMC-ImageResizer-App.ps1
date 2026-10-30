@@ -20952,10 +20952,10 @@ function Get-BenchmarkPmcGeoData {
         $row["Lon"] = $item.Lon
         $row["GroundPhoto"] = $item.Photo
         $row["DetectedSignboard"] = $item.Sign
-        $dt.Rows.Add($row)
+        [void]$dt.Rows.Add($row)
     }
 
-    return $dt
+    return ,$dt
 }
 
 function Refresh-PmcGeoRadarKpis {
