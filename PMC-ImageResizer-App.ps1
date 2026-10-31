@@ -19693,7 +19693,7 @@ function Connect-LanTcpPeer ($ip, $port, [int]$timeoutMs = 3500) {
                 if ($l -match '(?i)^Content-Length:\s*(\d+)') { $contentLen = [int64]$matches[1] }
             }
             
-            if ($method -eq "GET" -and ($rawUrl -eq "/" -or $rawUrl -like "/?*")) {
+            if ($method -eq "GET" -and ($rawUrl -eq "/" -or ($rawUrl -match '^\/\?' -and $rawUrl -notlike '/download*'))) {
                 $allAvailableFiles = @()
                 foreach ($f in $script:LanSendFilesList) {
                     if (Test-Path $f) { $allAvailableFiles += Get-Item $f }
