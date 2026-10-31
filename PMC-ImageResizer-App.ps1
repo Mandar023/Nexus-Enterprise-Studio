@@ -20556,8 +20556,8 @@ Anyone on the office network can paste this into Windows File Explorer or Win+R 
                     if ($lblItDeployStatus) { $lblItDeployStatus.Text = "[STREAMING] Streaming binary package to $targetHost..." }
                     [System.Windows.Forms.Application]::DoEvents()
 
-                    # Push via TCP Client
-                    $client = Connect-LanTcpPeer $targetIP $targetPeer.Port 4000
+                    # Fast non-blocking connection check (1000ms max)
+                    $client = Connect-LanTcpPeer $targetIP $targetPeer.Port 1000
                     if ($client) {
                         $strm = $client.GetStream()
                         $wtr = New-Object System.IO.StreamWriter($strm, [System.Text.Encoding]::UTF8); $wtr.AutoFlush = $true
@@ -20571,64 +20571,35 @@ Anyone on the office network can paste this into Windows File Explorer or Win+R 
                         $fs.Close()
                         $strm.Flush()
                         $client.Close()
-                        $deployResult = @{ Success = $true; ExitCode = 0; Host = $targetHost }
+                        $deployResult = @{ Success = $true; ExitCode = 0; Host = "$targetHost (via Direct TCP Push)" }
                     } else {
                         $isRemote = ($targetHost -ne $env:COMPUTERNAME -and $targetHost -ne "127.0.0.1" -and $targetHost -ne "localhost")
                         if ($isRemote) {
-                            # Attempt SMB network share push to target PC
                             $fi = Get-Item $source
-                            $smbDone = $false
-                            $candidateDirs = @(
-                                "\\$targetHost\C$\Users\Public\Downloads",
-                                "\\$targetHost\Users\Public\Downloads",
-                                "\\$targetHost\C$\ProgramData\NexusDeploy",
-                                "\\$targetHost\SharedDocs"
-                            )
-                            foreach ($cdir in $candidateDirs) {
-                                try {
-                                    if (Test-Path $cdir) {
-                                        if ($lblItDeployStatus) { $lblItDeployStatus.Text = "[SMB SHARE] Pushing to $cdir..." }
-                                        [System.Windows.Forms.Application]::DoEvents()
-                                        $destSmb = Join-Path $cdir $fi.Name
-                                        Copy-Item -Path $source -Destination $destSmb -Force
-                                        if (Test-Path $destSmb) {
-                                            $smbDone = $true
-                                            try {
-                                                $wmiproc = [wmiclass]"\\$targetHost\root\cimv2:Win32_Process"
-                                                $wmiproc.Create("cmd.exe /c `"$destSmb`" $argsStr") | Out-Null
-                                            } catch {}
-                                            $deployResult = @{ Success = $true; ExitCode = 0; Host = "$targetHost (via Windows Share $cdir)" }
-                                            break
-                                        }
-                                    }
-                                } catch {}
+
+                            # Instant publish on Gigabit LAN Server (D:\Share & Port 80 / 52825) - Zero UI Freeze!
+                            try {
+                                if (-not (Test-Path "D:\Share")) { New-Item -ItemType Directory -Path "D:\Share" -Force | Out-Null }
+                                Copy-Item -Path $source -Destination "D:\Share\$($fi.Name)" -Force
+                            } catch {}
+
+                            Start-LanNetworking
+                            if (-not $script:LanSendFilesList.Contains($source)) { $script:LanSendFilesList.Add($source) }
+
+                            $localSharePath = "\\$($script:LanLocalIP)\D\Share\$($fi.Name)"
+                            $webUrl = "http://$($script:LanLocalIP)/download?name=$([System.Uri]::EscapeDataString($fi.Name))"
+                            try { [System.Windows.Clipboard]::SetText($localSharePath) } catch {}
+
+                            if ($lblItDeployStatus) {
+                                $lblItDeployStatus.Text = "[READY ON LAN] Package '$($fi.Name)' is live in LAN Share & Web Server!"
+                                $lblItDeployStatus.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#34D399")
+                            }
+                            if ($lblLanTransferLog) {
+                                $lblLanTransferLog.Text = "[LAN SERVER READY] Package '$($fi.Name)' published for $targetHost at $localSharePath"
+                                $lblLanTransferLog.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#34D399")
                             }
 
-                            if (-not $smbDone) {
-                                # Publish package on Gigabit LAN Server (D:\Share & Port 80 / 52825)
-                                try {
-                                    if (-not (Test-Path "D:\Share")) { New-Item -ItemType Directory -Path "D:\Share" -Force | Out-Null }
-                                    Copy-Item -Path $source -Destination "D:\Share\$($fi.Name)" -Force
-                                } catch {}
-
-                                Start-LanNetworking
-                                if (-not $script:LanSendFilesList.Contains($source)) { $script:LanSendFilesList.Add($source) }
-
-                                $localSharePath = "\\$($script:LanLocalIP)\D\Share\$($fi.Name)"
-                                $webUrl = "http://$($script:LanLocalIP)/download?name=$([System.Uri]::EscapeDataString($fi.Name))"
-                                try { [System.Windows.Clipboard]::SetText($localSharePath) } catch {}
-
-                                if ($lblItDeployStatus) {
-                                    $lblItDeployStatus.Text = "[READY ON LAN] Package '$($fi.Name)' is live in LAN Share & Web Server!"
-                                    $lblItDeployStatus.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#34D399")
-                                }
-                                if ($lblLanTransferLog) {
-                                    $lblLanTransferLog.Text = "[LAN SERVER READY] Package '$($fi.Name)' published for $targetHost at $localSharePath"
-                                    $lblLanTransferLog.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#34D399")
-                                }
-
-                                $deployResult = @{ Success = $true; ExitCode = 0; Host = "$targetHost (via LAN Server $localSharePath)" }
-                            }
+                            $deployResult = @{ Success = $true; ExitCode = 0; Host = "$targetHost (via LAN Server $localSharePath)" }
                         } else {
                             # Local Host execution
                             $pinfo = New-Object System.Diagnostics.ProcessStartInfo
@@ -21004,53 +20975,20 @@ Anyone on the office network can paste this into Windows File Explorer or Win+R 
                     $lblLanSendStatus.Text = "Connecting to $($targetPeer.HostName)..."
                     [System.Windows.Forms.Application]::DoEvents()
 
-                    $client = Connect-LanTcpPeer $targetIP $targetPort 3500
+                    # Fast non-blocking connection check (1000ms max)
+                    $client = Connect-LanTcpPeer $targetIP $targetPort 1000
                     if (-not $client) {
-                        # Attempt direct Windows SMB share delivery before falling back
-                        $smbDelivered = $false
-                        $candidateShares = @(
-                            "\\$($targetPeer.HostName)\C$\Users\Public\Downloads",
-                            "\\$targetIP\C$\Users\Public\Downloads",
-                            "\\$($targetPeer.HostName)\Users\Public\Downloads",
-                            "\\$targetIP\Users\Public\Downloads",
-                            "\\$($targetPeer.HostName)\SharedDocs",
-                            "\\$targetIP\SharedDocs"
-                        )
-                        foreach ($cshare in $candidateShares) {
-                            try {
-                                if (Test-Path $cshare) {
-                                    $lblLanSendStatus.Text = "Delivering '$fileName' via Windows Share ($cshare)..."
-                                    [System.Windows.Forms.Application]::DoEvents()
-                                    $destSmbPath = Join-Path $cshare $fileName
-                                    Copy-Item -Path $filePath -Destination $destSmbPath -Force
-                                    if (Test-Path $destSmbPath) {
-                                        $smbDelivered = $true
-                                        $sentCount++
-                                        $totalBytesSent += $fileLen
-                                        if ($lblLanTransferLog) {
-                                            $lblLanTransferLog.Text = "[SENT VIA SMB SHARE] Copied '$fileName' directly to $($targetPeer.HostName) ($cshare)"
-                                            $lblLanTransferLog.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#34D399")
-                                        }
-                                        break
-                                    }
-                                }
-                            } catch {}
-                        }
-                        if ($smbDelivered) {
-                            continue
-                        }
-                        # Remote peer is not running Nexus, but files are ALREADY in D:\Share and on Gigabit Web Server!
+                        # Remote peer is not running Nexus, files are immediately published on Gigabit LAN Server!
                         $portalUrl = "http://$($script:LanLocalIP):$($script:LanWebPort)/"
-                        $smbShareUrl = "\\\\$($script:LanLocalIP)\\D\\Share"
-                        try { [System.Windows.Clipboard]::SetText($portalUrl) } catch {}
+                        $smbShareUrl = "\\$($script:LanLocalIP)\D\Share"
+                        try { [System.Windows.Clipboard]::SetText($smbShareUrl) } catch {}
                         
-                        $lblLanSendStatus.Text = "[FILES READY ON LAN] Available via Web & Network Share (Link copied!)"
+                        $lblLanSendStatus.Text = "[FILES READY ON LAN] Available via Web & Network Share (Path copied!)"
                         $lblLanSendStatus.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#34D399")
                         if ($lblLanTransferLog) {
                             $lblLanTransferLog.Text = "[LAN SHARE ACTIVE] Files ready in $smbShareUrl and $portalUrl"
                             $lblLanTransferLog.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#34D399")
                         }
-                        try { [System.Windows.Clipboard]::SetText($smbShareUrl) } catch {}
                         $succMsg = "FILES SHARED ON LAN & READY FOR $($targetPeer.HostName)!`r`n`r`n" +
                                    "The file(s) are published at full Gigabit speed from your PC:`r`n`r`n" +
                                    "- Windows Network Share: $smbShareUrl`r`n" +
@@ -21058,7 +20996,6 @@ Anyone on the office network can paste this into Windows File Explorer or Win+R 
                                    "Direct LAN share path copied to clipboard!"
                         [System.Windows.MessageBox]::Show($succMsg, "Files Shared on LAN Successfully", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Information)
                         return
-                        
                     }
 
                     $lblLanSendStatus.Text = "Sending '$fileName' ($(Format-LanFileSize $fileLen)) to $($targetPeer.HostName)..."
