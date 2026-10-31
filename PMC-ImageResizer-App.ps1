@@ -4049,16 +4049,15 @@ try {
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <!-- TOP BAR: IDENTITY & ACTIONS -->
+            <!-- TOP BAR: IDENTITY & ACTIONS (WITH HORIZONTAL SCROLLER) -->
             <Border Grid.Row="0" Background="{DynamicResource CardBgBrush}" CornerRadius="10" Padding="14,10" Margin="0,0,0,10" BorderBrush="#1E3252" BorderThickness="1">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
 
-                    <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,14,0">
                         <Border Background="#0369A1" CornerRadius="6" Padding="8,4" Margin="0,0,10,0">
                             <TextBlock Text="ENTERPRISE IT OPS &amp; ASSET RADAR" FontSize="11" FontWeight="Bold" Foreground="White"/>
                         </Border>
@@ -4068,23 +4067,24 @@ try {
                         </StackPanel>
                     </StackPanel>
 
-                    <StackPanel Grid.Column="2" Orientation="Horizontal">
-                        <Button x:Name="btnItSecRadar" Content="SECURITY RADAR" Background="#DC2626" Foreground="White" FontWeight="Bold" FontSize="10" Padding="10,6" Margin="0,0,5,0" BorderThickness="0" Cursor="Hand" ToolTip="Scan network ports, weak passwords, and vulnerabilities across discovered IT fleet"/>
-                        <Button x:Name="btnItFleetTelemetry" Content="FLEET TELEMETRY" Background="#4F46E5" Foreground="White" FontWeight="Bold" FontSize="10" Padding="10,6" Margin="0,0,5,0" BorderThickness="0" Cursor="Hand" ToolTip="Scan and extract CPU, RAM, SSD health, OS build across discovered computers"/>
-                        <Button x:Name="btnLanPushAppUpdate" Content="PUSH APP UPDATE TO LAN" Background="#7C3AED" Foreground="White" FontWeight="Bold" FontSize="10" Padding="11,6" Margin="0,0,5,0" BorderThickness="0" Cursor="Hand" ToolTip="Broadcast and automatically update PMC-ImageResizer-App on all other connected user PCs"/>
-                        <Button x:Name="btnLanCheckAppUpdate" Content="CHECK FOR UPDATES" Background="#0284C7" Foreground="White" FontWeight="Bold" FontSize="10" Padding="9,6" Margin="0,0,5,0" BorderThickness="0" Cursor="Hand" ToolTip="Check network for newer version of this application"/>
-                        <Button x:Name="btnLanScanPeers" Content="REFRESH PEERS" Background="{StaticResource PrimaryBtnBrush}" Foreground="White" FontWeight="Bold" FontSize="10" Padding="9,6" Margin="0,0,5,0" BorderThickness="0" Cursor="Hand" ToolTip="Scan local network for other computers running Nexus"/>
-                        <Button x:Name="btnLanAdvIpConfig" Content="ADVANCED IP CONFIG" Background="#0F766E" Foreground="White" FontWeight="Bold" FontSize="10" Padding="9,6" Margin="0,0,5,0" BorderThickness="0" Cursor="Hand" ToolTip="Configure custom LAN IP list, scan subnet range (192.168.1.x), test TCP port 52824 &amp; firewall"/>
-                        <Button x:Name="btnLanOpenShareFolder" Content="OPEN D:\SHARE" Background="#059669" Foreground="White" FontWeight="Bold" FontSize="10" Padding="10,6" Margin="0,0,5,0" BorderThickness="0" Cursor="Hand" ToolTip="Open D:\Share (accessible by all computers on LAN as \\192.168.1.190\D\Share)"/>
-                        <Button x:Name="btnLanCopySmbPath" Content="COPY LAN PATH" Background="#D97706" Foreground="White" FontWeight="Bold" FontSize="10" Padding="10,6" Margin="0,0,5,0" BorderThickness="0" Cursor="Hand" ToolTip="Copy \\192.168.1.190\D\Share to clipboard for easy 1-click sharing"/>
-                        <Button x:Name="btnLanCopyWebLink" Content="COPY WEB LINK" Background="#0284C7" Foreground="White" FontWeight="Bold" FontSize="10" Padding="9,6" Margin="0,0,5,0" BorderThickness="0" Cursor="Hand" ToolTip="Copy Web Download link (anyone on the network can download in Chrome/Edge without needing Nexus)"/>
-                        <Button x:Name="btnLanFixFirewall" Content="FIREWALL SETUP" Background="#475569" Foreground="White" FontWeight="Bold" FontSize="10" Padding="9,6" Margin="0,0,5,0" BorderThickness="0" Cursor="Hand" ToolTip="Configure Windows Firewall rules for LAN file sharing"/>
-                        <Button x:Name="btnLanQuickAssist" Content="REMOTE ASSIST" Background="#6366F1" Foreground="White" FontWeight="Bold" FontSize="10" Padding="9,6" Margin="0,0,5,0" BorderThickness="0" Cursor="Hand" ToolTip="Open Windows Quick Assist to view or help on another PC"/>
-                        <Button x:Name="btnLanOpenReceived" Content="OPEN RECEIVED FOLDER" Background="{StaticResource SuccessBtnBrush}" Foreground="White" FontWeight="Bold" FontSize="10" Padding="10,6" BorderThickness="0" Cursor="Hand" ToolTip="Open Desktop\Nexus_Received_Files"/>
-                    </StackPanel>
+                    <ScrollViewer Grid.Column="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" PanningMode="HorizontalOnly">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Button x:Name="btnItSecRadar" Content="SECURITY RADAR" Background="#DC2626" Foreground="White" FontWeight="Bold" FontSize="10" Padding="10,6" Margin="0,0,5,0" BorderThickness="0" Cursor="Hand" ToolTip="Scan network ports, weak passwords, and vulnerabilities across discovered IT fleet"/>
+                            <Button x:Name="btnItFleetTelemetry" Content="FLEET TELEMETRY" Background="#4F46E5" Foreground="White" FontWeight="Bold" FontSize="10" Padding="10,6" Margin="0,0,5,0" BorderThickness="0" Cursor="Hand" ToolTip="Scan and extract CPU, RAM, SSD health, OS build across discovered computers"/>
+                            <Button x:Name="btnLanPushAppUpdate" Content="PUSH APP UPDATE TO LAN" Background="#7C3AED" Foreground="White" FontWeight="Bold" FontSize="10" Padding="11,6" Margin="0,0,5,0" BorderThickness="0" Cursor="Hand" ToolTip="Broadcast and automatically update PMC-ImageResizer-App on all other connected user PCs"/>
+                            <Button x:Name="btnLanCheckAppUpdate" Content="CHECK FOR UPDATES" Background="#0284C7" Foreground="White" FontWeight="Bold" FontSize="10" Padding="9,6" Margin="0,0,5,0" BorderThickness="0" Cursor="Hand" ToolTip="Check network for newer version of this application"/>
+                            <Button x:Name="btnLanScanPeers" Content="REFRESH PEERS" Background="{StaticResource PrimaryBtnBrush}" Foreground="White" FontWeight="Bold" FontSize="10" Padding="9,6" Margin="0,0,5,0" BorderThickness="0" Cursor="Hand" ToolTip="Scan local network for other computers running Nexus"/>
+                            <Button x:Name="btnLanAdvIpConfig" Content="ADVANCED IP CONFIG" Background="#0F766E" Foreground="White" FontWeight="Bold" FontSize="10" Padding="9,6" Margin="0,0,5,0" BorderThickness="0" Cursor="Hand" ToolTip="Configure custom LAN IP list, scan subnet range (192.168.1.x), test TCP port 52824 &amp; firewall"/>
+                            <Button x:Name="btnLanOpenShareFolder" Content="OPEN D:\SHARE" Background="#059669" Foreground="White" FontWeight="Bold" FontSize="10" Padding="10,6" Margin="0,0,5,0" BorderThickness="0" Cursor="Hand" ToolTip="Open D:\Share (accessible by all computers on LAN as \\192.168.1.190\D\Share)"/>
+                            <Button x:Name="btnLanCopySmbPath" Content="COPY LAN PATH" Background="#D97706" Foreground="White" FontWeight="Bold" FontSize="10" Padding="10,6" Margin="0,0,5,0" BorderThickness="0" Cursor="Hand" ToolTip="Copy \\192.168.1.190\D\Share to clipboard for easy 1-click sharing"/>
+                            <Button x:Name="btnLanCopyWebLink" Content="COPY WEB LINK" Background="#0284C7" Foreground="White" FontWeight="Bold" FontSize="10" Padding="9,6" Margin="0,0,5,0" BorderThickness="0" Cursor="Hand" ToolTip="Copy Web Download link (anyone on the network can download in Chrome/Edge without needing Nexus)"/>
+                            <Button x:Name="btnLanFixFirewall" Content="FIREWALL SETUP" Background="#475569" Foreground="White" FontWeight="Bold" FontSize="10" Padding="9,6" Margin="0,0,5,0" BorderThickness="0" Cursor="Hand" ToolTip="Configure Windows Firewall rules for LAN file sharing"/>
+                            <Button x:Name="btnLanQuickAssist" Content="REMOTE ASSIST" Background="#6366F1" Foreground="White" FontWeight="Bold" FontSize="10" Padding="9,6" Margin="0,0,5,0" BorderThickness="0" Cursor="Hand" ToolTip="Open Windows Quick Assist to view or help on another PC"/>
+                            <Button x:Name="btnLanOpenReceived" Content="OPEN RECEIVED FOLDER" Background="{StaticResource SuccessBtnBrush}" Foreground="White" FontWeight="Bold" FontSize="10" Padding="10,6" BorderThickness="0" Cursor="Hand" ToolTip="Open Desktop\Nexus_Received_Files"/>
+                        </StackPanel>
+                    </ScrollViewer>
                 </Grid>
             </Border>
-
             <!-- MAIN WORK AREA -->
             <Grid Grid.Row="1">
                 <Grid.ColumnDefinitions>
@@ -20751,29 +20751,47 @@ Anyone on the office network can paste this into Windows File Explorer or Win+R 
             if ($selectedItem -and $selectedItem.Tag) {
                 $script:LanSelectedPeer = $selectedItem.Tag
                 $p = $script:LanSelectedPeer
-                if ($lblLanTargetPc) {
-                    $lblLanTargetPc.Text = if ($p.IP) { "$($p.HostName) ??? $($p.IP)" } else { "$($p.HostName)" }
-                    $lblLanTargetPc.Foreground = if ($p.IsNexusReady) { [System.Windows.Media.BrushConverter]::new().ConvertFromString("#34D399") }
-                                                elseif ($p.IsOnline) { [System.Windows.Media.BrushConverter]::new().ConvertFromString("#FBBF24") }
-                                                else { [System.Windows.Media.BrushConverter]::new().ConvertFromString("#94A3B8") }
+                
+                $tName = if ($p.HostName) { $p.HostName } else { "PC" }
+                $tIp = if ($p.IP) { $p.IP } else { "" }
+                $targetDisplay = $tName
+                if ($tIp -and $tName -and ($tIp -ne $tName)) {
+                    $targetDisplay = "$tIp  |  $tName"
+                } elseif ($tIp) {
+                    $targetDisplay = $tIp
                 }
-                if ($txtLanManualHost) { $txtLanManualHost.Text = if ($p.HostName) { $p.HostName } else { $p.IP } }
+                
+                if ($lblLanTargetPc) {
+                    $lblLanTargetPc.Text = $targetDisplay
+                    $targetFg = "#94A3B8"
+                    if ($p.IsNexusReady -or $p.Status -eq "ONLINE - READY") {
+                        $targetFg = "#34D399"
+                    } elseif ($p.IsOnline -or $p.Status -eq "ONLINE - PC ONLY") {
+                        $targetFg = "#FBBF24"
+                    }
+                    $lblLanTargetPc.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString($targetFg)
+                }
+                
+                if ($txtLanManualHost) {
+                    $txtVal = if ($p.IP) { $p.IP } elseif ($p.HostName) { $p.HostName } else { "" }
+                    $txtLanManualHost.Text = $txtVal
+                }
+                
                 if ($lblLanSendStatus) {
-                    if ($p.IsNexusReady) {
+                    if ($p.IsNexusReady -or $p.Status -eq "ONLINE - READY") {
                         $lblLanSendStatus.Text = "Peer is READY (Nexus Port 52824 Open). Click 'SEND FILES NOW' for high-speed direct transfer."
                         $lblLanSendStatus.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#34D399")
-                    } elseif ($p.IsOnline) {
-                        $lblLanSendStatus.Text = "PC is ONLINE ($($p.HostName) ??? $($p.IP)). Click 'SEND FILES NOW' to send or 'SHARE VIA BROWSER'."
+                    } elseif ($p.IsOnline -or $p.Status -eq "ONLINE - PC ONLY") {
+                        $lblLanSendStatus.Text = "PC is ONLINE ($targetDisplay). Ready for file sharing."
                         $lblLanSendStatus.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#FBBF24")
                     } else {
-                        $lblLanSendStatus.Text = "PC appears OFFLINE ($($p.HostName) ??? $($p.IP)). You can generate a Web Share link for them."
+                        $lblLanSendStatus.Text = "PC appears OFFLINE ($targetDisplay). Universal Web Share link ready."
                         $lblLanSendStatus.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#94A3B8")
                     }
                 }
             }
         })
     }
-
     if ($btnLanManualConnect) {
         $btnLanManualConnect.Add_Click({
             $inputHost = $txtLanManualHost.Text.Trim()
