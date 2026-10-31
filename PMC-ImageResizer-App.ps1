@@ -16799,230 +16799,9 @@ function Invoke-NexusGeoRadarMap {
             $script:GeoRadarDataTable = Get-BenchmarkPmcGeoData
         }
         Invoke-PmcLaunchSatelliteMapHtml $script:GeoRadarDataTable
-        return
-    } catch {}
-    $src = $txtAppPdfSource.Text.Trim()
-    $dest = $txtAppPdfDest.Text.Trim()
-    $targetFolder = if (Test-Path -LiteralPath $dest) { $dest } elseif (Test-Path -LiteralPath $src) { $src } else { [Environment]::GetFolderPath('Desktop') }
-
-    Append-ExtractLog "======================================================="
-    Append-ExtractLog "LAUNCHING GIS GEO-RADAR GPS EXTRACTOR & MAP ENGINE"
-    Append-ExtractLog "Scanning target folder : $targetFolder"
-    Append-ExtractLog "======================================================="
-    $lblExtractStatus.Text = "Status: Extracting GPS coordinates from property assets..."
-    [System.Windows.Forms.Application]::DoEvents()
-
-    $imgFiles = @()
-    if (Test-Path -LiteralPath $targetFolder) {
-        $imgFiles = [System.IO.Directory]::GetFiles($targetFolder, "*.*", [System.IO.SearchOption]::AllDirectories) | Where-Object { $_ -match '(?i)\.(jpg|jpeg|png)$' }
+    } catch {
+        [System.Windows.MessageBox]::Show("Error launching GIS Geo-Radar: $($_.Exception.Message)", "Geo-Radar Error", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Warning)
     }
-
-    $pins = [System.Collections.Generic.List[hashtable]]::new()
-    $baseLat = 18.9894; $baseLon = 73.1175 # Panvel MC Center Coordinates
-    $rng = New-Object System.Random
-
-    $scanned = 0
-    foreach ($img in ($imgFiles | Select-Object -First 300)) {
-        $scanned++
-        $fName = [System.IO.Path]::GetFileName($img)
-        $propNo = [System.IO.Path]::GetFileNameWithoutExtension($img) -replace '_.*', ''
-        
-        $gps = [NexusFastEngine]::ExtractGps($img)
-        $lat = if ($gps.HasGps) { $gps.Latitude } else { $baseLat + (($rng.NextDouble() - 0.5) * 0.025) }
-        $lon = if ($gps.HasGps) { $gps.Longitude } else { $baseLon + (($rng.NextDouble() - 0.5) * 0.025) }
-
-        # Check corresponding plan PDF
-        $dir = [System.IO.Path]::GetDirectoryName($img)
-        $planCandidates = @([System.IO.Directory]::GetFiles($dir, "*$propNo*.*") | Where-Object { $_ -match '(?i)\.pdf$' })
-        $hasPlan = ($planCandidates.Count -gt 0)
-        $planName = if ($hasPlan) { [System.IO.Path]::GetFileName($planCandidates[0]) } else { "" }
-
-        # Status check
-        $status = "OK"
-        if (-not $hasPlan) { $status = "Missing_Plan" }
-        if ($fName -match '(?i)(shop|hotel|store|dukaan|office|commercial|gala)') { $status = "Commercial_On_Residential" }
-
-        $pins.Add(@{
-            Lat = [Math]::Round($lat, 6)
-            Lon = [Math]::Round($lon, 6)
-            PropNo = $propNo
-            Owner = "Citizen Asset (Ward KM)"
-            UseType = if ($status -eq "Commercial_On_Residential") { "Commercial" } else { "Residential" }
-            Tax = (10000 + ($rng.Next(500, 35000)))
-            Status = $status
-            Photo = $fName
-            Plan = $planName
-            HasGps = $gps.HasGps
-        })
-    }
-
-    if ($pins.Count -eq 0) {
-        # Fallback sample pins for demonstration
-        $pins.Add(@{ Lat = 18.9894; Lon = 73.1175; PropNo = "KM10-101"; Owner = "Rajesh Sharma"; UseType = "Residential"; Tax = 12500; Status = "OK"; Photo = "KM10_101.jpg"; Plan = "KM10_101_Plan.pdf"; HasGps = $false })
-        $pins.Add(@{ Lat = 18.9912; Lon = 73.1190; PropNo = "KM10-102"; Owner = "Sunita Patil"; UseType = "Commercial"; Tax = 45000; Status = "Commercial_On_Residential"; Photo = "KM10_102.jpg"; Plan = "KM10_102_Plan.pdf"; HasGps = $true })
-        $pins.Add(@{ Lat = 18.9880; Lon = 73.1150; PropNo = "KM10-103"; Owner = "Amit Deshmukh"; UseType = "Residential"; Tax = 8400; Status = "Missing_Plan"; Photo = "KM10_103.jpg"; Plan = ""; HasGps = $false })
-    }
-
-    $pinsJson = $pins | ConvertTo-Json -Compress
-    $dt = (Get-Date -Format 'yyyyMMdd_HHmmss')
-    $mapFilePath = Join-Path ([Environment]::GetFolderPath('Desktop')) "Nexus_Municipal_GeoRadar_$dt.html"
-
-    $htmlContent = @"
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>PMC Municipal GIS Geo-Radar &amp; Asset Visualizer</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <style>
-        * { box-sizing: border-box; }
-        body { margin: 0; padding: 0; background: #0B132B; color: #F8FAFC; font-family: 'Segoe UI', Tahoma, sans-serif; overflow: hidden; }
-        #header { height: 60px; padding: 10px 20px; background: #0A1128; border-bottom: 2px solid #00F0FF; display: flex; justify-content: space-between; align-items: center; z-index: 1000; position: relative; }
-        #title { font-size: 17px; font-weight: bold; color: #00F0FF; letter-spacing: 0.5px; }
-        #subtitle { font-size: 11px; color: #94A3B8; }
-        #controls { display: flex; gap: 8px; align-items: center; }
-        .filter-btn { background: #1E293B; color: #E2E8F0; border: 1px solid #334155; padding: 5px 12px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: 600; transition: all 0.2s; }
-        .filter-btn:hover, .filter-btn.active { background: #0284C7; border-color: #38BDF8; color: white; }
-        #searchBox { background: #0F172A; color: #E2E8F0; border: 1px solid #38BDF8; border-radius: 6px; padding: 5px 12px; font-size: 11.5px; width: 220px; outline: none; }
-        #map { height: calc(100vh - 60px); width: 100%; }
-        
-        .leaflet-popup-content-wrapper { background: #0F172A; color: #F8FAFC; border: 1.5px solid #00F0FF; border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.7); }
-        .leaflet-popup-tip { background: #0F172A; }
-        .prop-card { width: 260px; }
-        .prop-title { font-size: 13.5px; font-weight: bold; color: #38BDF8; border-bottom: 1px solid #334155; padding-bottom: 6px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
-        .prop-row { font-size: 11.5px; margin: 4px 0; color: #CBD5E1; }
-        .prop-row b { color: #94A3B8; }
-        .badge { padding: 2px 7px; border-radius: 4px; font-weight: bold; font-size: 9.5px; text-transform: uppercase; }
-        .badge-ok { background: #065F46; color: #34D399; border: 1px solid #10B981; }
-        .badge-danger { background: #7F1D1D; color: #FCA5A5; border: 1px solid #EF4444; }
-        .badge-warn { background: #78350F; color: #FDE047; border: 1px solid #F59E0B; }
-        .leaflet-control-layers { background: #0F172A !important; color: #E2E8F0 !important; border: 1px solid #38BDF8 !important; border-radius: 8px !important; }
-        .leaflet-control-layers-expanded { padding: 8px 12px; }
-    </style>
-</head>
-<body>
-    <div id="header">
-        <div>
-            <div id="title">PANVEL MUNICIPAL CORPORATION - GIS GEO-RADAR</div>
-            <div id="subtitle">Smart GPS Property Visualizer, Plan Inspector &amp; Revenue Leakage Radar</div>
-        </div>
-        <div id="controls">
-            <input type="text" id="searchBox" placeholder="Search Property No / Owner..." onkeyup="filterSearch()">
-            <button class="filter-btn active" onclick="setFilter('ALL', this)">ALL (<span id="countAll">0</span>)</button>
-            <button class="filter-btn" onclick="setFilter('OK', this)">VERIFIED (<span id="countOk">0</span>)</button>
-            <button class="filter-btn" onclick="setFilter('COMM', this)">COMMERCIAL (<span id="countComm">0</span>)</button>
-            <button class="filter-btn" onclick="setFilter('MISSING', this)">MISSING (<span id="countMissing">0</span>)</button>
-        </div>
-    </div>
-    <div id="map"></div>
-
-    <script>
-        var pins = $pinsJson;
-        document.getElementById('countAll').innerText = pins.length;
-        document.getElementById('countOk').innerText = pins.filter(p => p.Status === 'OK').length;
-        document.getElementById('countComm').innerText = pins.filter(p => p.Status === 'Commercial_On_Residential').length;
-        document.getElementById('countMissing').innerText = pins.filter(p => p.Status === 'Missing_Plan').length;
-
-        // Base Layer 1: Esri World Imagery (High-Resolution Satellite Aerial View)
-        var esriSat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-            maxZoom: 19,
-            attribution: 'Esri World Imagery &copy; Panvel MC GIS'
-        });
-
-        // Base Layer 2: CartoDB Dark Matter (Matches Nexus Cyber Dark Theme)
-        var cartoDark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-            maxZoom: 19,
-            subdomains: 'abcd',
-            attribution: '&copy; CartoDB Dark Matter &copy; OpenStreetMap'
-        });
-
-        // Base Layer 3: CartoDB Voyager (Clean Street and Road Map)
-        var cartoVoyager = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-            maxZoom: 19,
-            subdomains: 'abcd',
-            attribution: '&copy; CartoDB Voyager &copy; OpenStreetMap'
-        });
-
-        // Initialize Map with Satellite aerial imagery by default
-        var map = L.map('map', {
-            center: [18.9894, 73.1175],
-            zoom: 15,
-            layers: [esriSat]
-        });
-
-        var baseMaps = {
-            "Satellite Aerial (Esri)": esriSat,
-            "Dark Cyber Map (Carto)": cartoDark,
-            "Street &amp; Ward Map (Carto)": cartoVoyager
-        };
-        L.control.layers(baseMaps, null, { position: 'topright' }).addTo(map);
-
-        var markersGroup = L.layerGroup().addTo(map);
-        var currentFilter = 'ALL';
-
-        function renderMarkers() {
-            markersGroup.clearLayers();
-            var searchTxt = document.getElementById('searchBox').value.toLowerCase().trim();
-
-            pins.forEach(function(p) {
-                if (currentFilter === 'OK' && p.Status !== 'OK') return;
-                if (currentFilter === 'COMM' && p.Status !== 'Commercial_On_Residential') return;
-                if (currentFilter === 'MISSING' && p.Status !== 'Missing_Plan') return;
-
-                if (searchTxt) {
-                    var matchText = (p.PropNo + ' ' + p.Owner + ' ' + p.UseType).toLowerCase();
-                    if (matchText.indexOf(searchTxt) === -1) return;
-                }
-
-                var color = p.Status === 'OK' ? '#10B981' : (p.Status === 'Commercial_On_Residential' ? '#EF4444' : '#F59E0B');
-                var marker = L.circleMarker([p.Lat, p.Lon], {
-                    color: '#FFFFFF',
-                    weight: 2,
-                    fillColor: color,
-                    fillOpacity: 0.9,
-                    radius: 9
-                });
-
-                var badgeClass = p.Status === 'OK' ? 'badge-ok' : (p.Status === 'Commercial_On_Residential' ? 'badge-danger' : 'badge-warn');
-                var badgeLabel = p.Status === 'OK' ? 'VERIFIED' : (p.Status === 'Commercial_On_Residential' ? 'COMMERCIAL' : 'MISSING PLAN');
-
-                var popupHtml = '<div class=\"prop-card\">' +
-                    '<div class=\"prop-title\"><span>' + p.PropNo + '</span><span class=\"badge ' + badgeClass + '\">' + badgeLabel + '</span></div>' +
-                    '<div class=\"prop-row\"><b>Owner:</b> ' + p.Owner + '</div>' +
-                    '<div class=\"prop-row\"><b>Use Type:</b> ' + p.UseType + '</div>' +
-                    '<div class=\"prop-row\"><b>Tax Total:</b> &#8377;' + p.Tax + '</div>' +
-                    '<div class=\"prop-row\"><b>Photo:</b> ' + p.Photo + '</div>' +
-                    '<div class=\"prop-row\"><b>Plan PDF:</b> ' + (p.Plan ? '<span style=\"color:#38BDF8; font-weight:bold;\">' + p.Plan + '</span>' : '<span style=\"color:#EF4444;\">Not Uploaded</span>') + '</div>' +
-                    '</div>';
-
-                marker.bindPopup(popupHtml);
-                markersGroup.addLayer(marker);
-            });
-        }
-
-        function setFilter(filt, btn) {
-            currentFilter = filt;
-            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            renderMarkers();
-        }
-
-        function filterSearch() {
-            renderMarkers();
-        }
-
-        renderMarkers();
-    </script>
-</body>
-</html>
-"@
-
-    [System.IO.File]::WriteAllText($mapFilePath, $htmlContent, [System.Text.Encoding]::UTF8)
-    Append-ExtractLog "Generated Municipal GeoRadar Map: $mapFilePath"
-    $lblExtractStatus.Text = "Status: Geo-Radar Map generated with $($pins.Count) pins!"
-    try { Start-Process $mapFilePath } catch {}
-    [System.Windows.MessageBox]::Show("Municipal GIS Geo-Radar Map Generated!`n`nTotal Properties Mapped: $($pins.Count)`nMap Saved: $mapFilePath`n`nOpening map in your default browser...", "Geo-Radar Map Ready", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Information)
 }
 
 # =====================================================================
@@ -20032,17 +19811,24 @@ function Connect-LanTcpPeer ($ip, $port, [int]$timeoutMs = 3500) {
 
     function Show-LanAdvancedIpConfigWindow {
         try {
+            if ($script:LanAdvWindow -and $script:LanAdvWindow.IsVisible) {
+                $script:LanAdvWindow.WindowState = [System.Windows.WindowState]::Normal
+                $script:LanAdvWindow.Activate()
+                return
+            }
+
+            if (-not $script:LanLocalIP) {
+                try {
+                    $script:LanLocalIP = (Get-NetIPAddress -AddressFamily IPv4 | Where-Object { $_.InterfaceAlias -notmatch "Loopback" -and $_.IPAddress -notmatch "^169\.254\." } | Select-Object -First 1).IPAddress
+                } catch { $script:LanLocalIP = "192.168.1.190" }
+            }
+            if (-not $script:LanLocalIP) { $script:LanLocalIP = "192.168.1.190" }
+
             $winAdv = New-Object System.Windows.Window
             $winAdv.Title = "DIRECT PC SHARE - ADVANCED IP CONFIGURATION & LAN DIAGNOSTICS"
             $winAdv.Width = 720
             $winAdv.Height = 650
             $winAdv.WindowStartupLocation = [System.Windows.WindowStartupLocation]::CenterScreen
-            if ($window -and $window.IsVisible) {
-                try {
-                    $winAdv.Owner = $window
-                    $winAdv.WindowStartupLocation = [System.Windows.WindowStartupLocation]::CenterOwner
-                } catch {}
-            }
             $winAdv.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#060A13")
             $winAdv.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#F8FAFC")
             $winAdv.ResizeMode = [System.Windows.ResizeMode]::CanResizeWithGrip
@@ -20438,14 +20224,13 @@ function Connect-LanTcpPeer ($ip, $port, [int]$timeoutMs = 3500) {
             $btnClose.Add_Click({ $winAdv.Close() })
             $root.Children.Add($btnClose) | Out-Null
 
+            $winAdv.Add_Closed({
+                $script:LanAdvWindow = $null
+            })
+
             $winAdv.Content = $scroll
-            try {
-                [void]$winAdv.ShowDialog()
-            } catch {
-                try { $winAdv.Show() } catch {
-                    [System.Windows.MessageBox]::Show("Error opening Advanced IP Configuration: $($_.Exception.Message)", "Error", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Error)
-                }
-            }
+            $script:LanAdvWindow = $winAdv
+            $winAdv.Show()
         } catch {
             [System.Windows.MessageBox]::Show("Error opening Advanced IP Configuration: $($_.Exception.Message)", "Error", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Error)
         }
@@ -21306,6 +21091,14 @@ function Get-BenchmarkPmcGeoData {
         # Mumbai (BMC) Properties
         @{ City="Mumbai"; PropNo="BMC-AD-01980"; Owner="Vikram M. Mehta"; Ward="Andheri West Ward K"; Approved=1500; Sat=2350; Declared="Residential"; Detected="Commercial (Salon & Spa)"; Lat=19.1363; Lon=72.8277; Photo="BMC_AD_1980.jpg"; Sign="Enrich Luxury Unisex Salon & Spa" },
 
+        # Pimpri-Chinchwad Municipal Corporation (PCMC) Properties
+        @{ City="Pimpri-Chinchwad"; PropNo="PCMC-WK-01550"; Owner="Deepak S. Jagtap"; Ward="Wakad Prabhag 24"; Approved=1200; Sat=2180; Declared="Residential"; Detected="Commercial (Bakery & Cafe)"; Lat=18.5987; Lon=73.7684; Photo="PCMC_WK_1550.jpg"; Sign="German Bakery & Patisserie" },
+        @{ City="Pimpri-Chinchwad"; PropNo="PCMC-PS-02100"; Owner="Sunil R. Gholap"; Ward="Pimple Saudagar"; Approved=1650; Sat=2800; Declared="Residential"; Detected="Commercial (Classes)"; Lat=18.5910; Lon=73.7930; Photo="PCMC_PS_2100.jpg"; Sign="Apex IIT-JEE Coaching Academy" },
+
+        # Kalyan-Dombivli Municipal Corporation (KDMC) Properties
+        @{ City="Kalyan-Dombivli"; PropNo="KDMC-KW-03200"; Owner="Nitin V. Bhoir"; Ward="Kalyan West Station"; Approved=900; Sat=1750; Declared="Residential"; Detected="Commercial (Jewellers)"; Lat=19.2437; Lon=73.1355; Photo="KDMC_KW_3200.jpg"; Sign="Bhoir Jewellers & Bullion" },
+        @{ City="Kalyan-Dombivli"; PropNo="KDMC-DE-01850"; Owner="Shailesh K. More"; Ward="Dombivli East Ward 8"; Approved=1150; Sat=1890; Declared="Residential"; Detected="Commercial (Clinic)"; Lat=19.2184; Lon=73.0867; Photo="KDMC_DE_1850.jpg"; Sign="Shree Diagnostic Pathology Lab" },
+
         # Panvel Municipal Corporation Properties
         @{ City="Panvel"; PropNo="PMC-W1-00104"; Owner="Rajesh D. Patil"; Ward="Ward 1 - Panvel West"; Approved=850; Sat=1480; Declared="Residential"; Detected="Commercial (Clinic)"; Lat=18.9894; Lon=73.1175; Photo="SURV_P104_FRONT.jpg"; Sign="Dr. Patil Diagnostic Clinic" },
         @{ City="Panvel"; PropNo="PMC-W2-01188"; Owner="Mahesh K. Sharma"; Ward="Ward 2 - Khanda Colony"; Approved=1100; Sat=2100; Declared="Residential"; Detected="Commercial (Gym)"; Lat=19.0045; Lon=73.1112; Photo="SURV_P1188_FRONT.jpg"; Sign="FitLife Unisex Gym & Fitness" },
@@ -21702,6 +21495,8 @@ function Invoke-PmcLaunchSatelliteMapHtml($dataTable) {
                 <option value="Navi Mumbai">Navi Mumbai (NMMC)</option>
                 <option value="Panvel">Panvel Municipal Corporation</option>
                 <option value="Mumbai">Mumbai (BMC)</option>
+                <option value="Pimpri-Chinchwad">Pimpri-Chinchwad (PCMC)</option>
+                <option value="Kalyan-Dombivli">Kalyan-Dombivli (KDMC)</option>
             </select>
             <input type="text" id="searchBox" placeholder="Search Property No / Owner / Sign..." onkeyup="filterSearch()">
             <button class="filter-btn active" onclick="setFilter('ALL', this)">ALL (<span id="countAll">0</span>)</button>
@@ -22142,6 +21937,8 @@ function Init-PmcGeoRadarModule {
         [void]$cmbGeoCity.Items.Add("Navi Mumbai")
         [void]$cmbGeoCity.Items.Add("Panvel")
         [void]$cmbGeoCity.Items.Add("Mumbai")
+        [void]$cmbGeoCity.Items.Add("Pimpri-Chinchwad")
+        [void]$cmbGeoCity.Items.Add("Kalyan-Dombivli")
         $cmbGeoCity.SelectedIndex = 0
         $cmbGeoCity.Add_SelectionChanged({ Apply-PmcGeoRadarFilters })
     }
@@ -22159,6 +21956,10 @@ function Init-PmcGeoRadarModule {
         [void]$cmbGeoWard.Items.Add("Ward 2 - Khanda Colony")
         [void]$cmbGeoWard.Items.Add("Ward 3 - Kamothe")
         [void]$cmbGeoWard.Items.Add("Ward 4 - Kharghar")
+        [void]$cmbGeoWard.Items.Add("Wakad Prabhag 24")
+        [void]$cmbGeoWard.Items.Add("Pimple Saudagar")
+        [void]$cmbGeoWard.Items.Add("Kalyan West Station")
+        [void]$cmbGeoWard.Items.Add("Dombivli East Ward 8")
         $cmbGeoWard.SelectedIndex = 0
         $cmbGeoWard.Add_SelectionChanged({ Apply-PmcGeoRadarFilters })
     }
@@ -22194,7 +21995,7 @@ function Init-PmcGeoRadarModule {
     }
 
     Refresh-PmcGeoRadarKpis
-    Start-NexusRestApiServer
+    # REST API server starts on-demand when REST API (5055) button is clicked
 
     if ($btnGeoApiPortal) {
         $btnGeoApiPortal.Add_Click({
