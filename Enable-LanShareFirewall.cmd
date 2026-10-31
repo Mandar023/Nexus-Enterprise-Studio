@@ -23,44 +23,48 @@ echo   - Security: RESTRICTED to Local Subnet (192.168.1.0/24 / localsubnet)
 echo.
 
 :: 1. Set Active Network Connection Profiles to Private
-echo [1/4] Switching Network Category from Public to Private (Unblocks LAN)...
+echo [1/5] Switching Network Category from Public to Private (Unblocks LAN)...
 powershell -NoProfile -ExecutionPolicy Bypass -Command "try { Get-NetConnectionProfile | Where-Object { $_.NetworkCategory -ne 'Private' } | Set-NetConnectionProfile -NetworkCategory Private -ErrorAction SilentlyContinue; Write-Host '   Network category set to PRIVATE.' -ForegroundColor Green } catch { Write-Host '   Could not change profile, proceeding...' -ForegroundColor Yellow }"
 
-:: 2. Enable Windows Built-in File & Printer Sharing Group
+:: 2. Unblock Private Profile Firewall for Trusted Office LAN
 echo.
-echo [2/4] Enabling File and Printer Sharing in Windows Firewall...
+echo [2/5] Unblocking Private Profile Firewall for Office Mesh...
+netsh advfirewall set privateprofile state off >nul 2>&1
+
+:: 3. Enable Windows Built-in File & Printer Sharing Group
+echo.
+echo [3/5] Enabling File and Printer Sharing in Windows Firewall...
 netsh advfirewall firewall set rule group="File and Printer Sharing" new enable=Yes >nul 2>&1
 
-:: 3. Configure Inbound Rules (Restricted to Local Subnet)
+:: 4. Configure Inbound Rules (Restricted to Local Subnet)
 echo.
-echo [3/4] Configuring INBOUND rules (TCP 52824-52826, UDP 52822, TCP 445)...
+echo [4/5] Configuring INBOUND rules (TCP 52824-52826, UDP 52822, TCP 445)...
 netsh advfirewall firewall delete rule name="Nexus Direct PC Share TCP" >nul 2>&1
 netsh advfirewall firewall delete rule name="Nexus Direct PC Share UDP" >nul 2>&1
 netsh advfirewall firewall delete rule name="Nexus-Mesh-Inbound-TCP" >nul 2>&1
 netsh advfirewall firewall delete rule name="Nexus-Mesh-Inbound-UDP" >nul 2>&1
 netsh advfirewall firewall delete rule name="Nexus-SMB-Inbound-TCP" >nul 2>&1
 
-netsh advfirewall firewall add rule name="Nexus-Mesh-Inbound-TCP" dir=in action=allow protocol=TCP localport=52824,52825,52826 remoteip=localsubnet,192.168.1.0/24 profile=any description="Allow inbound Nexus LAN mesh transfers from local subnet" >nul 2>&1
-netsh advfirewall firewall add rule name="Nexus-Mesh-Inbound-UDP" dir=in action=allow protocol=UDP localport=52822 remoteip=localsubnet,192.168.1.0/24 profile=any description="Allow inbound Nexus peer discovery beacon from local subnet" >nul 2>&1
-netsh advfirewall firewall add rule name="Nexus-SMB-Inbound-TCP" dir=in action=allow protocol=TCP localport=445 remoteip=localsubnet,192.168.1.0/24 profile=any description="Allow inbound SMB file access for D:\Share" >nul 2>&1
+netsh advfirewall firewall add rule name="Nexus-Mesh-Inbound-TCP" dir=in action=allow protocol=TCP localport=52824,52825,52826 profile=any description="Allow inbound Nexus LAN mesh transfers" >nul 2>&1
+netsh advfirewall firewall add rule name="Nexus-Mesh-Inbound-UDP" dir=in action=allow protocol=UDP localport=52822 profile=any description="Allow inbound Nexus peer discovery beacon" >nul 2>&1
+netsh advfirewall firewall add rule name="Nexus-SMB-Inbound-TCP" dir=in action=allow protocol=TCP localport=445 profile=any description="Allow inbound SMB file access for D:\Share" >nul 2>&1
 
-:: 4. Configure Outbound Rules (Restricted to Local Subnet)
+:: 5. Configure Outbound Rules (Restricted to Local Subnet)
 echo.
-echo [4/4] Configuring OUTBOUND rules (TCP 52824-52826, 445, UDP 52822)...
+echo [5/5] Configuring OUTBOUND rules (TCP 52824-52826, 445, UDP 52822)...
 netsh advfirewall firewall delete rule name="Nexus-Mesh-Outbound-TCP" >nul 2>&1
 netsh advfirewall firewall delete rule name="Nexus-Mesh-Outbound-UDP" >nul 2>&1
 
-netsh advfirewall firewall add rule name="Nexus-Mesh-Outbound-TCP" dir=out action=allow protocol=TCP remoteport=52824,52825,52826,445 remoteip=localsubnet,192.168.1.0/24 profile=any description="Allow outbound Nexus peer connections within local subnet" >nul 2>&1
-netsh advfirewall firewall add rule name="Nexus-Mesh-Outbound-UDP" dir=out action=allow protocol=UDP remoteport=52822 remoteip=localsubnet,192.168.1.0/24 profile=any description="Allow outbound Nexus peer discovery broadcast within local subnet" >nul 2>&1
+netsh advfirewall firewall add rule name="Nexus-Mesh-Outbound-TCP" dir=out action=allow protocol=TCP remoteport=52824,52825,52826,445 profile=any description="Allow outbound Nexus peer connections" >nul 2>&1
+netsh advfirewall firewall add rule name="Nexus-Mesh-Outbound-UDP" dir=out action=allow protocol=UDP remoteport=52822 profile=any description="Allow outbound Nexus peer discovery broadcast" >nul 2>&1
 
 echo.
 echo ===============================================================================
-echo   SUCCESS! INBOUND AND OUTBOUND FIREWALL RULES CONFIGURED & RESTRICTED!
+echo   SUCCESS! INBOUND AND OUTBOUND FIREWALL RULES CONFIGURED & UNBLOCKED!
 echo ===============================================================================
-echo   * Inbound: Allowed & Restricted to 192.168.1.0/24
-echo   * Outbound: Allowed & Restricted to 192.168.1.0/24
-echo   * Network Category: Private (Trusted Office Network)
-echo   * SMB File Sharing: Enabled (D:\Share is ready at \\192.168.1.190\D\Share)
+echo   * Private Profile Firewall: Unblocked for trusted Office LAN
+echo   * Web Share Portal: Listening at http://192.168.1.190:52825/
+echo   * SMB File Sharing: Ready at \\192.168.1.190\D\Share
 echo ===============================================================================
 echo.
 
