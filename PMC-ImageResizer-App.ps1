@@ -28,7 +28,7 @@ try {
 if ($global:IsRunningAsAdmin) {
     # Silently configure Windows Firewall rules for LAN peer discovery
     try {
-        netsh advfirewall firewall add rule name="Nexus Direct PC Share TCP" dir=in action=allow protocol=TCP localport=52824,52826 profile=any >$null 2>&1
+        netsh advfirewall firewall add rule name="Nexus Direct PC Share TCP" dir=in action=allow protocol=TCP localport=52824,52825,52826 profile=any >$null 2>&1
         netsh advfirewall firewall add rule name="Nexus Direct PC Share UDP" dir=in action=allow protocol=UDP localport=52822 profile=any >$null 2>&1
     } catch {}
 
@@ -20419,7 +20419,7 @@ function Connect-LanTcpPeer ($ip, $port, [int]$timeoutMs = 3500) {
                 if (Test-Path $fwCmd) {
                     Start-Process -FilePath "cmd.exe" -ArgumentList "/c `"$fwCmd`"" -Verb RunAs
                 } else {
-                    [System.Windows.MessageBox]::Show("To allow LAN file transfers through Windows Firewall, run this in Administrator Command Prompt:`r`n`r`nnetsh advfirewall firewall add rule name=`"Nexus Direct PC Share TCP`" dir=in action=allow protocol=TCP localport=52824,52826 profile=any`r`nnetsh advfirewall firewall add rule name=`"Nexus Direct PC Share UDP`" dir=in action=allow protocol=UDP localport=52822 profile=any", "Firewall Configuration", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Information)
+                    [System.Windows.MessageBox]::Show("To allow LAN file transfers through Windows Firewall, run this in Administrator Command Prompt:`r`n`r`nnetsh advfirewall firewall add rule name=`"Nexus Direct PC Share TCP`" dir=in action=allow protocol=TCP localport=52824,52825,52826 profile=any`r`nnetsh advfirewall firewall add rule name=`"Nexus Direct PC Share UDP`" dir=in action=allow protocol=UDP localport=52822 profile=any", "Firewall Configuration", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Information)
                 }
             })
             $diagStack.Children.Add($btnFw) | Out-Null
@@ -20549,7 +20549,7 @@ function Connect-LanTcpPeer ($ip, $port, [int]$timeoutMs = 3500) {
             if (Test-Path $fwCmd) {
                 Start-Process -FilePath "cmd.exe" -ArgumentList "/c `"$fwCmd`"" -Verb RunAs
             } else {
-                [System.Windows.MessageBox]::Show("To allow LAN file transfers through Windows Firewall, run this in Administrator Command Prompt:`r`n`r`nnetsh advfirewall firewall add rule name=`"Nexus Direct PC Share TCP`" dir=in action=allow protocol=TCP localport=52824,52826 profile=any`r`nnetsh advfirewall firewall add rule name=`"Nexus Direct PC Share UDP`" dir=in action=allow protocol=UDP localport=52822 profile=any", "Firewall Configuration", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Information)
+                [System.Windows.MessageBox]::Show("To allow LAN file transfers through Windows Firewall, run this in Administrator Command Prompt:`r`n`r`nnetsh advfirewall firewall add rule name=`"Nexus Direct PC Share TCP`" dir=in action=allow protocol=TCP localport=52824,52825,52826 profile=any`r`nnetsh advfirewall firewall add rule name=`"Nexus Direct PC Share UDP`" dir=in action=allow protocol=UDP localport=52822 profile=any", "Firewall Configuration", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Information)
             }
         })
     }
