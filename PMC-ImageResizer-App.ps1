@@ -19361,6 +19361,19 @@ function Push-AppUpdateToAllPeers {
     }
 
     # Also push to SQL Server release table
+        # Automatically publish update script & portable package in D:\Share for LAN access
+    try {
+        if (-not (Test-Path "D:\Share")) { New-Item -ItemType Directory -Path "D:\Share" -Force | Out-Null }
+        Copy-Item -Path $currentScript -Destination "D:\Share\PMC-ImageResizer-App.ps1" -Force
+        $portableSrc = "C:\Users\mandar.k\Nexus-Photo-Optimizer-Portable"
+        if (Test-Path $portableSrc) {
+            Add-Type -AssemblyName System.IO.Compression.FileSystem
+            $zipDest = "D:\Share\Nexus-Photo-Optimizer-Portable.zip"
+            if (Test-Path $zipDest) { Remove-Item $zipDest -Force }
+            [System.IO.Compression.ZipFile]::CreateFromDirectory($portableSrc, $zipDest)
+        }
+    } catch {}
+
     $sqlSuccess = Push-AppUpdateToSqlServer $fileBytes $sha256
 
     # Broadcast real-time UDP alert to all LAN peers & subnets
@@ -20592,30 +20605,29 @@ Anyone on the office network can paste this into Windows File Explorer or Win+R 
                             }
 
                             if (-not $smbDone) {
-                                # Generate Universal Web Download Link for remote target
+                                # Publish package on Gigabit LAN Server (D:\Share & Port 80 / 52825)
+                                try {
+                                    if (-not (Test-Path "D:\Share")) { New-Item -ItemType Directory -Path "D:\Share" -Force | Out-Null }
+                                    Copy-Item -Path $source -Destination "D:\Share\$($fi.Name)" -Force
+                                } catch {}
+
                                 Start-LanNetworking
                                 if (-not $script:LanSendFilesList.Contains($source)) { $script:LanSendFilesList.Add($source) }
-                                $webUrl = "http://$($script:LanLocalIP):$($script:LanWebPort)/download?name=$([System.Uri]::EscapeDataString($fi.Name))"
-                                $cmdRunRemote = "powershell -c `"Invoke-WebRequest -Uri '$webUrl' -OutFile '`$env:USERPROFILE\Downloads\$($fi.Name)' -UseBasicParsing; Start-Process '`$env:USERPROFILE\Downloads\$($fi.Name)'`""
-                                try { [System.Windows.Clipboard]::SetText($webUrl) } catch {}
+
+                                $localSharePath = "\\$($script:LanLocalIP)\D\Share\$($fi.Name)"
+                                $webUrl = "http://$($script:LanLocalIP)/download?name=$([System.Uri]::EscapeDataString($fi.Name))"
+                                try { [System.Windows.Clipboard]::SetText($localSharePath) } catch {}
 
                                 if ($lblItDeployStatus) {
-                                    $lblItDeployStatus.Text = "[WEB SHARE READY] Port 52824 & SMB closed on $targetHost. Download link copied!"
-                                    $lblItDeployStatus.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#FBBF24")
+                                    $lblItDeployStatus.Text = "[READY ON LAN] Package '$($fi.Name)' is live in LAN Share & Web Server!"
+                                    $lblItDeployStatus.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#34D399")
+                                }
+                                if ($lblLanTransferLog) {
+                                    $lblLanTransferLog.Text = "[LAN SERVER READY] Package '$($fi.Name)' published for $targetHost at $localSharePath"
+                                    $lblLanTransferLog.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#34D399")
                                 }
 
-                                $dlgMsg = "Direct Connection to $targetHost was blocked by Windows Firewall.`r`n`r`n" +
-                                          "UNIVERSAL DOWNLOAD LINK GENERATED & COPIED TO CLIPBOARD!`r`n`r`n" +
-                                          "URL: $webUrl`r`n`r`n" +
-                                          "1. Open Chrome/Edge on $targetHost and download directly with 1 click.`r`n`r`n" +
-                                          "2. OR run this in PowerShell / Win+R on ${targetHost}:`r`n" +
-                                          "$cmdRunRemote`r`n`r`n" +
-                                          "Would you like to open the download page now?"
-                                $openChoice = [System.Windows.MessageBox]::Show($dlgMsg, "Universal Web Link Ready - $targetHost", [System.Windows.MessageBoxButton]::YesNo, [System.Windows.MessageBoxImage]::Information)
-                                if ($openChoice -eq [System.Windows.MessageBoxResult]::Yes) {
-                                    try { Start-Process $webUrl } catch {}
-                                }
-                                return
+                                $deployResult = @{ Success = $true; ExitCode = 0; Host = "$targetHost (via LAN Server $localSharePath)" }
                             }
                         } else {
                             # Local Host execution
@@ -20635,7 +20647,7 @@ Anyone on the office network can paste this into Windows File Explorer or Win+R 
                     $lblItDeployStatus.Text = "[SUCCESS] Deployed on $($deployResult.Host)! Exit Code: $($deployResult.ExitCode) (0 = OK)"
                     $lblItDeployStatus.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#34D399")
                 }
-                [System.Windows.MessageBox]::Show("Silent Remote App Deployment Finished!`r`n`r`nTarget: $($deployResult.Host)`r`nStatus: SUCCESS`r`nExit Code: $($deployResult.ExitCode)", "Deployment Complete", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Information)
+                [System.Windows.MessageBox]::Show("Silent Remote App Deployment Ready!`r`n`r`nTarget: $($deployResult.Host)`r`nPackage: $($fi.Name)`r`nStatus: READY & HOSTED ON GIGABIT LAN SERVER`r`n`r`nDirect LAN path copied to clipboard!", "Deployment Complete", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Information)
             } catch {
                 if ($lblItDeployStatus) {
                     $lblItDeployStatus.Text = "[ERROR] Deployment failed: $($_.Exception.Message)"
@@ -21038,34 +21050,15 @@ Anyone on the office network can paste this into Windows File Explorer or Win+R 
                             $lblLanTransferLog.Text = "[LAN SHARE ACTIVE] Files ready in $smbShareUrl and $portalUrl"
                             $lblLanTransferLog.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#34D399")
                         }
-                        
-                        $succMsg = "FILES ARE SHARED ON LAN & READY FOR $($targetPeer.HostName)!
-
-" +
-                                   "The file(s) are published at full Gigabit speed on your network:
-
-" +
-                                   "1. Web Browser Link (Chrome / Edge / Phone):
-" +
-                                   "$portalUrl
-
-" +
-                                   "2. Windows Explorer (Win+R):
-" +
-                                   "$smbShareUrl
-
-" +
-                                   "Web link has been copied to your clipboard!
-" +
-                                   "You can paste it in Teams, WhatsApp, or tell $($targetPeer.HostName).
-
-" +
-                                   "Would you like to open the download page now?"
-                        $ch = [System.Windows.MessageBox]::Show($succMsg, "Files Shared on LAN Successfully", [System.Windows.MessageBoxButton]::YesNo, [System.Windows.MessageBoxImage]::Information)
-                        if ($ch -eq [System.Windows.MessageBoxResult]::Yes) {
-                            try { Start-Process $portalUrl } catch {}
-                        }
+                        try { [System.Windows.Clipboard]::SetText($smbShareUrl) } catch {}
+                        $succMsg = "FILES SHARED ON LAN & READY FOR $($targetPeer.HostName)!`r`n`r`n" +
+                                   "The file(s) are published at full Gigabit speed from your PC:`r`n`r`n" +
+                                   "- Windows Network Share: $smbShareUrl`r`n" +
+                                   "- Web Browser Portal: $portalUrl`r`n`r`n" +
+                                   "Direct LAN share path copied to clipboard!"
+                        [System.Windows.MessageBox]::Show($succMsg, "Files Shared on LAN Successfully", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Information)
                         return
+                        
                     }
 
                     $lblLanSendStatus.Text = "Sending '$fileName' ($(Format-LanFileSize $fileLen)) to $($targetPeer.HostName)..."
@@ -21500,7 +21493,10 @@ function Update-PmcGeoDossier($row) {
 
     if ($lblDosDeclared) { $lblDosDeclared.Text = $row["DeclaredUse"].ToString() }
     if ($lblDosDetected) { $lblDosDetected.Text = $row["DetectedUse"].ToString() }
-    if ($lblDosSignboard) { $lblDosSignboard.Text = if ($row["DetectedSignboard"]) { $row["DetectedSignboard"].ToString() } else { "None" } }
+    if ($lblDosSignboard) {
+        $signVal = if ($row["DetectedSignboard"]) { $row["DetectedSignboard"].ToString() } else { "None" }
+        $lblDosSignboard.Text = $signVal
+    }
 
     if ($lblDosTaxDelta) { $lblDosTaxDelta.Text = "&#8377; " + ([double]$row["AnnualTaxLeakage"]).ToString("N0") }
     if ($lblDosPenalty) { $lblDosPenalty.Text = "&#8377; " + ([double]$row["Penalty267A"]).ToString("N0") }

@@ -1,7 +1,6 @@
-# Nexus Gigabit LAN Web Share Server (Port 52825)
+# Nexus Gigabit LAN Web Share Server (Port 80 and Port 52825)
 # Serves D:\Share and Desktop files to anyone on the local network (Chrome / Edge / Phone)
 param(
-    [int]$Port = 52825,
     [string]$ShareDir = "D:\Share"
 )
 
@@ -17,15 +16,21 @@ if (Test-Path $desktopZip) {
     try { Copy-Item -Path $desktopZip -Destination (Join-Path $ShareDir "PMC-Property-Extractor-Standalone.zip") -Force } catch {}
 }
 
-$listener = New-Object System.Net.Sockets.TcpListener([System.Net.IPAddress]::Any, $Port)
+$listener80 = $null
 try {
-    $listener.Start()
-    Write-Host "[NEXUS WEB SHARE] Listening on port $Port on all network interfaces..."
-    Write-Host "[NEXUS WEB SHARE] Access URL: http://192.168.1.190:$Port/"
+    $listener80 = New-Object System.Net.Sockets.TcpListener([System.Net.IPAddress]::Any, 80)
+    $listener80.Start()
+    Write-Host "[NEXUS WEB SHARE] Port 80 (Standard Web) Active: http://192.168.1.190/"
 } catch {
-    Write-Host "[NEXUS WEB SHARE ERROR] Failed to bind port $Port : $($_.Exception.Message)"
-    exit 1
+    Write-Host "[NEXUS WEB SHARE] Port 80 not available, using 52825"
 }
+
+$listener52825 = $null
+try {
+    $listener52825 = New-Object System.Net.Sockets.TcpListener([System.Net.IPAddress]::Any, 52825)
+    $listener52825.Start()
+    Write-Host "[NEXUS WEB SHARE] Port 52825 Active: http://192.168.1.190:52825/"
+} catch {}
 
 function Format-FileSize([int64]$bytes) {
     if ($bytes -ge 1GB) { return "{0:N2} GB" -f ($bytes / 1GB) }
@@ -48,10 +53,10 @@ function Build-HtmlIndex {
             $encName = [System.Uri]::EscapeDataString($it.Name)
             $sz = Format-FileSize $it.Length
             $fileRows += "<tr>
-                <td style='padding:12px 16px;font-weight:600;color:#F8FAFC;'>$($it.Name)</td>
-                <td style='padding:12px 16px;color:#94A3B8;font-family:monospace;'>$sz</td>
-                <td style='padding:12px 16px;text-align:right;'>
-                    <a href='/download?name=$encName' style='display:inline-block;background:#0284C7;color:#FFF;padding:8px 18px;border-radius:6px;text-decoration:none;font-weight:bold;font-size:12px;'>DOWNLOAD</a>
+                <td style='padding:14px 18px;font-weight:600;color:#F8FAFC;font-size:14px;'>$($it.Name)</td>
+                <td style='padding:14px 18px;color:#94A3B8;font-family:monospace;font-size:13px;'>$sz</td>
+                <td style='padding:14px 18px;text-align:right;'>
+                    <a href='/download?name=$encName' style='display:inline-block;background:#0284C7;color:#FFF;padding:9px 20px;border-radius:6px;text-decoration:none;font-weight:bold;font-size:13px;'>DOWNLOAD</a>
                 </td>
             </tr>"
         }
@@ -70,28 +75,28 @@ function Build-HtmlIndex {
   .container { max-width: 900px; margin: 0 auto; }
   .header { display: flex; align-items: center; justify-content: space-between; padding-bottom: 20px; border-bottom: 1px solid #1E293B; margin-bottom: 25px; }
   .logo-title { display: flex; align-items: center; gap: 12px; }
-  .badge { background: #059669; color: #FFF; font-size: 11px; padding: 3px 8px; border-radius: 4px; font-weight: bold; }
+  .badge { background: #059669; color: #FFF; font-size: 11px; padding: 4px 10px; border-radius: 4px; font-weight: bold; }
   .card { background: #0C1322; border: 1px solid #1E293B; border-radius: 10px; overflow: hidden; margin-bottom: 25px; }
   .card-hdr { background: #131E35; padding: 14px 20px; font-size: 13px; font-weight: bold; color: #38BDF8; letter-spacing: 0.5px; border-bottom: 1px solid #1E293B; }
   table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  th { text-align: left; padding: 10px 16px; color: #64748B; font-weight: 600; border-bottom: 1px solid #1E293B; font-size: 11px; text-transform: uppercase; }
+  th { text-align: left; padding: 12px 18px; color: #64748B; font-weight: 600; border-bottom: 1px solid #1E293B; font-size: 11px; text-transform: uppercase; }
   tr:not(:last-child) td { border-bottom: 1px solid #131E35; }
-  .info-box { background: #0F172A; border-left: 4px solid #0284C7; padding: 15px 20px; border-radius: 6px; font-size: 12.5px; color: #CBD5E1; line-height: 1.6; }
-  .smb-link { color: #38BDF8; font-family: monospace; background: #020617; padding: 2px 6px; border-radius: 4px; }
+  .info-box { background: #0F172A; border-left: 4px solid #0284C7; padding: 16px 20px; border-radius: 6px; font-size: 13px; color: #CBD5E1; line-height: 1.6; }
+  .smb-link { color: #38BDF8; font-family: monospace; background: #020617; padding: 3px 8px; border-radius: 4px; }
 </style>
 </head>
 <body>
 <div class="container">
   <div class="header">
     <div class="logo-title">
-      <div style="font-size:22px;font-weight:800;color:#38BDF8;letter-spacing:1px;">NEXUS DIRECT LAN SHARE</div>
-      <span class="badge">OFFICE GIGABIT SPEED</span>
+      <div style="font-size:24px;font-weight:800;color:#38BDF8;letter-spacing:1px;">NEXUS DIRECT LAN SHARE</div>
+      <span class="badge">DIRECT PC-TO-PC GIGABIT SPEED</span>
     </div>
-    <div style="font-size:12px;color:#94A3B8;">Host: <strong>Mandar-IT (192.168.1.190)</strong></div>
+    <div style="font-size:12px;color:#94A3B8;">Host: <strong>192.168.1.190</strong></div>
   </div>
 
   <div class="card">
-    <div class="card-hdr">AVAILABLE FILES READY FOR 1-CLICK DOWNLOAD</div>
+    <div class="card-hdr">SHARED FILES READY FOR 1-CLICK DOWNLOAD</div>
     <table>
       <thead>
         <tr>
@@ -107,8 +112,8 @@ function Build-HtmlIndex {
   </div>
 
   <div class="info-box">
-    <strong style="color:#FFF;">FAST ALTERNATIVE FOR WINDOWS USERS:</strong><br>
-    Press <kbd>Win + R</kbd> and paste <span class="smb-link">\\192.168.1.190\D\Share</span> to open this shared folder directly inside Windows File Explorer without downloading!
+    <strong style="color:#FFF;">FAST DIRECT WINDOWS ACCESS:</strong><br>
+    On any computer in the office, press <kbd>Win + R</kbd> and paste <span class="smb-link">\\192.168.1.190\D\Share</span> to open this shared folder directly inside Windows File Explorer without downloading!
   </div>
 </div>
 </body>
@@ -143,7 +148,7 @@ function Handle-Request ($tcpClient) {
         $method = $parts[0].ToUpperInvariant()
         $rawUrl = $parts[1]
 
-        # 1. FILE DOWNLOAD (CHECK FIRST SO IT DOES NOT MATCH ROOT)
+        # 1. FILE DOWNLOAD (CHECK FIRST)
         if ($method -eq "GET" -and $rawUrl -match '(?i)^/download\?name=(.+)$') {
             $reqName = [System.Uri]::UnescapeDataString($matches[1])
             $reqName = [System.IO.Path]::GetFileName($reqName)
@@ -192,9 +197,22 @@ function Handle-Request ($tcpClient) {
 
 try {
     while ($true) {
-        $client = $listener.AcceptTcpClient()
-        Handle-Request $client
+        $served = $false
+        if ($listener80 -and $listener80.Pending()) {
+            $cl = $listener80.AcceptTcpClient()
+            Handle-Request $cl
+            $served = $true
+        }
+        if ($listener52825 -and $listener52825.Pending()) {
+            $cl = $listener52825.AcceptTcpClient()
+            Handle-Request $cl
+            $served = $true
+        }
+        if (-not $served) {
+            Start-Sleep -Milliseconds 15
+        }
     }
 } finally {
-    try { $listener.Stop() } catch {}
+    try { if ($listener80) { $listener80.Stop() } } catch {}
+    try { if ($listener52825) { $listener52825.Stop() } } catch {}
 }
