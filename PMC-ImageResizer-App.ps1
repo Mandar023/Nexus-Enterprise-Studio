@@ -20480,64 +20480,46 @@ function Connect-LanTcpPeer ($ip, $port, [int]$timeoutMs = 3500) {
 
     if ($btnLanCopyWebLink) {
         $btnLanCopyWebLink.Add_Click({
-            if ($script:LanSendFilesList.Count -eq 0) {
-                $dlg = New-Object Microsoft.Win32.OpenFileDialog
-                $dlg.Multiselect = $true
-                $dlg.Title = "Select File(s) to Create Instant Download Link"
-                if ($dlg.ShowDialog()) {
-                    foreach ($f in $dlg.FileNames) {
-                        if (-not $script:LanSendFilesList.Contains($f)) {
-                            $script:LanSendFilesList.Add($f)
-                        }
-                    }
-                    Update-LanSendFilesList
-                } else {
-                    return
-                }
+            Start-LanNetworking
+            $localPortal = "http://$($script:LanLocalIP):$($script:LanWebPort)/"
+            
+            $directLink = $localPortal
+            if ($script:LanSendFilesList.Count -gt 0) {
+                $first = Get-Item $script:LanSendFilesList[0]
+                $directLink = "http://$($script:LanLocalIP):$($script:LanWebPort)/download?name=$([System.Uri]::EscapeDataString($first.Name))"
+            } elseif ($script:LanOutboxList.Count -gt 0) {
+                $first = Get-Item $script:LanOutboxList[0]
+                $directLink = "http://$($script:LanLocalIP):$($script:LanWebPort)/download?name=$([System.Uri]::EscapeDataString($first.Name))"
             }
+
+            try { [System.Windows.Clipboard]::SetText($directLink) } catch {}
 
             if ($lblLanSendStatus) {
-                $lblLanSendStatus.Text = "Creating universal download link (Firewall-free)..."
+                $lblLanSendStatus.Text = "[WEB SHARE READY] LAN Link copied! (Works in Chrome/Edge without walking)"
+                $lblLanSendStatus.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#34D399")
             }
             if ($lblLanTransferLog) {
-                $lblLanTransferLog.Text = "Generating download link for colleague..."
-                $lblLanTransferLog.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#38BDF8")
+                $lblLanTransferLog.Text = "Web Link: $directLink (Gigabit LAN speed, zero client install)"
+                $lblLanTransferLog.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#34D399")
             }
-            [System.Windows.Forms.Application]::DoEvents()
 
-            $link = Get-UniversalShareLink $script:LanSendFilesList
-            if ($link) {
-                try { [System.Windows.Clipboard]::SetText($link) } catch {}
-                if ($lblLanSendStatus) {
-                    $lblLanSendStatus.Text = "Download link copied to clipboard!"
-                    $lblLanSendStatus.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#34D399")
-                }
-                if ($lblLanTransferLog) {
-                    $lblLanTransferLog.Text = "Link Copied: $link (Works on ANY PC or phone without firewall)"
-                    $lblLanTransferLog.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#34D399")
-                }
-                [System.Windows.MessageBox]::Show("Download Link Ready & Copied to Clipboard!`r`n`r`n$link`r`n`r`nPaste this link to your colleague in WhatsApp, Teams, or Email.`r`nThey can open it in Chrome or Edge on any computer to download the file directly (No firewall or software needed)!", "Download Link Ready", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Information)
-            } else {
-                [System.Windows.MessageBox]::Show("Could not create download link. Please check your internet connection.", "Error", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Warning)
-            }
+            $info = "LOCAL HIGH-SPEED WEB LINK COPIED TO CLIPBOARD!`r`n`r`n" +
+                    "Web Link: $directLink`r`n" +
+                    "Web Portal: $localPortal`r`n`r`n" +
+                    "ZERO WALKING REQUIRED (100% REMOTE):`r`n" +
+                    "1. Paste this link into WhatsApp Web, Teams, Skype or Email to your colleagues.`r`n" +
+                    "2. They simply open it in Chrome, Edge, or their phone on the office Wi-Fi.`r`n" +
+                    "3. They can download files directly at full Gigabit LAN speed, or send files back to you!`r`n`r`n" +
+                    "No software and no firewall configuration needed on their computers!"
+            [System.Windows.MessageBox]::Show($info, "Direct Web Share Ready (No Walking Needed)", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Information)
         })
     }
 
     if ($btnLanOpenWebLink) {
         $btnLanOpenWebLink.Add_Click({
-            if ($script:LanSendFilesList.Count -eq 0) {
-                $btnLanCopyWebLink.RaiseEvent([System.Windows.RoutedEventArgs]::new([System.Windows.Controls.Button]::ClickEvent))
-                return
-            }
-            if ($lblLanSendStatus) {
-                $lblLanSendStatus.Text = "Creating download link and opening browser..."
-            }
-            [System.Windows.Forms.Application]::DoEvents()
-            $link = Get-UniversalShareLink $script:LanSendFilesList
-            if ($link) {
-                try { [System.Windows.Clipboard]::SetText($link) } catch {}
-                Start-Process $link
-            }
+            Start-LanNetworking
+            $localPortal = "http://$($script:LanLocalIP):$($script:LanWebPort)/"
+            try { Start-Process $localPortal } catch {}
         })
     }
 
