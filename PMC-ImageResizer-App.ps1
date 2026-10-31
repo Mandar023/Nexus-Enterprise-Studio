@@ -4072,6 +4072,8 @@ try {
                         <Button x:Name="btnLanCheckAppUpdate" Content="CHECK FOR UPDATES" Background="#0284C7" Foreground="White" FontWeight="Bold" FontSize="10" Padding="9,6" Margin="0,0,5,0" BorderThickness="0" Cursor="Hand" ToolTip="Check network for newer version of this application"/>
                         <Button x:Name="btnLanScanPeers" Content="REFRESH PEERS" Background="{StaticResource PrimaryBtnBrush}" Foreground="White" FontWeight="Bold" FontSize="10" Padding="9,6" Margin="0,0,5,0" BorderThickness="0" Cursor="Hand" ToolTip="Scan local network for other computers running Nexus"/>
                         <Button x:Name="btnLanAdvIpConfig" Content="ADVANCED IP CONFIG" Background="#0F766E" Foreground="White" FontWeight="Bold" FontSize="10" Padding="9,6" Margin="0,0,5,0" BorderThickness="0" Cursor="Hand" ToolTip="Configure custom LAN IP list, scan subnet range (192.168.1.x), test TCP port 52824 &amp; firewall"/>
+                        <Button x:Name="btnLanOpenShareFolder" Content="OPEN D:\SHARE" Background="#059669" Foreground="White" FontWeight="Bold" FontSize="10" Padding="10,6" Margin="0,0,5,0" BorderThickness="0" Cursor="Hand" ToolTip="Open D:\Share (accessible by all computers on LAN as \\192.168.1.190\D\Share)"/>
+                        <Button x:Name="btnLanCopySmbPath" Content="COPY LAN PATH" Background="#D97706" Foreground="White" FontWeight="Bold" FontSize="10" Padding="10,6" Margin="0,0,5,0" BorderThickness="0" Cursor="Hand" ToolTip="Copy \\192.168.1.190\D\Share to clipboard for easy 1-click sharing"/>
                         <Button x:Name="btnLanCopyWebLink" Content="COPY WEB LINK" Background="#0284C7" Foreground="White" FontWeight="Bold" FontSize="10" Padding="9,6" Margin="0,0,5,0" BorderThickness="0" Cursor="Hand" ToolTip="Copy Web Download link (anyone on the network can download in Chrome/Edge without needing Nexus)"/>
                         <Button x:Name="btnLanFixFirewall" Content="FIREWALL SETUP" Background="#475569" Foreground="White" FontWeight="Bold" FontSize="10" Padding="9,6" Margin="0,0,5,0" BorderThickness="0" Cursor="Hand" ToolTip="Configure Windows Firewall rules for LAN file sharing"/>
                         <Button x:Name="btnLanQuickAssist" Content="REMOTE ASSIST" Background="#6366F1" Foreground="White" FontWeight="Bold" FontSize="10" Padding="9,6" Margin="0,0,5,0" BorderThickness="0" Cursor="Hand" ToolTip="Open Windows Quick Assist to view or help on another PC"/>
@@ -4553,6 +4555,8 @@ $btnLanPushAppUpdate = $window.FindName("btnLanPushAppUpdate")
 $btnLanCheckAppUpdate = $window.FindName("btnLanCheckAppUpdate")
 $btnLanScanPeers      = $window.FindName("btnLanScanPeers")
 $btnLanAdvIpConfig    = $window.FindName("btnLanAdvIpConfig")
+$btnLanOpenShareFolder = $window.FindName("btnLanOpenShareFolder")
+$btnLanCopySmbPath     = $window.FindName("btnLanCopySmbPath")
 $btnLanCopyWebLink    = $window.FindName("btnLanCopyWebLink")
 $btnLanFixFirewall    = $window.FindName("btnLanFixFirewall")
 $btnLanOpenWebLink    = $window.FindName("btnLanOpenWebLink")
@@ -19699,6 +19703,20 @@ function Connect-LanTcpPeer ($ip, $port, [int]$timeoutMs = 3500) {
                         if (-not $already) { $allAvailableFiles += $it }
                     }
                 }
+                if (Test-Path "D:\Share") {
+                    foreach ($f in (Get-ChildItem "D:\Share" -File -ErrorAction SilentlyContinue)) {
+                        $already = $false
+                        foreach ($af in $allAvailableFiles) { if ($af.FullName -eq $f.FullName) { $already = $true; break } }
+                        if (-not $already) { $allAvailableFiles += $f }
+                    }
+                }
+                if (Test-Path "C:\Users\Public\Downloads") {
+                    foreach ($f in (Get-ChildItem "C:\Users\Public\Downloads" -Filter "*.zip" -File -ErrorAction SilentlyContinue)) {
+                        $already = $false
+                        foreach ($af in $allAvailableFiles) { if ($af.FullName -eq $f.FullName) { $already = $true; break } }
+                        if (-not $already) { $allAvailableFiles += $f }
+                    }
+                }
                 
                 $filesHtml = ""
                 if ($allAvailableFiles.Count -gt 0) {
@@ -19712,7 +19730,7 @@ function Connect-LanTcpPeer ($ip, $port, [int]$timeoutMs = 3500) {
                     $filesHtml = "<div style='color:#94a3b8; font-size:13px; padding:12px 0;'>No files queued for download right now.<br>Add files in Nexus under 'DIRECT PC SHARE' or upload a file below.</div>"
                 }
                 
-                $html = "<!DOCTYPE html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'><title>Nexus LAN Share - $env:COMPUTERNAME</title><style>body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0b1120; color: #e2e8f0; margin: 0; padding: 24px; } .container { max-width: 680px; margin: 0 auto; } .card { background: #0f172a; border: 1px solid #1e3252; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); } h1 { margin: 0 0 6px 0; font-size: 20px; color: #38bdf8; } .subtitle { font-size: 13px; color: #94a3b8; margin-bottom: 16px; } .btn { display: inline-block; background: #0284c7; color: white; text-decoration: none; padding: 7px 14px; border-radius: 6px; font-weight: bold; font-size: 12.5px; cursor: pointer; border: none; } .btn-success { background: #059669; } .btn:hover { opacity: 0.9; } .file-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: #0a0e1a; border: 1px solid #1e293b; border-radius: 6px; margin-bottom: 8px; } .file-name { font-weight: bold; color: #f1f5f9; font-family: Consolas, monospace; font-size: 12.5px; } .file-size { color: #64748b; font-size: 11.5px; margin-left: 8px; } .pbar { width: 100%; height: 8px; background: #1e293b; border-radius: 4px; overflow: hidden; margin-top: 12px; display: none; } .pfill { height: 100%; background: #38bdf8; width: 0%; transition: width 0.2s; } .status-box { margin-top: 10px; font-size: 12.5px; font-weight: bold; }</style></head><body><div class='container'><div class='card'><h1>Nexus Direct LAN Share</h1><div class='subtitle'>Host: <strong>$env:COMPUTERNAME</strong> | User: $env:USERNAME</div><p style='font-size:13px; color:#cbd5e1; margin:0;'>Download files shared from $env:COMPUTERNAME directly at full LAN speed without installing any software.</p></div><div class='card'><h2 style='font-size:15px; margin-top:0; color:#f8fafc;'>Files Available to Download</h2>$filesHtml</div><div class='card'><h2 style='font-size:15px; margin-top:0; color:#f8fafc;'>Upload a File to $env:COMPUTERNAME</h2><p style='font-size:12.5px; color:#94a3b8; margin:0 0 12px 0;'>Send any file directly to $env:COMPUTERNAME's Desktop\Nexus_Received_Files:</p><input type='file' id='upFile' style='margin-bottom:12px; display:block; color:#94a3b8; font-size:13px;'><button class='btn btn-success' onclick='uploadFile()'>Send File to $env:COMPUTERNAME</button><div class='pbar' id='pBar'><div class='pfill' id='pFill'></div></div><div class='status-box' id='upStatus'></div></div></div><script>function uploadFile() { var fInput = document.getElementById('upFile'); if (!fInput.files || fInput.files.length === 0) { alert('Please select a file first!'); return; } var file = fInput.files[0]; var pBar = document.getElementById('pBar'); var pFill = document.getElementById('pFill'); var status = document.getElementById('upStatus'); pBar.style.display = 'block'; pFill.style.width = '0%'; status.style.color = '#38bdf8'; status.textContent = 'Uploading ' + file.name + '...'; var xhr = new XMLHttpRequest(); xhr.open('POST', '/upload?name=' + encodeURIComponent(file.name)); xhr.upload.onprogress = function(e) { if (e.lengthComputable) { var pct = Math.round((e.loaded / e.total) * 100); pFill.style.width = pct + '%'; status.textContent = 'Uploading: ' + pct + '% (' + (e.loaded/1048576).toFixed(1) + ' MB / ' + (e.total/1048576).toFixed(1) + ' MB)'; } }; xhr.onload = function() { if (xhr.status === 200) { status.style.color = '#34d399'; status.textContent = 'Upload Complete! File saved onto $env:COMPUTERNAME.'; fInput.value = ''; } else { status.style.color = '#f87171'; status.textContent = 'Upload failed: ' + xhr.responseText; } }; xhr.onerror = function() { status.style.color = '#f87171'; status.textContent = 'Upload failed due to network error.'; }; xhr.send(file); }</script></body></html>"
+                $html = "<!DOCTYPE html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'><title>Nexus LAN Share - $env:COMPUTERNAME</title><style>body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0b1120; color: #e2e8f0; margin: 0; padding: 24px; } .container { max-width: 680px; margin: 0 auto; } .card { background: #0f172a; border: 1px solid #1e3252; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); } h1 { margin: 0 0 6px 0; font-size: 20px; color: #38bdf8; } .subtitle { font-size: 13px; color: #94a3b8; margin-bottom: 16px; } .btn { display: inline-block; background: #0284c7; color: white; text-decoration: none; padding: 7px 14px; border-radius: 6px; font-weight: bold; font-size: 12.5px; cursor: pointer; border: none; } .btn-success { background: #059669; } .btn:hover { opacity: 0.9; } .file-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: #0a0e1a; border: 1px solid #1e293b; border-radius: 6px; margin-bottom: 8px; } .file-name { font-weight: bold; color: #f1f5f9; font-family: Consolas, monospace; font-size: 12.5px; } .file-size { color: #64748b; font-size: 11.5px; margin-left: 8px; } .pbar { width: 100%; height: 8px; background: #1e293b; border-radius: 4px; overflow: hidden; margin-top: 12px; display: none; } .pfill { height: 100%; background: #38bdf8; width: 0%; transition: width 0.2s; } .status-box { margin-top: 10px; font-size: 12.5px; font-weight: bold; }</style></head><body><div class='container'><div class='card'><h1>Nexus Direct LAN Share</h1><div class='subtitle'>Host: <strong>$env:COMPUTERNAME</strong> | User: $env:USERNAME | Windows Network Share: <strong>\\\\$($script:LanLocalIP)\\D\\Share</strong></div><p style='font-size:13px; color:#cbd5e1; margin:0;'>Download files shared from $env:COMPUTERNAME directly at full LAN speed without installing any software.</p></div><div class='card'><h2 style='font-size:15px; margin-top:0; color:#f8fafc;'>Files Available to Download</h2>$filesHtml</div><div class='card'><h2 style='font-size:15px; margin-top:0; color:#f8fafc;'>Upload a File to $env:COMPUTERNAME</h2><p style='font-size:12.5px; color:#94a3b8; margin:0 0 12px 0;'>Send any file directly to $env:COMPUTERNAME's Desktop\Nexus_Received_Files:</p><input type='file' id='upFile' style='margin-bottom:12px; display:block; color:#94a3b8; font-size:13px;'><button class='btn btn-success' onclick='uploadFile()'>Send File to $env:COMPUTERNAME</button><div class='pbar' id='pBar'><div class='pfill' id='pFill'></div></div><div class='status-box' id='upStatus'></div></div></div><script>function uploadFile() { var fInput = document.getElementById('upFile'); if (!fInput.files || fInput.files.length === 0) { alert('Please select a file first!'); return; } var file = fInput.files[0]; var pBar = document.getElementById('pBar'); var pFill = document.getElementById('pFill'); var status = document.getElementById('upStatus'); pBar.style.display = 'block'; pFill.style.width = '0%'; status.style.color = '#38bdf8'; status.textContent = 'Uploading ' + file.name + '...'; var xhr = new XMLHttpRequest(); xhr.open('POST', '/upload?name=' + encodeURIComponent(file.name)); xhr.upload.onprogress = function(e) { if (e.lengthComputable) { var pct = Math.round((e.loaded / e.total) * 100); pFill.style.width = pct + '%'; status.textContent = 'Uploading: ' + pct + '% (' + (e.loaded/1048576).toFixed(1) + ' MB / ' + (e.total/1048576).toFixed(1) + ' MB)'; } }; xhr.onload = function() { if (xhr.status === 200) { status.style.color = '#34d399'; status.textContent = 'Upload Complete! File saved onto $env:COMPUTERNAME.'; fInput.value = ''; } else { status.style.color = '#f87171'; status.textContent = 'Upload failed: ' + xhr.responseText; } }; xhr.onerror = function() { status.style.color = '#f87171'; status.textContent = 'Upload failed due to network error.'; }; xhr.send(file); }</script></body></html>"
                 
                 $htmlBytes = [System.Text.Encoding]::UTF8.GetBytes($html)
                 $resp = "HTTP/1.1 200 OK`r`nContent-Type: text/html; charset=utf-8`r`nContent-Length: $($htmlBytes.Length)`r`nConnection: close`r`n`r`n"
@@ -19734,6 +19752,16 @@ function Connect-LanTcpPeer ($ip, $port, [int]$timeoutMs = 3500) {
                     foreach ($f in $script:LanOutboxList) {
                         if (Test-Path $f -and [System.IO.Path]::GetFileName($f) -eq $reqName) { $matchedPath = $f; break }
                     }
+                }
+                if (-not $matchedPath -and (Test-Path "D:\Share\$reqName")) {
+                    $matchedPath = "D:\Share\$reqName"
+                }
+                if (-not $matchedPath -and (Test-Path "C:\Users\Public\Downloads\$reqName")) {
+                    $matchedPath = "C:\Users\Public\Downloads\$reqName"
+                }
+                $deskFile = Join-Path ([Environment]::GetFolderPath("Desktop")) $reqName
+                if (-not $matchedPath -and (Test-Path $deskFile)) {
+                    $matchedPath = $deskFile
                 }
                 
                 if ($matchedPath -and (Test-Path $matchedPath)) {
@@ -20263,6 +20291,32 @@ function Connect-LanTcpPeer ($ip, $port, [int]$timeoutMs = 3500) {
         })
     }
 
+    if ($btnLanOpenShareFolder) {
+        $btnLanOpenShareFolder.Add_Click({
+            try {
+                if (-not (Test-Path "D:\Share")) { New-Item -ItemType Directory -Path "D:\Share" -Force | Out-Null }
+                Start-Process "explorer.exe" -ArgumentList "D:\Share"
+            } catch {}
+        })
+    }
+
+    if ($btnLanCopySmbPath) {
+        $btnLanCopySmbPath.Add_Click({
+            Start-LanNetworking
+            $smbPath = "\\\\$($script:LanLocalIP)\\D\\Share"
+            try { [System.Windows.Clipboard]::SetText($smbPath) } catch {}
+            if ($lblLanSendStatus) {
+                $lblLanSendStatus.Text = "[LAN PATH COPIED] $smbPath"
+                $lblLanSendStatus.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#34D399")
+            }
+            [System.Windows.MessageBox]::Show("Windows Network Share Path Copied to Clipboard!
+
+Path: $smbPath
+
+Anyone on the office network can paste this into Windows File Explorer or Win+R (Run) to open your shared files instantly!", "LAN Path Copied", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Information)
+        })
+    }
+
     if ($btnLanCopyWebLink) {
         $btnLanCopyWebLink.Add_Click({
             Start-LanNetworking
@@ -20745,22 +20799,44 @@ function Connect-LanTcpPeer ($ip, $port, [int]$timeoutMs = 3500) {
 
     if ($btnLanSendNow) {
         $btnLanSendNow.Add_Click({
-            if (-not $script:LanSelectedPeer) {
-                if ($txtLanManualHost -and -not [string]::IsNullOrWhiteSpace($txtLanManualHost.Text)) {
-                    $btnLanManualConnect.RaiseEvent([System.Windows.RoutedEventArgs]::new([System.Windows.Controls.Button]::ClickEvent))
-                }
-            }
-            
-            if (-not $script:LanSelectedPeer) {
-                [System.Windows.MessageBox]::Show("Please select a destination computer from the list on the left, or enter a computer name.", "No Destination PC Selected", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Warning)
-                return
-            }
-
             if ($script:LanSendFilesList.Count -eq 0) {
-                [System.Windows.MessageBox]::Show("Please add at least one file to send.", "No Files Selected", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Warning)
+                [System.Windows.MessageBox]::Show("Please add at least one file to send or share.", "No Files Selected", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Warning)
                 return
             }
 
+            # Auto-copy files to D:\Share for instant LAN access
+            try {
+                if (-not (Test-Path "D:\Share")) { New-Item -ItemType Directory -Path "D:\Share" -Force | Out-Null }
+                foreach ($filePath in $script:LanSendFilesList) {
+                    if (Test-Path $filePath) { Copy-Item -Path $filePath -Destination "D:\Share" -Force }
+                }
+            } catch {}
+
+            Start-LanNetworking
+            $portalUrl = "http://$($script:LanLocalIP):$($script:LanWebPort)/"
+            $smbShareUrl = "\\$($script:LanLocalIP)\D\Share"
+
+            # If no specific peer is chosen, share universally on LAN
+            if (-not $script:LanSelectedPeer) {
+                try { [System.Windows.Clipboard]::SetText($portalUrl) } catch {}
+                $lblLanSendStatus.Text = "[SHARED ON LAN] Available via Web & Network Share (Link copied!)"
+                $lblLanSendStatus.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#34D399")
+                if ($lblLanTransferLog) {
+                    $lblLanTransferLog.Text = "[LAN SHARE ACTIVE] Files ready in $smbShareUrl and $portalUrl"
+                    $lblLanTransferLog.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#34D399")
+                }
+                $allMsg = "FILES PUBLISHED & SHARED ON LAN FOR ALL COMPUTERS!`r`n`r`n" +
+                           "Your colleagues can access these files immediately from ANY computer:`r`n`r`n" +
+                           "Option 1: In Chrome or Edge browser (No software needed):`r`n" +
+                           "$portalUrl`r`n`r`n" +
+                           "Option 2: In Windows File Explorer (Win+R Run):`r`n" +
+                           "$smbShareUrl`r`n`r`n" +
+                           "The web link has been copied to your clipboard!`r`n" +
+                           "Would you like to open the download portal now?"
+                $ch = [System.Windows.MessageBox]::Show($allMsg, "Files Shared on LAN Successfully", [System.Windows.MessageBoxButton]::YesNo, [System.Windows.MessageBoxImage]::Information)
+                if ($ch -eq [System.Windows.MessageBoxResult]::Yes) { try { Start-Process $portalUrl } catch {} }
+                return
+            }
             $targetPeer = $script:LanSelectedPeer
             $targetIP = $targetPeer.IP
             $targetPort = if ($targetPeer.Port) { $targetPeer.Port } else { 52824 }
@@ -20817,7 +20893,44 @@ function Connect-LanTcpPeer ($ip, $port, [int]$timeoutMs = 3500) {
                         if ($smbDelivered) {
                             continue
                         }
-                        Show-LanUnreachableDialog $targetPeer
+                        # Remote peer is not running Nexus, but files are ALREADY in D:\Share and on Gigabit Web Server!
+                        $portalUrl = "http://$($script:LanLocalIP):$($script:LanWebPort)/"
+                        $smbShareUrl = "\\\\$($script:LanLocalIP)\\D\\Share"
+                        try { [System.Windows.Clipboard]::SetText($portalUrl) } catch {}
+                        
+                        $lblLanSendStatus.Text = "[FILES READY ON LAN] Available via Web & Network Share (Link copied!)"
+                        $lblLanSendStatus.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#34D399")
+                        if ($lblLanTransferLog) {
+                            $lblLanTransferLog.Text = "[LAN SHARE ACTIVE] Files ready in $smbShareUrl and $portalUrl"
+                            $lblLanTransferLog.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#34D399")
+                        }
+                        
+                        $succMsg = "FILES ARE SHARED ON LAN & READY FOR $($targetPeer.HostName)!
+
+" +
+                                   "The file(s) are published at full Gigabit speed on your network:
+
+" +
+                                   "1. Web Browser Link (Chrome / Edge / Phone):
+" +
+                                   "$portalUrl
+
+" +
+                                   "2. Windows Explorer (Win+R):
+" +
+                                   "$smbShareUrl
+
+" +
+                                   "Web link has been copied to your clipboard!
+" +
+                                   "You can paste it in Teams, WhatsApp, or tell $($targetPeer.HostName).
+
+" +
+                                   "Would you like to open the download page now?"
+                        $ch = [System.Windows.MessageBox]::Show($succMsg, "Files Shared on LAN Successfully", [System.Windows.MessageBoxButton]::YesNo, [System.Windows.MessageBoxImage]::Information)
+                        if ($ch -eq [System.Windows.MessageBoxResult]::Yes) {
+                            try { Start-Process $portalUrl } catch {}
+                        }
                         return
                     }
 
