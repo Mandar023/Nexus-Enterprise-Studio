@@ -19639,22 +19639,67 @@ function Connect-LanTcpPeer ($ip, $port, [int]$timeoutMs = 3500) {
         $msg = "Could not connect to $hostName directly over LAN.`r`n`r`n" +
                "Reason: Windows Firewall blocks direct peer connections on this network.`r`n`r`n" +
                "SIMPLE SOLUTION:`r`n" +
-               "Generate a Universal Download Link! Your colleague can open it in Chrome or Edge and download the file with 1 click (No firewall blocks).`r`n`r`n" +
-               "Would you like to create and copy a download link now?"
+               "Generate a Universal Web Link! Anyone on $hostName can open it in Chrome or Edge and download directly at high LAN speed (No firewall restriction).`r`n`r`n" +
+               "Would you like to create and copy the download link and command now?"
         
         $res = [System.Windows.MessageBox]::Show($msg, "Cannot Reach $hostName - Use Web Link", [System.Windows.MessageBoxButton]::YesNo, [System.Windows.MessageBoxImage]::Information)
         if ($res -eq [System.Windows.MessageBoxResult]::Yes) {
-            if ($script:LanSendFilesList.Count -gt 0) {
+            $filesToShare = @()
+            if ($script:LanSendFilesList -and $script:LanSendFilesList.Count -gt 0) {
+                $filesToShare = @($script:LanSendFilesList)
+            } elseif ($script:LanOutboxList -and $script:LanOutboxList.Count -gt 0) {
+                $filesToShare = @($script:LanOutboxList)
+            } elseif ($txtItPackageSource -and -not [string]::IsNullOrWhiteSpace($txtItPackageSource.Text) -and (Test-Path $txtItPackageSource.Text.Trim())) {
+                $filesToShare = @($txtItPackageSource.Text.Trim())
+            } else {
+                $dlg = New-Object Microsoft.Win32.OpenFileDialog
+                $dlg.Title = "Select File(s) to Create Instant Download Link for $hostName"
+                $dlg.Multiselect = $true
+                if ($dlg.ShowDialog()) {
+                    $filesToShare = @($dlg.FileNames)
+                    foreach ($f in $filesToShare) {
+                        if (-not $script:LanSendFilesList.Contains($f)) { $script:LanSendFilesList.Add($f) }
+                    }
+                    Update-LanSendFilesList
+                }
+            }
+
+            if ($filesToShare.Count -gt 0) {
                 if ($lblLanSendStatus) { $lblLanSendStatus.Text = "Creating universal download link..." }
                 [System.Windows.Forms.Application]::DoEvents()
-                $uLink = Get-UniversalShareLink $script:LanSendFilesList
-                if ($uLink) {
-                    try { [System.Windows.Clipboard]::SetText($uLink) } catch {}
-                    if ($lblLanTransferLog) {
-                        $lblLanTransferLog.Text = "Link Copied: $uLink (Works on ANY PC or phone without firewall)"
-                        $lblLanTransferLog.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#34D399")
-                    }
-                    [System.Windows.MessageBox]::Show("Download Link Ready & Copied to Clipboard!`r`n`r`n$uLink`r`n`r`nPaste this link to your colleague in WhatsApp, Teams, or Email. They can download the file in 1 click in Chrome or Edge!", "Download Link Ready", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Information)
+                Start-LanNetworking
+                
+                foreach ($f in $filesToShare) {
+                    if (-not $script:LanSendFilesList.Contains($f)) { $script:LanSendFilesList.Add($f) }
+                }
+
+                $firstFile = Get-Item $filesToShare[0]
+                $encName = [System.Uri]::EscapeDataString($firstFile.Name)
+                $uLink = "http://$($script:LanLocalIP):$($script:LanWebPort)/download?name=$encName"
+                $portalLink = "http://$($script:LanLocalIP):$($script:LanWebPort)/"
+                $cmdRemote = "powershell -c `"Invoke-WebRequest -Uri '$uLink' -OutFile '`$env:USERPROFILE\Downloads\$($firstFile.Name)' -UseBasicParsing; Start-Process '`$env:USERPROFILE\Downloads\$($firstFile.Name)'`""
+
+                try { [System.Windows.Clipboard]::SetText($uLink) } catch {}
+                if ($lblLanTransferLog) {
+                    $lblLanTransferLog.Text = "Link Copied: $uLink (Direct LAN Gigabit Speed)"
+                    $lblLanTransferLog.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#34D399")
+                }
+                if ($lblLanSendStatus) {
+                    $lblLanSendStatus.Text = "[WEB SHARE READY] Copied $uLink to clipboard"
+                    $lblLanSendStatus.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#38BDF8")
+                }
+
+                $shareMsg = "DOWNLOAD LINK READY & COPIED TO CLIPBOARD!`r`n`r`n" +
+                            "Direct File URL: $uLink`r`n" +
+                            "All Files Portal: $portalLink`r`n`r`n" +
+                            "HOW TO USE ON ${hostName}:`r`n" +
+                            "1. Open Chrome or Edge on $hostName and paste the URL to download with 1 click.`r`n`r`n" +
+                            "2. OR run this in PowerShell or Win+R Run on ${hostName}:`r`n" +
+                            "$cmdRemote`r`n`r`n" +
+                            "Would you like to open the download page in your browser now?"
+                $openChoice = [System.Windows.MessageBox]::Show($shareMsg, "Download Link Ready - $hostName", [System.Windows.MessageBoxButton]::YesNo, [System.Windows.MessageBoxImage]::Information)
+                if ($openChoice -eq [System.Windows.MessageBoxResult]::Yes) {
+                    try { Start-Process $uLink } catch {}
                 }
             }
         }
@@ -20137,6 +20182,7 @@ function Connect-LanTcpPeer ($ip, $port, [int]$timeoutMs = 3500) {
                 }
             })
             $peerBtnRow.Children.Add($btnRemovePeer) | Out-Null
+            $peerStack.Children.Add($peerBtnRow) | Out-Null
 
             $btnAddPeer.Add_Click({
                 $raw = $txtNewPeerIp.Text.Trim()
@@ -20393,7 +20439,13 @@ function Connect-LanTcpPeer ($ip, $port, [int]$timeoutMs = 3500) {
             $root.Children.Add($btnClose) | Out-Null
 
             $winAdv.Content = $scroll
-            [void]$winAdv.ShowDialog()
+            try {
+                [void]$winAdv.ShowDialog()
+            } catch {
+                try { $winAdv.Show() } catch {
+                    [System.Windows.MessageBox]::Show("Error opening Advanced IP Configuration: $($_.Exception.Message)", "Error", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Error)
+                }
+            }
         } catch {
             [System.Windows.MessageBox]::Show("Error opening Advanced IP Configuration: $($_.Exception.Message)", "Error", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Error)
         }
@@ -20620,15 +20672,74 @@ function Connect-LanTcpPeer ($ip, $port, [int]$timeoutMs = 3500) {
                         $client.Close()
                         $deployResult = @{ Success = $true; ExitCode = 0; Host = $targetHost }
                     } else {
-                        # Local Fallback
-                        $pinfo = New-Object System.Diagnostics.ProcessStartInfo
-                        $pinfo.FileName = $source
-                        $pinfo.Arguments = $argsStr
-                        $pinfo.WindowStyle = [System.Diagnostics.ProcessWindowStyle]::Hidden
-                        $pinfo.CreateNoWindow = $true
-                        $p = [System.Diagnostics.Process]::Start($pinfo)
-                        $p.WaitForExit(20000)
-                        $deployResult = @{ Success = $true; ExitCode = $p.ExitCode; Host = $targetHost }
+                        $isRemote = ($targetHost -ne $env:COMPUTERNAME -and $targetHost -ne "127.0.0.1" -and $targetHost -ne "localhost")
+                        if ($isRemote) {
+                            # Attempt SMB network share push to target PC
+                            $fi = Get-Item $source
+                            $smbDone = $false
+                            $candidateDirs = @(
+                                "\\$targetHost\C$\Users\Public\Downloads",
+                                "\\$targetHost\Users\Public\Downloads",
+                                "\\$targetHost\C$\ProgramData\NexusDeploy",
+                                "\\$targetHost\SharedDocs"
+                            )
+                            foreach ($cdir in $candidateDirs) {
+                                try {
+                                    if (Test-Path $cdir) {
+                                        if ($lblItDeployStatus) { $lblItDeployStatus.Text = "[SMB SHARE] Pushing to $cdir..." }
+                                        [System.Windows.Forms.Application]::DoEvents()
+                                        $destSmb = Join-Path $cdir $fi.Name
+                                        Copy-Item -Path $source -Destination $destSmb -Force
+                                        if (Test-Path $destSmb) {
+                                            $smbDone = $true
+                                            try {
+                                                $wmiproc = [wmiclass]"\\$targetHost\root\cimv2:Win32_Process"
+                                                $wmiproc.Create("cmd.exe /c `"$destSmb`" $argsStr") | Out-Null
+                                            } catch {}
+                                            $deployResult = @{ Success = $true; ExitCode = 0; Host = "$targetHost (via Windows Share $cdir)" }
+                                            break
+                                        }
+                                    }
+                                } catch {}
+                            }
+
+                            if (-not $smbDone) {
+                                # Generate Universal Web Download Link for remote target
+                                Start-LanNetworking
+                                if (-not $script:LanSendFilesList.Contains($source)) { $script:LanSendFilesList.Add($source) }
+                                $webUrl = "http://$($script:LanLocalIP):$($script:LanWebPort)/download?name=$([System.Uri]::EscapeDataString($fi.Name))"
+                                $cmdRunRemote = "powershell -c `"Invoke-WebRequest -Uri '$webUrl' -OutFile '`$env:USERPROFILE\Downloads\$($fi.Name)' -UseBasicParsing; Start-Process '`$env:USERPROFILE\Downloads\$($fi.Name)'`""
+                                try { [System.Windows.Clipboard]::SetText($webUrl) } catch {}
+
+                                if ($lblItDeployStatus) {
+                                    $lblItDeployStatus.Text = "[WEB SHARE READY] Port 52824 & SMB closed on $targetHost. Download link copied!"
+                                    $lblItDeployStatus.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#FBBF24")
+                                }
+
+                                $dlgMsg = "Direct Connection to $targetHost was blocked by Windows Firewall.`r`n`r`n" +
+                                          "UNIVERSAL DOWNLOAD LINK GENERATED & COPIED TO CLIPBOARD!`r`n`r`n" +
+                                          "URL: $webUrl`r`n`r`n" +
+                                          "1. Open Chrome/Edge on $targetHost and download directly with 1 click.`r`n`r`n" +
+                                          "2. OR run this in PowerShell / Win+R on ${targetHost}:`r`n" +
+                                          "$cmdRunRemote`r`n`r`n" +
+                                          "Would you like to open the download page now?"
+                                $openChoice = [System.Windows.MessageBox]::Show($dlgMsg, "Universal Web Link Ready - $targetHost", [System.Windows.MessageBoxButton]::YesNo, [System.Windows.MessageBoxImage]::Information)
+                                if ($openChoice -eq [System.Windows.MessageBoxResult]::Yes) {
+                                    try { Start-Process $webUrl } catch {}
+                                }
+                                return
+                            }
+                        } else {
+                            # Local Host execution
+                            $pinfo = New-Object System.Diagnostics.ProcessStartInfo
+                            $pinfo.FileName = $source
+                            $pinfo.Arguments = $argsStr
+                            $pinfo.WindowStyle = [System.Diagnostics.ProcessWindowStyle]::Hidden
+                            $pinfo.CreateNoWindow = $true
+                            $p = [System.Diagnostics.Process]::Start($pinfo)
+                            $p.WaitForExit(20000)
+                            $deployResult = @{ Success = $true; ExitCode = $p.ExitCode; Host = $targetHost }
+                        }
                     }
                 }
 
@@ -20906,6 +21017,39 @@ function Connect-LanTcpPeer ($ip, $port, [int]$timeoutMs = 3500) {
 
                     $client = Connect-LanTcpPeer $targetIP $targetPort 3500
                     if (-not $client) {
+                        # Attempt direct Windows SMB share delivery before falling back
+                        $smbDelivered = $false
+                        $candidateShares = @(
+                            "\\$($targetPeer.HostName)\C$\Users\Public\Downloads",
+                            "\\$targetIP\C$\Users\Public\Downloads",
+                            "\\$($targetPeer.HostName)\Users\Public\Downloads",
+                            "\\$targetIP\Users\Public\Downloads",
+                            "\\$($targetPeer.HostName)\SharedDocs",
+                            "\\$targetIP\SharedDocs"
+                        )
+                        foreach ($cshare in $candidateShares) {
+                            try {
+                                if (Test-Path $cshare) {
+                                    $lblLanSendStatus.Text = "Delivering '$fileName' via Windows Share ($cshare)..."
+                                    [System.Windows.Forms.Application]::DoEvents()
+                                    $destSmbPath = Join-Path $cshare $fileName
+                                    Copy-Item -Path $filePath -Destination $destSmbPath -Force
+                                    if (Test-Path $destSmbPath) {
+                                        $smbDelivered = $true
+                                        $sentCount++
+                                        $totalBytesSent += $fileLen
+                                        if ($lblLanTransferLog) {
+                                            $lblLanTransferLog.Text = "[SENT VIA SMB SHARE] Copied '$fileName' directly to $($targetPeer.HostName) ($cshare)"
+                                            $lblLanTransferLog.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#34D399")
+                                        }
+                                        break
+                                    }
+                                }
+                            } catch {}
+                        }
+                        if ($smbDelivered) {
+                            continue
+                        }
                         Show-LanUnreachableDialog $targetPeer
                         return
                     }
@@ -22256,7 +22400,8 @@ function Init-PmcGeoRadarModule {
             $startupTimer = New-Object System.Windows.Threading.DispatcherTimer
             $startupTimer.Interval = [TimeSpan]::FromMilliseconds(2500)
             $startupTimer.Add_Tick({
-                $startupTimer.Stop()
+                param($sTimer, $eTimer)
+                try { if ($sTimer) { $sTimer.Stop() } } catch {}
                 try {
                     Register-NexusPeerHeartbeat
                     Check-AppUpdatesFromNetwork -UserInitiated $false -OnStartup $true
