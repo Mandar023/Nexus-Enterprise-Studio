@@ -4075,6 +4075,8 @@ try {
                             <Button x:Name="btnLanCheckAppUpdate" Content="CHECK FOR UPDATES" Background="#0284C7" Foreground="White" FontWeight="Bold" FontSize="10" Padding="9,6" Margin="0,0,5,0" BorderThickness="0" Cursor="Hand" ToolTip="Check network for newer version of this application"/>
                             <Button x:Name="btnLanScanPeers" Content="REFRESH PEERS" Background="{StaticResource PrimaryBtnBrush}" Foreground="White" FontWeight="Bold" FontSize="10" Padding="9,6" Margin="0,0,5,0" BorderThickness="0" Cursor="Hand" ToolTip="Scan local network for other computers running Nexus"/>
                             <Button x:Name="btnLanAdvIpConfig" Content="ADVANCED IP CONFIG" Background="#0F766E" Foreground="White" FontWeight="Bold" FontSize="10" Padding="9,6" Margin="0,0,5,0" BorderThickness="0" Cursor="Hand" ToolTip="Configure custom LAN IP list, scan subnet range (192.168.1.x), test TCP port 52824 &amp; firewall"/>
+                            <Button x:Name="btnLanOpenServer11" Content="SERVER 11 HUB" Background="#0D9488" Foreground="White" FontWeight="Bold" FontSize="10" Padding="11,6" Margin="0,0,5,0" BorderThickness="0" Cursor="Hand" ToolTip="Open Central Server 11 Share folder (\\192.168.1.11\d\Nexus_Share) accessible by EVERY computer in the office without any firewall blocks"/>
+                            <Button x:Name="btnLanCopyServer11" Content="COPY SERVER 11 PATH" Background="#D97706" Foreground="White" FontWeight="Bold" FontSize="10" Padding="10,6" Margin="0,0,5,0" BorderThickness="0" Cursor="Hand" ToolTip="Copy \\192.168.1.11\d\Nexus_Share to clipboard for instant 1-click sharing"/>
                             <Button x:Name="btnLanOpenShareFolder" Content="OPEN D:\SHARE" Background="#059669" Foreground="White" FontWeight="Bold" FontSize="10" Padding="10,6" Margin="0,0,5,0" BorderThickness="0" Cursor="Hand" ToolTip="Open D:\Share (accessible by all computers on LAN as \\192.168.1.190\D\Share)"/>
                             <Button x:Name="btnLanCopySmbPath" Content="COPY LAN PATH" Background="#D97706" Foreground="White" FontWeight="Bold" FontSize="10" Padding="10,6" Margin="0,0,5,0" BorderThickness="0" Cursor="Hand" ToolTip="Copy \\192.168.1.190\D\Share to clipboard for easy 1-click sharing"/>
                             <Button x:Name="btnLanCopyWebLink" Content="COPY WEB LINK" Background="#0284C7" Foreground="White" FontWeight="Bold" FontSize="10" Padding="9,6" Margin="0,0,5,0" BorderThickness="0" Cursor="Hand" ToolTip="Copy Web Download link (anyone on the network can download in Chrome/Edge without needing Nexus)"/>
@@ -4558,6 +4560,8 @@ $btnLanPushAppUpdate = $window.FindName("btnLanPushAppUpdate")
 $btnLanCheckAppUpdate = $window.FindName("btnLanCheckAppUpdate")
 $btnLanScanPeers      = $window.FindName("btnLanScanPeers")
 $btnLanAdvIpConfig    = $window.FindName("btnLanAdvIpConfig")
+$btnLanOpenServer11 = $window.FindName("btnLanOpenServer11")
+$btnLanCopyServer11 = $window.FindName("btnLanCopyServer11")
 $btnLanOpenShareFolder = $window.FindName("btnLanOpenShareFolder")
 $btnLanCopySmbPath     = $window.FindName("btnLanCopySmbPath")
 $btnLanCopyWebLink    = $window.FindName("btnLanCopyWebLink")
@@ -20384,6 +20388,37 @@ Anyone on the office network can paste this into Windows File Explorer or Win+R 
         })
     }
 
+    if ($btnLanOpenServer11) {
+        $btnLanOpenServer11.Add_Click({
+            $srvPath = "\\192.168.1.11\d\Nexus_Share"
+            try {
+                if (-not (Test-Path $srvPath)) { New-Item -ItemType Directory -Path $srvPath -Force | Out-Null }
+                Start-Process "explorer.exe" $srvPath
+                [System.Windows.Clipboard]::SetText($srvPath)
+                if ($lblLanSendStatus) {
+                    $lblLanSendStatus.Text = "[SERVER 11 CENTRAL HUB OPENED] Path copied: $srvPath"
+                    $lblLanSendStatus.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#34D399")
+                }
+            } catch {
+                [System.Windows.MessageBox]::Show("Could not open Server 11: $($_.Exception.Message)", "Server 11", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Warning)
+            }
+        })
+    }
+
+    if ($btnLanCopyServer11) {
+        $btnLanCopyServer11.Add_Click({
+            $srvPath = "\\192.168.1.11\d\Nexus_Share"
+            try {
+                [System.Windows.Clipboard]::SetText($srvPath)
+                if ($lblLanSendStatus) {
+                    $lblLanSendStatus.Text = "[SERVER 11 PATH COPIED] $srvPath"
+                    $lblLanSendStatus.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#34D399")
+                }
+                [System.Windows.MessageBox]::Show("Central Server 11 Path Copied!`r`n`r`n$srvPath`r`n`r`nEvery computer in the office can press Win + R and paste this path to access all files instantly without any firewall blocks!", "Server 11 Central Share", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Information)
+            } catch {}
+        })
+    }
+
     if ($btnLanCopyWebLink) {
         $btnLanCopyWebLink.Add_Click({
             Start-LanNetworking
@@ -20938,11 +20973,16 @@ Anyone on the office network can paste this into Windows File Explorer or Win+R 
                 return
             }
 
-            # Auto-copy files to D:\Share for instant LAN access
+            # Auto-copy files to Central Server 11 Hub and D:\Share
             try {
+                $srvHub = "\\192.168.1.11\d\Nexus_Share"
+                if (-not (Test-Path $srvHub)) { New-Item -ItemType Directory -Path $srvHub -Force | Out-Null }
                 if (-not (Test-Path "D:\Share")) { New-Item -ItemType Directory -Path "D:\Share" -Force | Out-Null }
                 foreach ($filePath in $script:LanSendFilesList) {
-                    if (Test-Path $filePath) { Copy-Item -Path $filePath -Destination "D:\Share" -Force }
+                    if (Test-Path $filePath) {
+                        Copy-Item -Path $filePath -Destination "D:\Share" -Force
+                        Copy-Item -Path $filePath -Destination $srvHub -Force
+                    }
                 }
             } catch {}
 
