@@ -18234,35 +18234,68 @@ try {
         foreach ($p in $sorted) {
             $item = New-Object System.Windows.Controls.ListBoxItem
             $item.Tag = $p
+            $item.Padding = New-Object System.Windows.Thickness(0)
+            $item.Margin = New-Object System.Windows.Thickness(0, 1, 0, 1)
+
+            # Sleek Card Border for perfect alignment
+            $card = New-Object System.Windows.Controls.Border
+            $card.CornerRadius = New-Object System.Windows.CornerRadius(6)
+            $card.Padding = New-Object System.Windows.Thickness(10, 7, 10, 7)
+            $card.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#0D1527")
+            $card.BorderThickness = New-Object System.Windows.Thickness(1)
+            $card.BorderBrush = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#1E2D4A")
             
+            # Grid layout: Col 0: Dot, Col 1: IP + HostName, Col 2: Status Pill
             $grid = New-Object System.Windows.Controls.Grid
-            $col0 = New-Object System.Windows.Controls.ColumnDefinition; $col0.Width = New-Object System.Windows.GridLength(1, [System.Windows.GridUnitType]::Star)
-            $col1 = New-Object System.Windows.Controls.ColumnDefinition; $col1.Width = [System.Windows.GridLength]::Auto
-            $grid.ColumnDefinitions.Add($col0)
-            $grid.ColumnDefinitions.Add($col1)
+            $c0 = New-Object System.Windows.Controls.ColumnDefinition; $c0.Width = [System.Windows.GridLength]::Auto
+            $c1 = New-Object System.Windows.Controls.ColumnDefinition; $c1.Width = New-Object System.Windows.GridLength(1, [System.Windows.GridUnitType]::Star)
+            $c2 = New-Object System.Windows.Controls.ColumnDefinition; $c2.Width = [System.Windows.GridLength]::Auto
+            $grid.ColumnDefinitions.Add($c0)
+            $grid.ColumnDefinitions.Add($c1)
+            $grid.ColumnDefinitions.Add($c2)
             
+            # Status circle dot
+            $dot = New-Object System.Windows.Shapes.Ellipse
+            $dot.Width = 9
+            $dot.Height = 9
+            $dot.Margin = New-Object System.Windows.Thickness(0, 0, 10, 0)
+            $dot.VerticalAlignment = [System.Windows.VerticalAlignment]::Center
+            
+            # IP & Host Information
             $sp = New-Object System.Windows.Controls.StackPanel
+            $sp.VerticalAlignment = [System.Windows.VerticalAlignment]::Center
+            
             $txtHost = New-Object System.Windows.Controls.TextBlock
-            $txtHost.Text = if ($p.IP) { "$($p.HostName) ??? $($p.IP)" } else { $p.HostName }
-            $txtHost.FontSize = 11.5
+            $txtHost.FontSize = 12
             $txtHost.FontWeight = [System.Windows.FontWeights]::Bold
-            $txtHost.Foreground = if ($p.IsNexusReady) { [System.Windows.Media.BrushConverter]::new().ConvertFromString("#38BDF8") }
-                                  elseif ($p.IsOnline) { [System.Windows.Media.BrushConverter]::new().ConvertFromString("#E2E8F0") }
-                                  else { [System.Windows.Media.BrushConverter]::new().ConvertFromString("#94A3B8") }
+
+            $dispIp = if ($p.IP) { $p.IP } else { "" }
+            $dispHost = if ($p.HostName) { $p.HostName } else { "PC" }
+            $headerText = $dispHost
+            if ($dispIp -and $dispHost -and ($dispIp -ne $dispHost)) {
+                $headerText = "$dispIp  |  $dispHost"
+            } elseif ($dispIp) {
+                $headerText = $dispIp
+            }
+            $txtHost.Text = $headerText
             
             $txtSub = New-Object System.Windows.Controls.TextBlock
-            $txtSub.Text = "User: $($p.UserName) | " + (if ($p.Status) { $p.Status } else { "Nexus Peer" })
+            $uName = if ($p.UserName) { $p.UserName } else { "LAN Peer" }
+            $pStatus = if ($p.Status) { $p.Status } else { "Peer" }
+            $txtSub.Text = "User: $uName  *  Status: $pStatus"
             $txtSub.FontSize = 10
             $txtSub.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#64748B")
-            
+            $txtSub.Margin = New-Object System.Windows.Thickness(0, 2, 0, 0)
+
             $sp.Children.Add($txtHost) | Out-Null
             $sp.Children.Add($txtSub) | Out-Null
+            [System.Windows.Controls.Grid]::SetColumn($sp, 1)
             $grid.Children.Add($sp) | Out-Null
-            [System.Windows.Controls.Grid]::SetColumn($sp, 0)
-            
+
+            # Status Badge Pill
             $badge = New-Object System.Windows.Controls.Border
             $badge.CornerRadius = New-Object System.Windows.CornerRadius(4)
-            $badge.Padding = New-Object System.Windows.Thickness(6, 2, 6, 2)
+            $badge.Padding = New-Object System.Windows.Thickness(8, 3, 8, 3)
             $badge.VerticalAlignment = [System.Windows.VerticalAlignment]::Center
             $badge.BorderThickness = New-Object System.Windows.Thickness(1)
             
@@ -18271,18 +18304,24 @@ try {
             $txtBadge.FontWeight = [System.Windows.FontWeights]::Bold
 
             if ($p.Status -eq "ONLINE - READY" -or $p.IsNexusReady) {
+                $dot.Fill = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#10B981")
+                $txtHost.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#38BDF8")
                 $badge.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#064E3B")
                 $badge.BorderBrush = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#10B981")
                 $txtBadge.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#34D399")
-                $txtBadge.Text = "READY"
+                $txtBadge.Text = "ONLINE"
                 $readyCount++
             } elseif ($p.Status -eq "ONLINE - PC ONLY" -or $p.IsOnline) {
+                $dot.Fill = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#F59E0B")
+                $txtHost.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#F8FAFC")
                 $badge.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#451A03")
                 $badge.BorderBrush = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#F59E0B")
                 $txtBadge.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#FBBF24")
-                $txtBadge.Text = "PC ONLINE"
+                $txtBadge.Text = "ONLINE (PC)"
                 $pcCount++
             } else {
+                $dot.Fill = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#475569")
+                $txtHost.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#94A3B8")
                 $badge.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#1E293B")
                 $badge.BorderBrush = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#334155")
                 $txtBadge.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#94A3B8")
@@ -18290,20 +18329,23 @@ try {
                 $offlineCount++
             }
 
+            [System.Windows.Controls.Grid]::SetColumn($dot, 0)
+            $grid.Children.Add($dot) | Out-Null
+
             $badge.Child = $txtBadge
+            [System.Windows.Controls.Grid]::SetColumn($badge, 2)
             $grid.Children.Add($badge) | Out-Null
-            [System.Windows.Controls.Grid]::SetColumn($badge, 1)
             
-            $item.Content = $grid
+            $card.Child = $grid
+            $item.Content = $card
             $lstLanPeers.Items.Add($item) | Out-Null
         }
         
         if ($lblLanPeerStatus) {
-            $lblLanPeerStatus.Text = "$readyCount Ready for Direct Share | $pcCount PC(s) Online | $offlineCount Offline"
+            $lblLanPeerStatus.Text = "$readyCount Direct Ready | $pcCount PC(s) Online | $offlineCount Offline"
             $lblLanPeerStatus.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#38BDF8")
         }
     }
-
     function Scan-AllLanPeersAndHosts {
         $discovered = [System.Collections.Generic.Dictionary[string, PSCustomObject]]::new()
 
@@ -20734,39 +20776,88 @@ Anyone on the office network can paste this into Windows File Explorer or Win+R 
 
     if ($btnLanManualConnect) {
         $btnLanManualConnect.Add_Click({
-            $hostName = $txtLanManualHost.Text.Trim()
-            if ([string]::IsNullOrWhiteSpace($hostName)) { return }
+            $inputHost = $txtLanManualHost.Text.Trim()
+            if ([string]::IsNullOrWhiteSpace($inputHost)) { return }
             
             try {
-                $addrs = [System.Net.Dns]::GetHostAddresses($hostName)
-                $ipv4 = $addrs | Where-Object { $_.AddressFamily -eq [System.Net.Sockets.AddressFamily]::InterNetwork } | Select-Object -First 1
-                if ($ipv4) {
-                    $peerObj = [PSCustomObject]@{
-                        HostName = $hostName.ToUpperInvariant()
-                        UserName = "Network Peer"
-                        IP = $ipv4.ToString()
-                        Port = $script:LanTcpPort
-                        LastSeen = (Get-Date)
-                    }
-                    $script:LanPeers[$hostName.ToUpperInvariant()] = $peerObj
-                    Refresh-LanPeersList
-                    $script:LanSelectedPeer = $peerObj
-                    if ($lblLanTargetPc) {
-                        $lblLanTargetPc.Text = "$($peerObj.HostName)"
-                        $lblLanTargetPc.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#4ADE80")
-                    }
-                    if ($lblLanTransferLog) {
-                        $lblLanTransferLog.Text = "Connected directly to '$($peerObj.HostName)' (No IP needed)!"
+                $targetIp = $inputHost
+                $resolvedName = $inputHost
+                
+                # Check if input is an IPv4 address
+                if ($inputHost -match '^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$') {
+                    $targetIp = $inputHost
+                    try {
+                        $dnsEntry = [System.Net.Dns]::GetHostEntry($inputHost)
+                        if ($dnsEntry -and $dnsEntry.HostName) {
+                            $resolvedName = ($dnsEntry.HostName -split '\.')[0].ToUpperInvariant()
+                        }
+                    } catch {
+                        $resolvedName = $inputHost
                     }
                 } else {
-                    [System.Windows.MessageBox]::Show("Could not resolve computer name '$hostName'. Please verify the computer name.", "Computer Not Found", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Warning)
+                    try {
+                        $addrs = [System.Net.Dns]::GetHostAddresses($inputHost)
+                        $ipv4 = $addrs | Where-Object { $_.AddressFamily -eq [System.Net.Sockets.AddressFamily]::InterNetwork } | Select-Object -First 1
+                        if ($ipv4) { $targetIp = $ipv4.ToString() }
+                    } catch {}
+                }
+
+                # Quick Ping Probe (1000ms)
+                $isOnline = $false
+                try {
+                    $pinger = New-Object System.Net.NetworkInformation.Ping
+                    $pr = $pinger.Send($targetIp, 1000)
+                    if ($pr.Status -eq [System.Net.NetworkInformation.IPStatus]::Success) {
+                        $isOnline = $true
+                    }
+                } catch {}
+
+                # Quick TCP Port 52824 Probe (800ms)
+                $isNexus = $false
+                try {
+                    $testCl = New-Object System.Net.Sockets.TcpClient
+                    $iar = $testCl.BeginConnect($targetIp, $script:LanTcpPort, $null, $null)
+                    if ($iar.AsyncWaitHandle.WaitOne(800, $false) -and $testCl.Connected) {
+                        $testCl.EndConnect($iar)
+                        $isNexus = $true
+                    }
+                    $testCl.Close()
+                } catch {}
+
+                $statusStr = "OFFLINE"
+                if ($isNexus) {
+                    $statusStr = "ONLINE - READY"
+                } elseif ($isOnline) {
+                    $statusStr = "ONLINE - PC ONLY"
+                }
+
+                $peerObj = [PSCustomObject]@{
+                    HostName     = $resolvedName.ToUpperInvariant()
+                    UserName     = "LAN User"
+                    IP           = $targetIp
+                    Port         = $script:LanTcpPort
+                    Status       = $statusStr
+                    IsNexusReady = $isNexus
+                    IsOnline     = $isOnline
+                    LastSeen     = (Get-Date)
+                }
+                $script:LanPeers[$targetIp] = $peerObj
+                Refresh-LanPeersList
+                $script:LanSelectedPeer = $peerObj
+
+                if ($lblLanTargetPc) {
+                    $lblLanTargetPc.Text = "$targetIp ($($peerObj.HostName))"
+                    $lblLanTargetPc.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#4ADE80")
+                }
+                if ($lblLanTransferLog) {
+                    $lblLanTransferLog.Text = "Target selected: $targetIp ($($peerObj.HostName)) - $statusStr"
+                    $lblLanTransferLog.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#34D399")
                 }
             } catch {
-                [System.Windows.MessageBox]::Show("Could not connect to '$hostName': $($_.Exception.Message)", "Connection Error", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Warning)
+                [System.Windows.MessageBox]::Show("Could not add '$inputHost': $($_.Exception.Message)", "Connection Error", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Warning)
             }
         })
     }
-
     function Update-LanSendFilesList {
         if (-not $lstLanSendFiles) { return }
         $lstLanSendFiles.Items.Clear()
