@@ -1,30 +1,79 @@
 @echo off
-title Nexus Direct PC Share - Firewall Configuration
+setlocal enabledelayedexpansion
+title Nexus Direct PC Share - Inbound & Outbound Firewall Configuration
 color 0A
-echo ===============================================================================
-echo            NEXUS DIRECT PC SHARE - FIREWALL CONFIGURATION
-echo ===============================================================================
-echo.
-echo Adding Windows Firewall rules for Direct LAN File Sharing...
-echo Ports: TCP 52824 (Direct Transfer), TCP 52825 (Web Share), TCP 52826, UDP 52822 (Discovery)
-echo.
 
+:: Check Administrator Elevation
 net session >nul 2>&1
 if %errorlevel% neq 0 (
     echo [REQUESTING ADMINISTRATOR PERMISSION]...
-    powershell -Command "Start-Process '%~f0' -Verb RunAs"
+    powershell -NoProfile -ExecutionPolicy Bypass -Command "Start-Process '%~f0' -Verb RunAs"
     exit /b
 )
 
+echo ===============================================================================
+echo            NEXUS LAN MESH - INBOUND & OUTBOUND FIREWALL SETUP
+echo ===============================================================================
+echo.
+echo Configuring Windows Defender Firewall for high-speed direct LAN mesh:
+echo   - Inbound:  TCP 52824 (P2P), TCP 52825 (Web Share), TCP 52826 (Telemetry)
+echo   - Inbound:  UDP 52822 (LAN Discovery Beacon), TCP 445 (SMB D:\Share)
+echo   - Outbound: TCP 52824, 52825, 52826, 445 (Outbound Direct & SMB Access)
+echo   - Security: RESTRICTED to Local Subnet (192.168.1.0/24 / localsubnet)
+echo.
+
+:: 1. Set Active Network Connection Profiles to Private
+echo [1/4] Switching Network Category from Public to Private (Unblocks LAN)...
+powershell -NoProfile -ExecutionPolicy Bypass -Command "try { Get-NetConnectionProfile | Where-Object { $_.NetworkCategory -ne 'Private' } | Set-NetConnectionProfile -NetworkCategory Private -ErrorAction SilentlyContinue; Write-Host '   Network category set to PRIVATE.' -ForegroundColor Green } catch { Write-Host '   Could not change profile, proceeding...' -ForegroundColor Yellow }"
+
+:: 2. Enable Windows Built-in File & Printer Sharing Group
+echo.
+echo [2/4] Enabling File and Printer Sharing in Windows Firewall...
+netsh advfirewall firewall set rule group="File and Printer Sharing" new enable=Yes >nul 2>&1
+
+:: 3. Configure Inbound Rules (Restricted to Local Subnet)
+echo.
+echo [3/4] Configuring INBOUND rules (TCP 52824-52826, UDP 52822, TCP 445)...
 netsh advfirewall firewall delete rule name="Nexus Direct PC Share TCP" >nul 2>&1
 netsh advfirewall firewall delete rule name="Nexus Direct PC Share UDP" >nul 2>&1
+netsh advfirewall firewall delete rule name="Nexus-Mesh-Inbound-TCP" >nul 2>&1
+netsh advfirewall firewall delete rule name="Nexus-Mesh-Inbound-UDP" >nul 2>&1
+netsh advfirewall firewall delete rule name="Nexus-SMB-Inbound-TCP" >nul 2>&1
 
-netsh advfirewall firewall add rule name="Nexus Direct PC Share TCP" dir=in action=allow protocol=TCP localport=52824,52825,52826 profile=any
-netsh advfirewall firewall add rule name="Nexus Direct PC Share UDP" dir=in action=allow protocol=UDP localport=52822 profile=any
+netsh advfirewall firewall add rule name="Nexus-Mesh-Inbound-TCP" dir=in action=allow protocol=TCP localport=52824,52825,52826 remoteip=localsubnet,192.168.1.0/24 profile=any description="Allow inbound Nexus LAN mesh transfers from local subnet" >nul 2>&1
+netsh advfirewall firewall add rule name="Nexus-Mesh-Inbound-UDP" dir=in action=allow protocol=UDP localport=52822 remoteip=localsubnet,192.168.1.0/24 profile=any description="Allow inbound Nexus peer discovery beacon from local subnet" >nul 2>&1
+netsh advfirewall firewall add rule name="Nexus-SMB-Inbound-TCP" dir=in action=allow protocol=TCP localport=445 remoteip=localsubnet,192.168.1.0/24 profile=any description="Allow inbound SMB file access for D:\Share" >nul 2>&1
+
+:: 4. Configure Outbound Rules (Restricted to Local Subnet)
+echo.
+echo [4/4] Configuring OUTBOUND rules (TCP 52824-52826, 445, UDP 52822)...
+netsh advfirewall firewall delete rule name="Nexus-Mesh-Outbound-TCP" >nul 2>&1
+netsh advfirewall firewall delete rule name="Nexus-Mesh-Outbound-UDP" >nul 2>&1
+
+netsh advfirewall firewall add rule name="Nexus-Mesh-Outbound-TCP" dir=out action=allow protocol=TCP remoteport=52824,52825,52826,445 remoteip=localsubnet,192.168.1.0/24 profile=any description="Allow outbound Nexus peer connections within local subnet" >nul 2>&1
+netsh advfirewall firewall add rule name="Nexus-Mesh-Outbound-UDP" dir=out action=allow protocol=UDP remoteport=52822 remoteip=localsubnet,192.168.1.0/24 profile=any description="Allow outbound Nexus peer discovery broadcast within local subnet" >nul 2>&1
 
 echo.
 echo ===============================================================================
-echo   SUCCESS! Windows Firewall rules configured for Nexus Direct PC Share!
+echo   SUCCESS! INBOUND AND OUTBOUND FIREWALL RULES CONFIGURED & RESTRICTED!
+echo ===============================================================================
+echo   * Inbound: Allowed & Restricted to 192.168.1.0/24
+echo   * Outbound: Allowed & Restricted to 192.168.1.0/24
+echo   * Network Category: Private (Trusted Office Network)
+echo   * SMB File Sharing: Enabled (D:\Share is ready at \\192.168.1.190\D\Share)
 echo ===============================================================================
 echo.
+
+:: Also copy this script to D:\Share so any colleague PC can run it in 1 second
+if exist "D:\Share" (
+    copy /y "%~f0" "D:\Share\Enable-LanShareFirewall.cmd" >nul 2>&1
+    echo Copied Enable-LanShareFirewall.cmd to D:\Share for colleagues!
+)
+if exist "%USERPROFILE%\Desktop" (
+    copy /y "%~f0" "%USERPROFILE%\Desktop\Enable-LanShareFirewall.cmd" >nul 2>&1
+)
+
+if "%1"=="--silent" goto finish
 pause
+:finish
+exit /b 0

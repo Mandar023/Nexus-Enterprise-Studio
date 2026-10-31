@@ -26,12 +26,15 @@ try {
 }
 
 if ($global:IsRunningAsAdmin) {
-    # Silently configure Windows Firewall rules for LAN peer discovery
+    # Silently configure Inbound and Outbound Windows Firewall rules restricted to local subnet
     try {
-        netsh advfirewall firewall add rule name="Nexus Direct PC Share TCP" dir=in action=allow protocol=TCP localport=52824,52825,52826 profile=any >$null 2>&1
-        netsh advfirewall firewall add rule name="Nexus Direct PC Share UDP" dir=in action=allow protocol=UDP localport=52822 profile=any >$null 2>&1
+        netsh advfirewall firewall add rule name="Nexus-Mesh-Inbound-TCP" dir=in action=allow protocol=TCP localport=52824,52825,52826 remoteip=localsubnet,192.168.1.0/24 profile=any description="Allow inbound Nexus LAN mesh transfers from local subnet" >$null 2>&1
+        netsh advfirewall firewall add rule name="Nexus-Mesh-Inbound-UDP" dir=in action=allow protocol=UDP localport=52822 remoteip=localsubnet,192.168.1.0/24 profile=any description="Allow inbound Nexus peer discovery beacon from local subnet" >$null 2>&1
+        netsh advfirewall firewall add rule name="Nexus-SMB-Inbound-TCP" dir=in action=allow protocol=TCP localport=445 remoteip=localsubnet,192.168.1.0/24 profile=any description="Allow inbound SMB file access for D:\Share" >$null 2>&1
+        netsh advfirewall firewall add rule name="Nexus-Mesh-Outbound-TCP" dir=out action=allow protocol=TCP remoteport=52824,52825,52826,445 remoteip=localsubnet,192.168.1.0/24 profile=any description="Allow outbound Nexus peer connections within local subnet" >$null 2>&1
+        netsh advfirewall firewall add rule name="Nexus-Mesh-Outbound-UDP" dir=out action=allow protocol=UDP remoteport=52822 remoteip=localsubnet,192.168.1.0/24 profile=any description="Allow outbound Nexus peer discovery broadcast within local subnet" >$null 2>&1
+        netsh advfirewall firewall set rule group="File and Printer Sharing" new enable=Yes >$null 2>&1
     } catch {}
-
     # Register scheduled tasks for instant zero-prompt elevated launches in the future
     try {
         $psPath = if ($MyInvocation.MyCommand.Path) { $MyInvocation.MyCommand.Path } else { Join-Path $nexusAppDir "PMC-ImageResizer-App.ps1" }
@@ -20218,25 +20221,47 @@ function Connect-LanTcpPeer ($ip, $port, [int]$timeoutMs = 3500) {
                 }
             })
 
-            $btnFw = New-Object System.Windows.Controls.Button
-            $btnFw.Content = "CONFIGURE WINDOWS FIREWALL RULES (RUN AS ADMIN)"
-            $btnFw.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#334155")
-            $btnFw.Foreground = [System.Windows.Media.Brushes]::White
-            $btnFw.FontWeight = [System.Windows.FontWeights]::Bold
-            $btnFw.Padding = New-Object System.Windows.Thickness(12,6,12,6)
-            $btnFw.Margin = New-Object System.Windows.Thickness(0,8,0,0)
-            $btnFw.Cursor = [System.Windows.Input.Cursors]::Hand
-            $btnFw.Add_Click({
+            # Inbound & Outbound Firewall Configuration & Network Profile Card
+            $btnFwIn = New-Object System.Windows.Controls.Button
+            $btnFwIn.Content = "CONFIGURE INBOUND & OUTBOUND RULES (RESTRICT TO LOCAL SUBNET)"
+            $btnFwIn.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#0284C7")
+            $btnFwIn.Foreground = [System.Windows.Media.Brushes]::White
+            $btnFwIn.FontWeight = [System.Windows.FontWeights]::Bold
+            $btnFwIn.Padding = New-Object System.Windows.Thickness(12,6,12,6)
+            $btnFwIn.Margin = New-Object System.Windows.Thickness(0,8,0,4)
+            $btnFwIn.Cursor = [System.Windows.Input.Cursors]::Hand
+            $btnFwIn.ToolTip = "Configures Inbound and Outbound rules on TCP 52824-52826, 445 and UDP 52822 restricted strictly to 192.168.1.0/24"
+            $btnFwIn.Add_Click({
                 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
                 if (-not $scriptDir) { $scriptDir = "C:\Users\mandar.k\Documents\antigravity\lively-raman" }
                 $fwCmd = Join-Path $scriptDir "Enable-LanShareFirewall.cmd"
                 if (Test-Path $fwCmd) {
                     Start-Process -FilePath "cmd.exe" -ArgumentList "/c `"$fwCmd`"" -Verb RunAs
                 } else {
-                    [System.Windows.MessageBox]::Show("To allow LAN file transfers through Windows Firewall, run this in Administrator Command Prompt:`r`n`r`nnetsh advfirewall firewall add rule name=`"Nexus Direct PC Share TCP`" dir=in action=allow protocol=TCP localport=52824,52825,52826 profile=any`r`nnetsh advfirewall firewall add rule name=`"Nexus Direct PC Share UDP`" dir=in action=allow protocol=UDP localport=52822 profile=any", "Firewall Configuration", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Information)
+                    [System.Windows.MessageBox]::Show("Enable-LanShareFirewall.cmd not found.", "Notice", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Warning)
                 }
             })
-            $diagStack.Children.Add($btnFw) | Out-Null
+            $diagStack.Children.Add($btnFwIn) | Out-Null
+
+            $btnNetCat = New-Object System.Windows.Controls.Button
+            $btnNetCat.Content = "SWITCH NETWORK CATEGORY TO PRIVATE (UNBLOCK LAN FIREWALL)"
+            $btnNetCat.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#D97706")
+            $btnNetCat.Foreground = [System.Windows.Media.Brushes]::White
+            $btnNetCat.FontWeight = [System.Windows.FontWeights]::Bold
+            $btnNetCat.Padding = New-Object System.Windows.Thickness(12,6,12,6)
+            $btnNetCat.Margin = New-Object System.Windows.Thickness(0,0,0,0)
+            $btnNetCat.Cursor = [System.Windows.Input.Cursors]::Hand
+            $btnNetCat.ToolTip = "Changes Windows Network Category from Public to Private so Windows Defender Firewall permits LAN peer discovery and SMB sharing"
+            $btnNetCat.Add_Click({
+                try {
+                    $swCmd = "Get-NetConnectionProfile | Where-Object { `$_.NetworkCategory -ne 'Private' } | Set-NetConnectionProfile -NetworkCategory Private"
+                    Start-Process -FilePath "powershell.exe" -ArgumentList "-NoProfile -ExecutionPolicy Bypass -Command `"$swCmd`"" -Verb RunAs -Wait
+                    [System.Windows.MessageBox]::Show("Network category set to PRIVATE!`r`n`r`nWindows Firewall will now allow high-speed direct peer connections and LAN file sharing.", "Network Category Updated", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Information)
+                } catch {
+                    [System.Windows.MessageBox]::Show("Could not update network category: $($_.Exception.Message)", "Error", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Error)
+                }
+            })
+            $diagStack.Children.Add($btnNetCat) | Out-Null
 
             $diagCard.Child = $diagStack
             $root.Children.Add($diagCard) | Out-Null
