@@ -1,19 +1,25 @@
 ---
 name: Feature Request
-about: Suggest an idea or new feature for Nexus Optimizer
-title: '[ENHANCEMENT] '
+about: Suggest a new feature for Nexus Enterprise Studio
+title: '[FEATURE] '
 labels: enhancement
-assignees: ''
+assignees: Mandar023
 ---
 
-**Is your feature request related to a problem? Please describe.**
-A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]
+## Feature Summary
+A clear description of what you want to happen.
 
-**Describe the solution you'd like**
-A clear and concise description of what you want to happen.
+## Problem It Solves
+What problem does this feature address?
 
-**Describe alternatives you've considered**
-A clear and concise description of any alternative solutions or features you've considered.
+## Proposed Solution
+Describe how you'd like this implemented.
 
-**Additional context**
-Add any other context, mockups, or screenshots about the feature request here.
+## Alternatives Considered
+Any alternative solutions you've considered.
+
+## Additional Context
+Any other context, mockups, or screenshots.
+
+---
+> If this feature is valuable to you, consider [sponsoring the project](https://github.com/sponsors/Mandar023)!
