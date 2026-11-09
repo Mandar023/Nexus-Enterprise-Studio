@@ -1,28 +1,29 @@
 ---
 name: Bug Report
-about: Create a report to help us improve Nexus Optimizer
+about: Report a bug to help us improve Nexus Enterprise Studio
 title: '[BUG] '
 labels: bug
-assignees: ''
+assignees: Mandar023
 ---
 
-**Describe the bug**
-A clear and concise description of what the bug is.
+## Bug Description
+A clear description of what the bug is.
 
-**To Reproduce**
-Steps to reproduce the behavior:
-1. Open '...'
-2. Click on '....'
-3. Scroll down to '....'
-4. See error
+## Steps to Reproduce
+1. Go to '...'
+2. Click on '...'
+3. See error
 
-**Expected behavior**
-A clear and concise description of what you expected to happen.
+## Expected Behavior
+What you expected to happen.
 
-**Screenshots / Logs**
-If applicable, add screenshots or console output to help explain your problem.
+## Actual Behavior
+What actually happened.
 
-**Environment:**
-- OS: [e.g. Windows 11, Windows Server 2022]
-- PowerShell Version: [e.g. 5.1, 7.4]
-- App Version: [e.g. 5.5.0]
+## Environment
+- OS: Windows 10 / 11
+- Version: [e.g. 5.5.0]
+- Architecture: x64
+
+## Screenshots
+If applicable, add screenshots.
