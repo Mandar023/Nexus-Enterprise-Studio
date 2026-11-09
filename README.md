@@ -1,4 +1,5 @@
 # Nexus Enterprise Studio
+[![GitHub Sponsors](https://img.shields.io/github/sponsors/Mandar023?style=flat&logo=github&logoColor=white&label=Sponsor&color=EA4AAA)](https://github.com/sponsors/Mandar023)
 
 [![Platform: Windows](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011-blue.svg?logo=windows)](https://microsoft.com)
 [![Architecture: x64](https://img.shields.io/badge/Architecture-x64-success.svg)]()
@@ -166,3 +167,20 @@ Copy `sql-connections.sample.json` to `sql-connections.json` and customize your 
 ## License
 
 This project is licensed under the [MIT License](LICENSE).
+
+
+---
+
+## ❤️ Support This Project
+
+**Nexus Enterprise Studio** is free and open-source. If it saves your team time or powers your enterprise workflows, please consider sponsoring its development!
+
+[![Sponsor on GitHub](https://img.shields.io/badge/Sponsor-%E2%9D%A4-EA4AAA?style=for-the-badge&logo=github)](https://github.com/sponsors/Mandar023)
+
+Your support funds:
+- 🐛 Bug fixes and stability improvements
+- ✨ New features and enterprise integrations  
+- 📖 Documentation and tutorials
+- 🔧 Ongoing maintenance and support
+
+> Every contribution, big or small, helps keep this project alive and growing. Thank you! 🙏
